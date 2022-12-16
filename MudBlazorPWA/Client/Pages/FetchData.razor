@@ -1,6 +1,6 @@
 ﻿@page "/fetchdata"
 @using MudBlazorPWA.Shared
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 
 
 
@@ -37,9 +37,11 @@ else
 
 @code {
     private WeatherForecast[]? _forecasts;
+    private HttpClient _httpClient = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        _forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
+        _httpClient = HttpClientFactory.CreateClient("PwaServer");
+        _forecasts = await _httpClient.GetFromJsonAsync<WeatherForecast[]>("WeatherForecast");
     }
 }
