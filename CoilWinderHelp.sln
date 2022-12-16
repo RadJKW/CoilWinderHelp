@@ -5,11 +5,11 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoilWinderHelp.Server", "CoilWinderHelp.Server\CoilWinderHelp.Server.csproj", "{3926DCA6-D40A-4D4B-82FE-835F5824FC8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudCoilWinderHelp.Client", "MudCoilWinderHelp\Client\MudCoilWinderHelp.Client.csproj", "{30B805D4-45AF-4CEF-BB1B-C8A1D5951674}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MudBlazorPWA.Server", "MudBlazorPWA\Server\MudBlazorPWA.Server.csproj", "{C74C81D9-E623-4DA7-8136-0AF0E4669528}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudCoilWinderHelp.Server", "MudCoilWinderHelp\Server\MudCoilWinderHelp.Server.csproj", "{1A727EFD-86AB-4EDF-8674-EBB0B87A6F65}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MudBlazorPWA.Shared", "MudBlazorPWA\Shared\MudBlazorPWA.Shared.csproj", "{3DC36EA3-5F6A-4827-93DF-73ABCFCCDA5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MudCoilWinderHelp.Shared", "MudCoilWinderHelp\Shared\MudCoilWinderHelp.Shared.csproj", "{E2971CA1-4EE9-4F14-9136-6FE0BD0C4B2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MudBlazorPWA.Client", "MudBlazorPWA\Client\MudBlazorPWA.Client.csproj", "{E88FF389-67DF-4C54-9FE6-34AF3CA5ABCF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,18 +21,18 @@ Global
 		{3926DCA6-D40A-4D4B-82FE-835F5824FC8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3926DCA6-D40A-4D4B-82FE-835F5824FC8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3926DCA6-D40A-4D4B-82FE-835F5824FC8C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{30B805D4-45AF-4CEF-BB1B-C8A1D5951674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{30B805D4-45AF-4CEF-BB1B-C8A1D5951674}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{30B805D4-45AF-4CEF-BB1B-C8A1D5951674}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{30B805D4-45AF-4CEF-BB1B-C8A1D5951674}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A727EFD-86AB-4EDF-8674-EBB0B87A6F65}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A727EFD-86AB-4EDF-8674-EBB0B87A6F65}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A727EFD-86AB-4EDF-8674-EBB0B87A6F65}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A727EFD-86AB-4EDF-8674-EBB0B87A6F65}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E2971CA1-4EE9-4F14-9136-6FE0BD0C4B2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E2971CA1-4EE9-4F14-9136-6FE0BD0C4B2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E2971CA1-4EE9-4F14-9136-6FE0BD0C4B2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E2971CA1-4EE9-4F14-9136-6FE0BD0C4B2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C74C81D9-E623-4DA7-8136-0AF0E4669528}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C74C81D9-E623-4DA7-8136-0AF0E4669528}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C74C81D9-E623-4DA7-8136-0AF0E4669528}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C74C81D9-E623-4DA7-8136-0AF0E4669528}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DC36EA3-5F6A-4827-93DF-73ABCFCCDA5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DC36EA3-5F6A-4827-93DF-73ABCFCCDA5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DC36EA3-5F6A-4827-93DF-73ABCFCCDA5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DC36EA3-5F6A-4827-93DF-73ABCFCCDA5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E88FF389-67DF-4C54-9FE6-34AF3CA5ABCF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E88FF389-67DF-4C54-9FE6-34AF3CA5ABCF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E88FF389-67DF-4C54-9FE6-34AF3CA5ABCF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E88FF389-67DF-4C54-9FE6-34AF3CA5ABCF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
