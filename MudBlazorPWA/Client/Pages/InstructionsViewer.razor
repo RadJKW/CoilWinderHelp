@@ -4,12 +4,7 @@
 
 <h1>File Explorer</h1>
 
-<MudPaper>
-    <MudText>@FileServerResponse</MudText>
-</MudPaper>
-<MudPaper Class="py-2">
-    <MudText>@HttpDirectoryNavigationUrl</MudText>
-</MudPaper>
+
 <!-- Breadcrumb -->
 <div class="py-2 border-bottom border-dark">
     @foreach (var folder in Breadcrumb!)
@@ -20,22 +15,26 @@
 </div>
 
 <!-- Navigation buttons -->
-<div class="py-2">
-    @foreach (var folder in CurrentFolder!.SubFolders)
+<div class="my-2">
+    @foreach (var folder in CurrentFolder!.SubFolders.Where(folder => folder!.Name is not ".."))
     {
-        <MudButton OnClick="@(() => GoToFolder(folder))">@folder!.Name</MudButton>
+        <MudButton OnClick="@(() => GoToFolder(folder))" Variant="@Variant.Outlined" Color="@Color.Secondary">@folder!.Name</MudButton>
     }
+
     @foreach (var file in CurrentFolder.Files)
     {
-        <MudButton OnClick="@(() => ViewFile(file))">@file.Replace("%20", " ")</MudButton>
+        if (!IsFileVisible)
+        {
+            <MudButton OnClick="@(() => ViewFile(file))" Variant="Variant.Filled" Color="Color.Info">@file.Replace("%20", " ")</MudButton>
+        }
     }
 </div>
+
 
 <!-- File view -->
 @if (CurrentFile != null)
 {
     <div>
-        <h3>@CurrentFile</h3>
         <button @onclick="CloseFile">Close</button>
     </div>
 
@@ -69,7 +68,7 @@
     
     private string? FileServerResponse { get; set; }
     
-    private string? HttpDirectoryNavigationUrl { get; set; }
+    // private string? HttpDirectoryNavigationUrl { get; set; }
     
     private RenderFragment? PdfViewer { get; set; }
 
@@ -89,7 +88,7 @@
         CurrentFile = file.Replace("%20", " ");
         IsFileVisible = true;
         
-        var fileUrl = $"{FileServer!.BaseAddress}{HttpDirectoryNavigationUrl}{file}";
+        var fileUrl = $"{FileServer!.BaseAddress}{file}";
         // Create the PDF viewer
         PdfViewer =
             @<object
@@ -115,8 +114,7 @@
     {
         CurrentFolder = folder;
         Breadcrumb!.Add(folder!);
-        HttpDirectoryNavigationUrl = Breadcrumb.Aggregate("", (source, acc) => source + acc.Path);
-        var response = await FileServer!.GetAsync(HttpDirectoryNavigationUrl);
+        var response = await FileServer!.GetAsync(CurrentFolder!.Path);
         FileServerResponse = await response.Content.ReadAsStringAsync();
         ParseFolder(folder, FileServerResponse);
     }
@@ -140,20 +138,21 @@
                 continue;
 
             var link = li.SelectSingleNode("a");
-            var name = link.InnerText.Replace("&#47;", "");
+            var name = link.InnerText.Replace("&#47;", "").Replace("#38;", "");
             var path = link.GetAttributeValue("href", "");
 
             if (path.EndsWith("&#47;"))
             {
-                path = path.Replace("\\", "").Replace("&#47;", "");
+                path = path.Replace("&#47;", "/");
                 folder.AddSubFolder(new Folder(name, path));
             }
             else
             {
-                if (path.EndsWith(".pdf") || path.EndsWith(".mp4"))
-                {
-                    folder.AddFile(path);
-                }
+                if (!path.EndsWith(".pdf") && !path.EndsWith(".mp4"))
+                    continue;
+
+                path = path.Replace("&#47;", "/");
+                folder.AddFile(path);
             }
         }
     }
