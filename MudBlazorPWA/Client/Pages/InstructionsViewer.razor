@@ -91,14 +91,7 @@
         var fileUrl = $"{FileServer!.BaseAddress}{file}";
         // Create the PDF viewer
         PdfViewer =
-            @<object
-                 data="@fileUrl"
-                 type="application/pdf"
-                 width="100%"
-                 height="100%"
-                 toolbar="0">
-                <p>This browser does not support PDFs. Please download the PDF to view it: <a href="@fileUrl">Download PDF</a>.</p>
-        </object>
+            @<iframe src="@fileUrl" width="100%" height="100%"></iframe>
     ;
 
     }

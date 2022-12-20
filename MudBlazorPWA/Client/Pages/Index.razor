@@ -1,8 +1,71 @@
 ﻿@page "/"
-
+@inject IHttpClientFactory HttpClientFactory
 <PageTitle>Index</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Hello, world!</MudText>
-<MudText Class="mb-8">Welcome to your new app, powered by MudBlazor!</MudText>
-<MudAlert Severity="Severity.Normal">You can find documentation and examples on our website here: <MudLink Href="https://mudblazor.com" Typo="Typo.body2" Color="Color.Inherit"><b>www.mudblazor.com</b></MudLink></MudAlert>
+<div class="row my-4 mx-auto d-flex justify-center">
+    
+<MudButtonGroup Variant="Variant.Outlined" VerticalAlign="false" Size="Size.Large" >
+    <MudButton OnClick="@(async ()=> {MediaUrl = _pdfLink; await GetFileFromApi();})">PDF</MudButton>
+    <MudButton OnClick="@(async ()=> {MediaUrl = _videoLink; await GetFileFromApi();})">VIDEO</MudButton>
+</MudButtonGroup>
+</div>
 
+<MudPaper Class="col-8 mx-auto justify-center align-content-center align-center" Style="height: 85dvh; width: 85dvw;">
+    @Media
+</MudPaper>
+
+@code
+{
+    private HttpClient? FileServer { get; set; }
+    private RenderFragment? Media { get; set; }
+    private string? Base64Document { get; set; }
+    private string? ContentType { get; set; }
+    private string? IframeSrc { get; set; }
+    private string? VideoApiUrl { get; set; }
+    private string? MediaUrl { get; set; }
+    private string _pdfLink = "D2%2520Pad%2F01.SETUP%2FMACHINE%2520CONTROLS%2FSECTION%2520D--%2520MACHINE%2520CONTROLS%2520Rev%25203.pdf";
+    private string _videoLink = "TrainingVideos%2FD1%2520Pole%2FWINDING%2520SPEC%2520DOWNLOAD%2520Z80.mp4";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        FileServer = HttpClientFactory.CreateClient("ApiFileServer");
+    }
+
+    private async Task GetFileFromApi()
+    {
+        // Make an HTTP request to the API endpoint that returns the PDF as a byte array
+        var response = await FileServer!.GetAsync($"file/{MediaUrl}");
+        Console.Write($"Response status code: {response.StatusCode}");
+        ContentType = response.Content.Headers.ContentType!.MediaType;
+
+        // if the content type is pdf, set Media to iframe with the src = @($"data:{ContentType};base64,{Base64Document}")
+
+        switch (ContentType)
+        {
+            case "application/pdf":
+            {
+                
+                Base64Document = Convert.ToBase64String(await response.Content.ReadAsByteArrayAsync());
+                IframeSrc = $"data:{ContentType};base64,{Base64Document}";
+                Media = @<iframe src="@IframeSrc" style="width:100%; height:100%;"></iframe>;
+                break;
+            }
+            case "video/mp4":
+            {
+                VideoApiUrl = $"{FileServer!.BaseAddress}video/{MediaUrl}";
+                Console.WriteLine(VideoApiUrl);
+                Media = @<video controls buffered="true" preload="auto" style="width:100%; height:100%;">
+                            <source src="@VideoApiUrl" type="video/mp4">
+                        </video>; 
+                           
+                break;
+                
+            }
+
+        }
+
+
+    }
+
+}
