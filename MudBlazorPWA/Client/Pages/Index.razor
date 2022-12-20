@@ -23,19 +23,21 @@
     private string? IframeSrc { get; set; }
     private string? VideoApiUrl { get; set; }
     private string? MediaUrl { get; set; }
-    private string _pdfLink = "D2%2520Pad%2F01.SETUP%2FMACHINE%2520CONTROLS%2FSECTION%2520D--%2520MACHINE%2520CONTROLS%2520Rev%25203.pdf";
-    private string _videoLink = "TrainingVideos%2FD1%2520Pole%2FWINDING%2520SPEC%2520DOWNLOAD%2520Z80.mp4";
+    // private string _pdfLink = "D2%2520Pad%2F01.SETUP%2FMACHINE%2520CONTROLS%2FSECTION%2520D--%2520MACHINE%2520CONTROLS%2520Rev%25203.pdf";
+    // private string _videoLink = "TrainingVideos%2FD1%2520Pole%2FWINDING%2520SPEC%2520DOWNLOAD%2520Z80.mp4";
+    private string _pdfLink = "D2%20Pad/01.SETUP/MACHINE%20CONTROLS/SECTION%20D--%20MACHINE%20CONTROLS%20Rev%203.pdf";
+    private string _videoLink = "TrainingVideos/D1%20Pole/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        FileServer = HttpClientFactory.CreateClient("ApiFileServer");
+        FileServer = HttpClientFactory.CreateClient("FileServer");
     }
 
     private async Task GetFileFromApi()
     {
         // Make an HTTP request to the API endpoint that returns the PDF as a byte array
-        var response = await FileServer!.GetAsync($"file/{MediaUrl}");
+        var response = await FileServer!.GetAsync(MediaUrl);
         Console.Write($"Response status code: {response.StatusCode}");
         ContentType = response.Content.Headers.ContentType!.MediaType;
 
@@ -53,7 +55,7 @@
             }
             case "video/mp4":
             {
-                VideoApiUrl = $"{FileServer!.BaseAddress}video/{MediaUrl}";
+                VideoApiUrl = $"{FileServer!.BaseAddress}{MediaUrl}";
                 Console.WriteLine(VideoApiUrl);
                 Media = @<video controls buffered="true" preload="auto" style="width:100%; height:100%;">
                             <source src="@VideoApiUrl" type="video/mp4">
