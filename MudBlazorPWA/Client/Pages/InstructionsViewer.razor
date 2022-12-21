@@ -9,23 +9,29 @@
 <div class="py-2 border-bottom border-dark">
     @foreach (var folder in Breadcrumb!)
     {
-        <MudButton Class="py-1" OnClick="@(() => GoToParentFolder(folder))" Variant="Variant.Outlined" Size="Size.Small">@folder.Name</MudButton>
-        <span>/</span>
+            <MudButton  Class="py-1" OnClick="@(() => GoToParentFolder(folder))" Variant="Variant.Outlined" Size="Size.Small">@folder.Name</MudButton>
+            <span class="px-1">/</span>
+    }        
+    @if (IsFileVisible)
+    {
+        <MudButton OnClick="@(CloseFile)" Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Close</MudButton>
     }
 </div>
 
 <!-- Navigation buttons -->
 <div class="my-2">
-    @foreach (var folder in CurrentFolder!.SubFolders.Where(folder => folder!.Name is not ".."))
+    @if (!IsFileVisible)
     {
-        <MudButton OnClick="@(() => GoToFolder(folder))" Variant="@Variant.Outlined" Color="@Color.Secondary">@folder!.Name</MudButton>
-    }
 
-    @foreach (var file in CurrentFolder.Files)
-    {
-        if (!IsFileVisible)
+        @foreach (var folder in CurrentFolder!.SubFolders.Where(folder => folder!.Name is not ".."))
         {
-            <MudButton OnClick="@(() => ViewFile(file))" Variant="Variant.Filled" Color="Color.Info">@file.Replace("%20", " ")</MudButton>
+                <MudButton OnClick="@(() => GoToFolder(folder))" Variant="@Variant.Outlined" Color="@Color.Secondary">@folder!.Name</MudButton>
+        }
+
+
+        @foreach (var file in CurrentFolder.Files.Where(file => !IsFileVisible))
+        {
+                <MudButton OnClick="@(() => ViewFile(file))" Variant="@Variant.Filled" Color="@Color.Info">@file.Replace("%20", " ")</MudButton>
         }
     }
 </div>
@@ -34,17 +40,25 @@
 <!-- File view -->
 @if (CurrentFile != null)
 {
-    <div>
-        <button @onclick="CloseFile">Close</button>
-    </div>
-
-    
     <!-- PDF Viewer -->
-    <!-- Make the pdf viewer fill the remainder of the pages height --> 
-    if (IsFileVisible)
+        <!-- Make the pdf viewer fill the remainder of the pages height --> 
+    @if (IsFileVisible)
     {
-        <div style="height: calc(100vh - 25vh)">
-            @PdfViewer
+        <div class="col-10 mx-auto d-flex justify-center pt-4" style="height: calc(100vh - 25vh)">
+
+            @if (PdfViewer is null)
+            {
+
+                @MediaPlayer
+            }                
+
+
+
+            @if (MediaPlayer is null)
+            {
+                @PdfViewer
+            }
+
         </div>
 
     }
@@ -53,7 +67,7 @@
 }
 
 @code {
-    
+
     // the HttpClient used by this component
     private HttpClient? FileServer { get; set; }
     // The base folder of the file directory
@@ -65,12 +79,13 @@
     // The file that the user is currently viewing, or null if no file is being viewed
     private string? CurrentFile { get; set; }
     private bool IsFileVisible { get; set; }
-    
+
     private string? FileServerResponse { get; set; }
-    
+
     // private string? HttpDirectoryNavigationUrl { get; set; }
-    
+
     private RenderFragment? PdfViewer { get; set; }
+    private RenderFragment? MediaPlayer { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -79,20 +94,38 @@
         BaseFolder = new Folder("Winding Practices", "/");
         Breadcrumb = new List<Folder>();
         await GoToFolder(BaseFolder);
-        
+
     }
-    
+
     private void ViewFile(string file)
     {
-    // Set the current file and visibility
-        CurrentFile = file.Replace("%20", " ");
+        // Set the current file and visibility
+        CurrentFile = file;
         IsFileVisible = true;
-        
-        var fileUrl = $"{FileServer!.BaseAddress}{file}";
+
+        var fileUrl = $"{FileServer!.BaseAddress}{CurrentFolder!.Path}/{file}";
         // Create the PDF viewer
-        PdfViewer =
-            @<iframe src="@fileUrl" width="100%" height="100%"></iframe>
-    ;
+        // get the file type of the file by extracting the file extension from the end file
+
+        var fileType = file.Split('.').Last();
+        switch (fileType)
+        {
+            case "pdf":
+                {
+                    PdfViewer = @<iframe src="@(fileUrl)" width="100%" height="100%"></iframe>;
+                    MediaPlayer = null;
+                    break;
+                }
+            case "mp4":
+                {
+                    PdfViewer = null;
+                    MediaPlayer = @<video style="object-fit: fill)" controls="controls" buffered="true" preload="auto">
+                            <source src="@fileUrl" type="video/mp4"/>
+    </video>;
+                    break;
+                }
+
+        }
 
     }
 
@@ -144,12 +177,11 @@
                 if (!path.EndsWith(".pdf") && !path.EndsWith(".mp4"))
                     continue;
 
-                path = path.Replace("&#47;", "/");
-                folder.AddFile(path);
+                folder.AddFile(name);
             }
         }
     }
-    
+
     private Task GoToParentFolder(Folder? folder)
     {
         var index = Breadcrumb!.IndexOf(folder!);
@@ -158,7 +190,7 @@
         //InvokeAsync(StateHasChanged);
         return Task.CompletedTask;
     }
-    
+
     public class Folder
     {
         public string Name { get; set; }
@@ -184,8 +216,8 @@
             this.Files.Add(fileName);
         }
     }
-  
-    
+
+
 
 
 }

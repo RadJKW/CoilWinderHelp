@@ -12,9 +12,19 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 // builder.Services.AddScoped<IJSRuntime, JSRuntime>();
 
 //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
-builder.Services.AddHttpClient("PwaServer", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
-builder.Services.AddHttpClient("FileServer", client => client.BaseAddress = new Uri("http://localhost:3000"));
-builder.Services.AddHttpClient("ApiFileServer", client => client.BaseAddress = new Uri($"https://localhost:7188/"));
+builder.Services
+    .AddHttpClient("PwaServer", client => client
+        .BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+builder.Services
+    .AddHttpClient("FileServer", client => client
+        .BaseAddress = new Uri("http://192.168.0.10:3000"));
+builder.Services
+    .AddHttpClient("ApiFileServer", client => client
+        .BaseAddress = new Uri($"https://localhost:7188/file/"));
+builder.Services
+    .AddHttpClient("ApiVideoServer", client => client
+        .BaseAddress = new Uri($"https://localhost:7188/video/"));
+
 
 builder.Services.AddMudServices();
 

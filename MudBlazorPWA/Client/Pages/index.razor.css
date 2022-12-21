@@ -1,0 +1,18 @@
+﻿#gauge-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 5rem;
+    justify-content: center;
+    align-items: center;
+    margin: 0 0 1rem 0;
+}
+.gauge-button-div{
+    /* make this div a column */
+    display: flex;
+    flex-grow: 0;
+    flex-basis: 20%;
+    padding: 10px;
+    justify-content: center;
+    background-color: #0a53be;
+}

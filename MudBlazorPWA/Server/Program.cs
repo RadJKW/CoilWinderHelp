@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +11,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddDirectoryBrowser();
 
 var app = builder.Build();
 
@@ -29,6 +33,13 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseDirectoryBrowser(new DirectoryBrowserOptions
+{
+    FileProvider = new PhysicalFileProvider(@"B:\CoilWinderTraining-Edit\"),
+    RequestPath = new PathString("/CoilWinderTraining")
+
+});
 
 
 app.MapRazorPages();
