@@ -16,3 +16,9 @@
     justify-content: center;
     background-color: #0a53be;
 }
+
+#videoPlayer {
+    height:auto;
+    width: auto;
+    max-width: 1280px;
+}

@@ -6,62 +6,61 @@
 <div class="row my-4 mx-auto d-flex justify-center">
 
     <MudButtonGroup OverrideStyles="false">
-        <MudButton
-            OnClick="@(async () => {MediaUrl = _pdfLink.Replace("/", "%2F"); await GetFileFromApi(MediaType.Pdf);})"
-            Variant="Variant.Outlined"
-            Size="Size.Large"
-            Color="Color.Info"
-            Style="width: 100px">
+        <MudButton OnClick="@(async () => {MediaUrl = _pdfLink; await GetFileFromApi(MediaType.Pdf);})"
+                   Variant="Variant.Outlined"
+                   Size="Size.Large"
+                   Color="Color.Info"
+                   Style="width: 100px">
             PDF
         </MudButton>
-        <MudButton
-            OnClick="@(async () => {MediaUrl = _videoLink.Replace("/", "%2F"); await GetFileFromApi(MediaType.Video);})"
-            Variant="Variant.Outlined"
-            Size="Size.Large"
-            Color="Color.Tertiary"
-            Style="width: 100px">
+        <MudButton OnClick="@(async () => {MediaUrl = _videoLink; await GetFileFromApi(MediaType.Video);})"
+                   Variant="Variant.Outlined"
+                   Size="Size.Large"
+                   Color="Color.Tertiary"
+                   Style="width: 100px">
             VIDEO
         </MudButton>
+        <MudButton Variant="Variant.Text"
+                   Size="Size.Large"
+                   Color="Color.Tertiary"
+                   Style="width: 100px"
+                    Disabled="true">
+        </MudButton>
+        <MudButton OnClick="JsPlayVideo"
+            Variant="Variant.Outlined"
+                   Size="Size.Large"
+                   Color="Color.Tertiary"
+                   Style="width: 100px">
+                   Play
+        </MudButton>
+        <MudButton OnClick="JsPauseVideo"
+            Variant="Variant.Outlined"
+                   Size="Size.Large"
+                   Color="Color.Tertiary"
+                   Style="width: 100px">
+                   Pause
+        </MudButton>
+        <MudButton OnClick="JsRestartVideo"
+            Variant="Variant.Outlined"
+                   Size="Size.Large"
+                   Color="Color.Tertiary"
+                   Style="width: 100px">
+                   Restart
+        </MudButton>
+        <MudButton OnClick="@(() => JsSeekVideo(70))"
+            Variant="Variant.Outlined"
+                   Size="Size.Large"
+                   Color="Color.Tertiary"
+                   Style="width: 100px">
+                   Seek
+        </MudButton>
+        
     </MudButtonGroup>
+  
 </div>
 
 <MudPaper Class="col-8 mx-auto justify-center d-flex align-content-center align-center" Style="height: 85dvh; width: 85dvw;">
     @Media
-
-    @*<div id="gauge-row" class="row" style="width: 100%;">
-    
-    
-        <div class="col-6">
-            <igc-radial-gauge
-                id="rg"
-                height="400px"
-                width="400px"
-                value="25"
-                interval="5"
-                minimum-value="0"
-                maximum-value="100">
-                <igc-radial-gauge-range
-                    start-value="0"
-                    end-value="30"
-                    brush="red">
-                </igc-radial-gauge-range>
-                <igc-radial-gauge-range
-                    start-value="30"
-                    end-value="60"
-                    brush="yellow">
-                </igc-radial-gauge-range>
-                <igc-radial-gauge-range
-                    start-value="60"
-                    end-value="100"
-                    brush="green">
-                </igc-radial-gauge-range>
-            </igc-radial-gauge>
-        </div>
-    
-        <div class="gauge-button-div">
-            <MudButton Size="Size.Large" Variant="Variant.Filled" OnClick="UpdateGaugeValue" Color="Color.Secondary">Update Guage</MudButton>
-        </div>
-    </div>*@
 </MudPaper>
 
 @code
@@ -80,16 +79,14 @@
     private string? IframeSrc { get; set; }
     private string? VideoApiUrl { get; set; }
     private string? MediaUrl { get; set; }
-    // private string _pdfLink = "D2%2520Pad%2F01.SETUP%2FMACHINE%2520CONTROLS%2FSECTION%2520D--%2520MACHINE%2520CONTROLS%2520Rev%25203.pdf";
-    // private string _videoLink = "TrainingVideos%2FD1%2520Pole%2FWINDING%2520SPEC%2520DOWNLOAD%2520Z80.mp4";
     private string _pdfLink = "D2%20Pad/01.SETUP/MACHINE%20CONTROLS/SECTION%20D--%20MACHINE%20CONTROLS%20Rev%203.pdf";
     private string _videoLink = "TrainingVideos/D1%20Pole/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        FileServer = HttpClientFactory.CreateClient("ApiFileServer");
-        VideoServer = HttpClientFactory.CreateClient("ApiVideoServer");
+        FileServer = HttpClientFactory.CreateClient("FileServer");
+        VideoServer = HttpClientFactory.CreateClient("FileServer");
 
     }
 
@@ -108,8 +105,8 @@
             MediaType.Pdf => await FileServer!.GetAsync(MediaUrl),
             MediaType.Video => await VideoServer!.GetAsync(MediaUrl),
             _ => throw new ArgumentOutOfRangeException(nameof(media), media, null)
-            };
-        
+        };
+
         // Make an HTTP request to the API endpoint that returns the PDF as a byte array
         Console.Write($"Response status code: {response.StatusCode}");
         ContentType = response.Content.Headers.ContentType!.MediaType;
@@ -119,24 +116,25 @@
         switch (ContentType)
         {
             case "application/pdf":
-            {
+                {
 
-                Base64Document = Convert.ToBase64String(await response.Content.ReadAsByteArrayAsync());
-                IframeSrc = $"data:{ContentType};base64,{Base64Document}";
-                Media = @<iframe src="@IframeSrc" style="width:100%; height:100%;"></iframe>;
-                break;
-            }
+                    Base64Document = Convert.ToBase64String(await response.Content.ReadAsByteArrayAsync());
+                    IframeSrc = $"data:{ContentType};base64,{Base64Document}";
+                    Media = @<iframe src="@IframeSrc" style="width:100%; height:100%;"></iframe>;
+                    break;
+                }
             case "video/mp4":
-            {
-                VideoApiUrl = $"{FileServer!.BaseAddress}{MediaUrl}";
-                Console.WriteLine(VideoApiUrl);
-                Media = @<video controls width="1280" height="720" preload="auto" buffered="true">
-                            <source src="@VideoApiUrl" type="video/mp4">
-                        </video>;
+                {
+                    VideoApiUrl = $"{FileServer!.BaseAddress}{MediaUrl}";
+                    Console.WriteLine(VideoApiUrl);
+                    Media = @<video id="videoPlayer" preload="auto" buffered="true">
+        <source src="@VideoApiUrl" type="video/mp4">
+        </video>
+    ;
 
-                break;
+                    break;
 
-            }
+                }
 
         }
 
@@ -146,6 +144,26 @@
     private async Task UpdateGaugeValue()
     {
         await JsRuntime.InvokeVoidAsync("updateValue", 50);
+    }
+
+    private async Task JsPauseVideo()
+    {
+        await JsRuntime.InvokeVoidAsync("pauseVideo");
+    }
+
+    private async Task JsRestartVideo()
+    {
+        await JsRuntime.InvokeVoidAsync("restartVideo");
+    }
+    
+    private async Task JsPlayVideo()
+    {
+        await JsRuntime.InvokeVoidAsync("playVideo");
+    }
+    
+    private async Task JsSeekVideo( int time)
+    {
+        await JsRuntime.InvokeVoidAsync("seekVideo", time);
     }
 
 }

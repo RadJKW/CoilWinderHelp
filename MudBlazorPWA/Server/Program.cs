@@ -11,7 +11,6 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddDirectoryBrowser();
 
 var app = builder.Build();
 
@@ -34,12 +33,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseDirectoryBrowser(new DirectoryBrowserOptions
-{
-    FileProvider = new PhysicalFileProvider(@"B:\CoilWinderTraining-Edit\"),
-    RequestPath = new PathString("/CoilWinderTraining")
-
-});
 
 
 app.MapRazorPages();

@@ -17,7 +17,7 @@ builder.Services
         .BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 builder.Services
     .AddHttpClient("FileServer", client => client
-        .BaseAddress = new Uri("http://192.168.0.10:3000"));
+        .BaseAddress = new Uri("http://192.168.0.15:3000"));
 builder.Services
     .AddHttpClient("ApiFileServer", client => client
         .BaseAddress = new Uri($"https://localhost:7188/file/"));
