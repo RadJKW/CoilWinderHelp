@@ -200,20 +200,20 @@
 
         public Folder(string name, string? path = null)
         {
-            this.Name = name;
-            this.Path = path ?? name;
-            this.SubFolders = new List<Folder?>();
-            this.Files = new List<string>();
+            Name = name;
+            Path = path ?? name;
+            SubFolders = new List<Folder?>();
+            Files = new List<string>();
         }
 
         public void AddSubFolder(Folder? folder)
         {
-            this.SubFolders.Add(folder);
+            SubFolders.Add(folder);
         }
 
         public void AddFile(string fileName)
         {
-            this.Files.Add(fileName);
+            Files.Add(fileName);
         }
     }
 

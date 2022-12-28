@@ -18,7 +18,6 @@
 }
 
 #videoPlayer {
-    height:auto;
-    width: auto;
-    max-width: 1280px;
+    height:480px;
+    width:auto;
 }
