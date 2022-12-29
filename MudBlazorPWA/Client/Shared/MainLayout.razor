@@ -30,7 +30,7 @@
         </MudIconButton>
     </MudAppBar>
 
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="6" Variant="DrawerVariant.Responsive">
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="6" Variant="DrawerVariant.Temporary">
         <MudDrawerHeader>
             <MudText Typo="Typo.h6">
                 MudBlazorTest
@@ -44,7 +44,7 @@
         </MudSwitch>
     </MudDrawer>
     <MudMainContent>
-        <MudContainer Class="my-8 px-16" MaxWidth="MaxWidth.False">
+        <MudContainer MaxWidth="MaxWidth.Large" Fixed="true">
             @Body
         </MudContainer>
     </MudMainContent>

@@ -1,23 +1,53 @@
-﻿#gauge-row {
+﻿
+.control-header {
     display: flex;
-    flex-direction: row;
     flex-wrap: nowrap;
-    gap: 5rem;
+    flex-direction: row;
+    flex-grow: 1;
     justify-content: center;
     align-items: center;
-    margin: 0 0 1rem 0;
 }
-.gauge-button-div{
-    /* make this div a column */
+.media {
     display: flex;
-    flex-grow: 0;
-    flex-basis: 20%;
-    padding: 10px;
+    flex-wrap: nowrap;
+    flex-direction: column;
     justify-content: center;
-    background-color: #0a53be;
+    align-items: center;
+    padding-block: 10px;
+    margin-inline: 5px;
+    height: calc(100vh - 10rem);
+    background: rgba(32, 33, 36, 0.55);
+    
+}  
+.control-footer {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: -4em;
+    background: rgb(0, 0, 0);
+    padding: 0.6em;
+    z-index: 1;
 }
 
-#videoPlayer {
-    height:480px;
-    width:auto;
+::deep .video-controls {
+    justify-content: space-between;
+    align-items: center;
+    max-width: min-content;
+    
+    
+}
+
+
+.media-video{
+    display: block;
+    height: 90%;
+    width: 100%;
+    
+}
+
+#pdfViewer {
+    height: 100%;
+    max-width: 75rem;
 }

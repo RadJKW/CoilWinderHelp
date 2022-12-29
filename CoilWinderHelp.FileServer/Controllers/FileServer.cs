@@ -6,7 +6,6 @@ namespace CoilWinderHelp.FileServer.Controllers;
 [Route("/")]
 public class FileServer : Controller
 {
-
     [HttpGet("file/{*path}")]
     public IActionResult GetFile(string path)
     {
@@ -34,7 +33,7 @@ public class FileServer : Controller
         }
 
         var videoStream = new FileStream(
-        path: videoPath, 
+        path: videoPath,
         FileMode.Open,
         FileAccess.Read,
         FileShare.Read,
@@ -48,8 +47,6 @@ public class FileServer : Controller
         {
             FileDownloadName = videoName,
             EnableRangeProcessing = true,
-
-
         };
 
         return await Task.FromResult<IActionResult>(response);

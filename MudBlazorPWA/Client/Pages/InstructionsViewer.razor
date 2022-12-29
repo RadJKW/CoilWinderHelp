@@ -90,7 +90,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        FileServer = ClientFactory.CreateClient("FileServer");
+        FileServer = ClientFactory.CreateClient("MacServer");
         BaseFolder = new Folder("Winding Practices", "/");
         Breadcrumb = new List<Folder>();
         await GoToFolder(BaseFolder);
@@ -119,7 +119,7 @@
             case "mp4":
                 {
                     PdfViewer = null;
-                    MediaPlayer = @<video style="object-fit: fill)" controls="controls" buffered="true" preload="auto">
+                    MediaPlayer = @<video style="object-fit: fill;)" controls="controls" buffered="true" preload="auto">
                             <source src="@fileUrl" type="video/mp4"/>
     </video>;
                     break;
