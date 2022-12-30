@@ -22,7 +22,7 @@ builder.Services
 builder.Services
     .AddHttpClient("ApiFileServer", client => 
         client
-        .BaseAddress = new Uri($"http://localhost:5010"));
+        .BaseAddress = new Uri($"http://localhost:5165"));
 builder.Services
     .AddHttpClient("ApiVideoServer", client => 
         client
