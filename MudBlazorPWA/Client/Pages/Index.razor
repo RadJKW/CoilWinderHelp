@@ -28,62 +28,60 @@
       </MudButton>
     </MudButtonGroup>
   </div>
-  
+
 </div>
-<div class="media">
-  @Media
-  
+    @Media
   @if (ContentType == "video/mp4") {
-    <div class="control-footer">
-      <MudButtonGroup
-        Class="video-controls"
-        OverrideStyles="false">
-        <MudIconButton
-          id="playButton"
-          OnClick="JsPlayVideo"
-          Icon="@Icons.Sharp.PlayCircleOutline"
-          Variant="Variant.Outlined"
-          Size="Size.Medium"
-          Color="Color.Tertiary">
-        </MudIconButton>
-        <MudIconButton
-          id="pauseButton"
-          OnClick="JsPauseVideo"
-          Icon="@Icons.Filled.PauseCircleOutline"
-          Variant="Variant.Outlined"
-          Size="Size.Medium"
-          Color="Color.Tertiary">
-        </MudIconButton>
-        @* <div class="mx-3"></div> *@
-        <MudIconButton
-          OnClick="JsRestartVideo"
-          Icon="@Icons.Filled.Refresh"
-          Variant="Variant.Outlined"
-          Size="Size.Medium"
-          Color="Color.Tertiary">
-        </MudIconButton>
-        @* <div class="mx-3"></div> *@
-        <MudIconButton
-          OnClick="@(() => JsSeekVideo(5, true))"
-          Icon="@Icons.Filled.Forward5"
-          Variant="Variant.Outlined"
-          Size="Size.Medium"
-          Color="Color.Info">
-        </MudIconButton>
-        @* <div class="mx-1"></div> *@
-        <MudIconButton
-          OnClick="@(() => JsSeekVideo(5, false))"
-          Icon="@Icons.Outlined.Replay5"
-          Variant="Variant.Outlined"
-          Size="Size.Medium"
-          Color="Color.Secondary">
-        </MudIconButton>
-      </MudButtonGroup>
-  </div>
+
+      <div class="control-footer">
+        <MudButtonGroup
+          Class="video-controls"
+          OverrideStyles="false">
+          <MudIconButton
+            id="playButton"
+            OnClick="JsPlayVideo"
+            Icon="@Icons.Sharp.PlayCircleOutline"
+            Variant="Variant.Outlined"
+            Size="Size.Medium"
+            Color="Color.Tertiary">
+          </MudIconButton>
+          @* <div style="margin-inline: 2px;"></div> *@
+          <MudIconButton
+            id="pauseButton"
+            OnClick="JsPauseVideo"
+            Icon="@Icons.Filled.PauseCircleOutline"
+            Variant="Variant.Outlined"
+            Size="Size.Medium"
+            Color="Color.Tertiary">
+          </MudIconButton>
+          @* <div class="mx-2"></div> *@
+          <div class="mx-2">
+          <MudIconButton
+            OnClick="JsRestartVideo"
+            Icon="@Icons.Filled.Refresh"
+            Variant="Variant.Outlined"
+            Size="Size.Medium"
+            Color="Color.Tertiary">
+          </MudIconButton>
+          </div>
+          <MudIconButton
+            OnClick="@(() => JsSeekVideo(5, false))"
+            Icon="@Icons.Outlined.Replay5"
+            Variant="Variant.Outlined"
+            Size="Size.Medium"
+            Color="Color.Secondary">
+          </MudIconButton>
+          @* <div class="mx-1"></div> *@
+          <MudIconButton
+            OnClick="@(() => JsSeekVideo(5, true))"
+            Icon="@Icons.Filled.Forward5"
+            Variant="Variant.Outlined"
+            Size="Size.Medium"
+            Color="Color.Info">
+          </MudIconButton>
+        </MudButtonGroup>
+      </div>
   }
-</div>
-
-
 
 @code
 {
@@ -161,8 +159,7 @@
   }*/
 
   private async Task VideoLoaded() {
-  
-   await JsSetVideoPlayer();
+    await JsSetVideoPlayer();
   }
 
   private async Task JsPauseVideo() {
@@ -179,14 +176,14 @@
 
   private async Task JsSeekVideo(int time, bool seekDirection) {
     await _indexJs!.InvokeVoidAsync("seekVideo", time, seekDirection);
-   // StateHasChanged();
+  // StateHasChanged();
   }
 
   // private async Task JsGetVideoDuration() {
   //   VideoDuration = await _indexJs!.InvokeAsync<int>("getVideoDuration");
   // }
 
-  private async Task  JsSetVideoPlayer() {
+  private async Task JsSetVideoPlayer() {
     await _indexJs!.InvokeVoidAsync("init");
   }
 
