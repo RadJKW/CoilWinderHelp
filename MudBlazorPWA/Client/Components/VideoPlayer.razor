@@ -2,56 +2,24 @@
 @inject IJSRuntime JsRuntime
 
 <div class="video-grid">
-  <video id="videoPlayer" preload="auto" onmetadataloaded="@VideoLoaded">
-    <source src="@VideoUrl"/>
-  </video>
-  <div class="video-controls darken">
-    <MudButtonGroup
-      Class="video-controls"
-      OverrideStyles="false">
-      <MudIconButton
-        id="playButton"
-        OnClick="JsPlayVideo"
-        Icon="@Icons.Material.Sharp.PlayCircleOutline"
-        Variant="Variant.Outlined"
-        Size="Size.Medium"
-        Color="Color.Tertiary">
-      </MudIconButton>
-      @* <div style="margin-inline: 2px;"></div> *@
-      <MudIconButton
-        id="pauseButton"
-        OnClick="JsPauseVideo"
-        Icon="@Icons.Material.Filled.PauseCircleOutline"
-        Variant="Variant.Outlined"
-        Size="Size.Medium"
-        Color="Color.Tertiary">
-      </MudIconButton>
-      @* <div class="mx-2"></div> *@
-      <div class="mx-2">
-        <MudIconButton
-          OnClick="JsRestartVideo"
-          Icon="@Icons.Material.Filled.Refresh"
-          Variant="Variant.Outlined"
-          Size="Size.Medium"
-          Color="Color.Tertiary">
-        </MudIconButton>
-      </div>
-      <MudIconButton
-        OnClick="@(() => JsSeekVideo(5, false))"
-        Icon="@Icons.Material.Outlined.Replay5"
-        Variant="Variant.Outlined"
-        Size="Size.Medium"
-        Color="Color.Secondary">
-      </MudIconButton>
-      @* <div class="mx-1"></div> *@
-      <MudIconButton
-        OnClick="@(() => JsSeekVideo(5, true))"
-        Icon="@Icons.Material.Filled.Forward5"
-        Variant="Variant.Outlined"
-        Size="Size.Medium"
-        Color="Color.Info">
-      </MudIconButton>
-    </MudButtonGroup>
+  @*<div class="video-player">*@
+
+    <video id="@VideoPlayerId" onloadedmetadata="@VideoLoaded" preload="auto">
+      <source src="@VideoUrl" />
+    </video>
+  @* </div> *@
+  <div class="controls-container darken mb-n6">
+
+    <div class="controls">
+      <VideoControls
+          @ref="_videoControls"
+          PlayClick="@JsPlayVideo"
+          PauseClick="@JsPauseVideo"
+          RefreshButtonClick="@JsRestartVideo"
+          SeekBackClick="@(() => JsSeekVideo(5, false))"
+          SeekForwardClick="@(() => JsSeekVideo(5, true))">
+      </VideoControls>
+    </div>
   </div>
 </div>
 
@@ -65,14 +33,16 @@
   [Parameter]
   public string? Class { get; set; }
 
-  private  Lazy<Task<IJSObjectReference>>? _moduleTask;
+  private VideoControls? _videoControls;
+
+  private IJSObjectReference? _videoJs;
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender) {
-      _moduleTask = new(() => JsRuntime.InvokeAsync<IJSObjectReference>(
-        "import", $"./_content/CoilWinderWeb.Components/VideoPlayer.razor.js").AsTask());
+      _videoJs = await JsRuntime
+        .InvokeAsync<IJSObjectReference>(
+          "import", "../Components/VideoPlayer.razor.js");
     }
-    await base.OnAfterRenderAsync(firstRender);
   }
 
   private async Task VideoLoaded() {
@@ -80,34 +50,37 @@
   }
 
   private async Task JsPauseVideo() {
-    var videoJs = await _moduleTask!.Value;
-    await videoJs.InvokeVoidAsync("pauseVideo");
+    if (_videoJs != null)
+      await _videoJs.InvokeVoidAsync("pauseVideo");
   }
 
   private async Task JsRestartVideo() {
-    var videoJs = await _moduleTask!.Value;
-    await videoJs.InvokeVoidAsync("restartVideo");
+    if (_videoJs != null)
+      await _videoJs.InvokeVoidAsync("restartVideo");
   }
 
   private async Task JsPlayVideo() {
-    var videoJs = await _moduleTask!.Value;
-    await videoJs.InvokeVoidAsync("playVideo");
+    if (_videoJs != null)
+      await _videoJs.InvokeVoidAsync("playVideo");
   }
 
   private async Task JsSeekVideo(int time, bool seekDirection) {
-    var videoJs = await _moduleTask!.Value;
-    await videoJs.InvokeVoidAsync("seekVideo", time, seekDirection);
+    if (_videoJs != null)
+      await _videoJs.InvokeVoidAsync("seekVideo", time, seekDirection);
   }
 
   private async Task JsSetVideoPlayer() {
-    var videoJs = await _moduleTask!.Value;
-    await videoJs.InvokeVoidAsync("init");
+    if (_videoJs != null)
+      await _videoJs.InvokeVoidAsync("init", VideoPlayerId, _videoControls?.GetButtonIds());
   }
 
- public async ValueTask DisposeAsync() {
-    if (_moduleTask!.IsValueCreated) {
-      var videoJs = await _moduleTask.Value;
-      await videoJs.DisposeAsync();
+  public async ValueTask ReloadVideo() {
+    await JsRestartVideo();
+  }
+
+  public async ValueTask DisposeAsync() {
+    if (_videoJs != null) {
+      await _videoJs.DisposeAsync();
     }
   }
 }

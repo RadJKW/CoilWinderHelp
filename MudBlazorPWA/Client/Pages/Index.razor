@@ -1,195 +1,48 @@
 ﻿@page "/"
-@implements IAsyncDisposable
-@inject IHttpClientFactory HttpClientFactory
-@inject IJSRuntime Js
+@layout DocViewLayout
+@implements IDisposable
+@using MudBlazorPWA.Client.Components
 <PageTitle>Index</PageTitle>
 
-<div class="control-header">
+<div class="index-grid">
 
-  <div class="d-flex my-3">
-    <MudButtonGroup
-      Class="d-flex justify-end flex-auto px-4"
-      OverrideStyles="false">
-      <MudButton
-        OnClick="@(async () => {MediaUrl = PdfLink; await GetFileFromApi(MediaType.Pdf);})"
-        Variant="Variant.Outlined"
-        Size="Size.Large"
-        Color="Color.Info"
-        Style="width: 100px">
-        PDF
-      </MudButton>
-      <MudButton
-        OnClick="@(async () => {MediaUrl = VideoLink; await GetFileFromApi(MediaType.Video);})"
-        Variant="Variant.Outlined"
-        Size="Size.Large"
-        Color="Color.Tertiary"
-        Style="width: 100px">
-        VIDEO
-      </MudButton>
-    </MudButtonGroup>
+  <div class="video-content">
+
+    <VideoPlayer
+        @ref="_videoPlayer"
+        VideoPlayerId="video"
+        VideoUrl="@VideoUrl">
+    </VideoPlayer>
   </div>
 
+  <div class="video-footer">
+              <MudPaper Height="50px" Width="140px"/>
+              <MudPaper Height="50px" Width="140px"/>
+              <MudPaper Height="50px" Width="140px" />
+  </div>
 </div>
-    @Media
-  @if (ContentType == "video/mp4") {
 
-      <div class="control-footer">
-        <MudButtonGroup
-          Class="video-controls"
-          OverrideStyles="false">
-          <MudIconButton
-            id="playButton"
-            OnClick="JsPlayVideo"
-            Icon="@Icons.Sharp.PlayCircleOutline"
-            Variant="Variant.Outlined"
-            Size="Size.Medium"
-            Color="Color.Tertiary">
-          </MudIconButton>
-          @* <div style="margin-inline: 2px;"></div> *@
-          <MudIconButton
-            id="pauseButton"
-            OnClick="JsPauseVideo"
-            Icon="@Icons.Filled.PauseCircleOutline"
-            Variant="Variant.Outlined"
-            Size="Size.Medium"
-            Color="Color.Tertiary">
-          </MudIconButton>
-          @* <div class="mx-2"></div> *@
-          <div class="mx-2">
-          <MudIconButton
-            OnClick="JsRestartVideo"
-            Icon="@Icons.Filled.Refresh"
-            Variant="Variant.Outlined"
-            Size="Size.Medium"
-            Color="Color.Tertiary">
-          </MudIconButton>
-          </div>
-          <MudIconButton
-            OnClick="@(() => JsSeekVideo(5, false))"
-            Icon="@Icons.Outlined.Replay5"
-            Variant="Variant.Outlined"
-            Size="Size.Medium"
-            Color="Color.Secondary">
-          </MudIconButton>
-          @* <div class="mx-1"></div> *@
-          <MudIconButton
-            OnClick="@(() => JsSeekVideo(5, true))"
-            Icon="@Icons.Filled.Forward5"
-            Variant="Variant.Outlined"
-            Size="Size.Medium"
-            Color="Color.Info">
-          </MudIconButton>
-        </MudButtonGroup>
-      </div>
-  }
+@code{
 
-@code
-{
-    private const string PdfLink = "D2%20Pad/01.SETUP/MACHINE%20CONTROLS/SECTION%20D--%20MACHINE%20CONTROLS%20Rev%203.pdf";
-    private const string VideoLink = "TrainingVideos/D1%20Pole/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+      [CascadingParameter]
+      public MainLayout? MainLayout { get; set; }
 
 
-  private enum MediaType {
-    Pdf,
-    Video
-  }
+    private const string VideoUrl = "http://localhost:5165/TrainingVideos/D1%20Pole/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
 
 
-  private HttpClient? FileServer { get; set; }
-  private HttpClient? VideoServer { get; set; }
-  private RenderFragment Media { get; set; } = @<MudSpacer/>;
-  private IJSObjectReference? _indexJs;
-  private string? Base64Document { get; set; }
-  private string? ContentType { get; set; }
-  private string? IframeSrc { get; set; }
-  private string? VideoApiUrl { get; set; }
-  private string? MediaUrl { get; set; }
+  private VideoPlayer? _videoPlayer;
 
-
-
-  protected override async Task OnInitializedAsync() {
-    FileServer = HttpClientFactory.CreateClient("ApiFileServer");
-    VideoServer = HttpClientFactory.CreateClient("ApiFileServer");
-    await base.OnInitializedAsync();
-  }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (firstRender) {
-      _indexJs = await Js.InvokeAsync<IJSObjectReference>("import", "./Pages/Index.razor.js");
-      await base.OnAfterRenderAsync(firstRender);
+    if (firstRender && _videoPlayer != null) {
+        await _videoPlayer.ReloadVideo();
+      MainLayout!.DrawerDisabled = true;
     }
+    await base.OnAfterRenderAsync(firstRender);
   }
-
-  private async Task GetFileFromApi(MediaType media) {
-    var response = media switch
-    {
-      MediaType.Pdf => await FileServer!.GetAsync(MediaUrl),
-      MediaType.Video => await VideoServer!.GetAsync(MediaUrl),
-      _ => throw new ArgumentOutOfRangeException(nameof(media), media, null)
-      };
-
-    // Make an HTTP request to the API endpoint that returns the PDF as a byte array
-    Console.Write($"Response status code: {response.StatusCode}");
-    ContentType = response.Content.Headers.ContentType!.MediaType;
-
-    // if the content type is pdf, set Media to iframe with the src = @($"data:{ContentType};base64,{Base64Document}")
-    switch (ContentType) {
-      case "application/pdf": {
-        Base64Document = Convert.ToBase64String(await response.Content.ReadAsByteArrayAsync());
-        IframeSrc = $"data:{ContentType};base64,{Base64Document}";
-        Media = @<iframe id="pdfViewer" src="@IframeSrc"></iframe>;
-        break;
-      }
-      case "video/mp4": {
-        VideoApiUrl = $"{FileServer!.BaseAddress}{MediaUrl}";
-        Console.WriteLine(VideoApiUrl);
-        Media = @<video id="videoPlayer" class="media-video" preload="auto" onloadedmetadata="@VideoLoaded">
-                  <source src="@VideoApiUrl" type="video/mp4"/>
-                </video>;
-        /*await InvokeAsync(StateHasChanged);
-        await JsSetVideoPlayer();*/
-        break;
-      }
-    }
-  }
-
-  /*private async Task OnSliderValueChanged(int value) {
-    VideoCurrentTime = value;
-    await JsSeekVideo(VideoCurrentTime);
-  }*/
-
-  private async Task VideoLoaded() {
-    await JsSetVideoPlayer();
-  }
-
-  private async Task JsPauseVideo() {
-    await _indexJs!.InvokeVoidAsync("pauseVideo");
-  }
-
-  private async Task JsRestartVideo() {
-    await _indexJs!.InvokeVoidAsync("restartVideo");
-  }
-
-  private async Task JsPlayVideo() {
-    await _indexJs!.InvokeVoidAsync("playVideo");
-  }
-
-  private async Task JsSeekVideo(int time, bool seekDirection) {
-    await _indexJs!.InvokeVoidAsync("seekVideo", time, seekDirection);
-  // StateHasChanged();
-  }
-
-  // private async Task JsGetVideoDuration() {
-  //   VideoDuration = await _indexJs!.InvokeAsync<int>("getVideoDuration");
-  // }
-
-  private async Task JsSetVideoPlayer() {
-    await _indexJs!.InvokeVoidAsync("init");
-  }
-
-  async ValueTask IAsyncDisposable.DisposeAsync() {
-    if (_indexJs is not null) {
-      await _indexJs.DisposeAsync();
-    }
+  public void Dispose() {
+    if (MainLayout != null)
+      MainLayout.DrawerDisabled = false;
   }
 }
