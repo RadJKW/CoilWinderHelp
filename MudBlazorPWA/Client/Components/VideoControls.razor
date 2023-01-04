@@ -1,52 +1,45 @@
-﻿<MudButtonGroup
-    Class="d-flex" Style="flex-grow: 1; flex-shrink: 1; flex-basis: min-content;"
-    OverrideStyles="false">
-  <MudIconButton
-      id="btnPlay"
-      Color="Color.Tertiary"
-      Icon="@Icons.Material.Sharp.PlayCircleOutline"
-      OnClick="@PlayClick"
-      Size="Size.Small"
-      Variant="Variant.Outlined">
-  </MudIconButton>
-  @* <div style="margin-inline: 2px;"></div> *@
-  <MudIconButton
-      id="btnPause"
-      Color="Color.Tertiary"
-      Icon="@Icons.Material.Filled.PauseCircleOutline"
-      OnClick="@PauseClick"
-      Size="Size.Small"
-      Variant="Variant.Outlined">
-  </MudIconButton>
-  @* <div class="mx-2"></div> *@
-  <div class="mx-2">
-    <MudIconButton
-        id="btnRefresh"
-        Color="Color.Tertiary"
-        Icon="@Icons.Material.Filled.Refresh"
-        OnClick="@RefreshButtonClick"
-        Size="Size.Small"
-        Variant="Variant.Outlined">
-    </MudIconButton>
-  </div>
-  <MudIconButton
-      id="btnRewind"
-      Color="Color.Secondary"
-      Icon="@Icons.Material.Outlined.Replay5"
-      OnClick="@SeekBackClick"
-      Size="Size.Small"
-      Variant="Variant.Outlined">
-  </MudIconButton>
-  @* <div class="mx-1"></div> *@
-  <MudIconButton
-      id="btnForward"
-      Color="Color.Info"
-      Icon="@Icons.Material.Filled.Forward5"
-      OnClick="@SeekForwardClick"
-      Size="Size.Small"
-      Variant="Variant.Outlined">
-  </MudIconButton>
-</MudButtonGroup>
+﻿<div role="group" class="controls-group">
+<button
+    id="btnPlay"
+    class="controls btn play-btn"
+    type="button"
+    @onclick="PlayClick">
+  <i class="material-icons">play_circle_outline</i>
+</button>
+
+<button
+    id="btnPause"
+    class="controls btn play-btn"
+    type="button"
+    @onclick="PauseClick">
+    <i class="material-icons">play_circle_outline</i>
+</button>
+
+<button
+    id="btnRefresh"
+    class="controls btn play-btn"
+    type="button"
+    @onclick="RefreshButtonClick">
+    <i class="material-icons">play_circle_outline</i>
+</button>
+
+<button
+    id="btnRewind"
+    class="controls btn play-btn"
+    type="button"
+    @onclick="SeekBackClick">
+    <i class="material-icons">play_circle_outline</i>
+</button>
+
+<button
+    id="btnForward"
+    class="controls btn play-btn"
+    type="button"
+    @onclick="SeekForwardClick">
+    <i class="material-icons">play_circle_outline</i>
+</button>
+</div>
+
 
 @code {
   [Parameter]

@@ -1,0 +1,16 @@
+.controls-group{
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 1.5rem;
+}
+
+.controls{
+	border: whitesmoke solid 1px;
+	flex: 1;
+
+}
+
+.controls-group button i{
+	font-size: 1rem;
+}

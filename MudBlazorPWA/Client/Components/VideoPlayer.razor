@@ -8,10 +8,8 @@
       <source src="@VideoUrl" />
     </video>
   @* </div> *@
-  <div class="controls-container darken mb-n6">
-
-    <div class="controls">
-      <VideoControls
+  <div class="controls-container darken">
+    <VideoControls
           @ref="_videoControls"
           PlayClick="@JsPlayVideo"
           PauseClick="@JsPauseVideo"
@@ -19,7 +17,6 @@
           SeekBackClick="@(() => JsSeekVideo(5, false))"
           SeekForwardClick="@(() => JsSeekVideo(5, true))">
       </VideoControls>
-    </div>
   </div>
 </div>
 
