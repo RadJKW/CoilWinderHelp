@@ -1,36 +1,25 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
 
-<div class="video-grid">
-  @*<div class="video-player">*@
-
-    <video id="@VideoPlayerId" onloadedmetadata="@VideoLoaded" preload="auto">
-      <source src="@VideoUrl" />
-    </video>
-  @* </div> *@
-  <div class="controls-container darken">
-    <VideoControls
-          @ref="_videoControls"
-          PlayClick="@JsPlayVideo"
-          PauseClick="@JsPauseVideo"
-          RefreshButtonClick="@JsRestartVideo"
-          SeekBackClick="@(() => JsSeekVideo(5, false))"
-          SeekForwardClick="@(() => JsSeekVideo(5, true))">
-      </VideoControls>
-  </div>
+<div class="video-grid video-player">
+  <video
+      id="@VideoPlayerId"
+      onloadedmetadata="@VideoLoaded"
+      preload="auto"
+      controls>
+    <source src="@VideoUrl" type="video/mp4"/>
+  </video>
 </div>
 
 @code {
   [Parameter]
-  public string? VideoPlayerId { get; set; }
+  public string VideoPlayerId { get; set; } = "video-player";
 
-  [Parameter]
+  [Parameter, EditorRequired]
   public required string VideoUrl { get; set; }
 
   [Parameter]
   public string? Class { get; set; }
-
-  private VideoControls? _videoControls;
 
   private IJSObjectReference? _videoJs;
 
@@ -68,7 +57,7 @@
 
   private async Task JsSetVideoPlayer() {
     if (_videoJs != null)
-      await _videoJs.InvokeVoidAsync("init", VideoPlayerId, _videoControls?.GetButtonIds());
+      await _videoJs.InvokeVoidAsync("init", VideoPlayerId);
   }
 
   public async ValueTask ReloadVideo() {

@@ -8,8 +8,8 @@
       Anchor="Anchor.Start"
       Elevation="1"
       Variant="DrawerVariant.Persistent">
-    <MudDrawerHeader Class="align-center">
-      <MudText Typo="Typo.h6">My App</MudText>
+    <MudDrawerHeader Class="align-center" Dense="true">
+      <MudText Typo="Typo.h6" GutterBottom="false">My App</MudText>
     </MudDrawerHeader>
     <MudDivider/>
     <MudNavMenu>
@@ -18,10 +18,10 @@
       <MudNavLink Match="NavLinkMatch.All">Community</MudNavLink>
     </MudNavMenu>
   </MudDrawer>
-  <MudMainContent Class="pt-4 px-4">
+  <MudMainContent>
     <MudContainer
-        Class="pa-0"
-        MaxWidth="MaxWidth.False" >
+        Class="pa-0 doc-view container"
+        MaxWidth="MaxWidth.Large" >
       @Body
     </MudContainer>
   </MudMainContent>

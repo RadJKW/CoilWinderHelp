@@ -1,11 +1,13 @@
 ﻿
 .index-grid {
 	display: grid;
-	grid-template-rows: auto 1fr;
-	grid-template-columns: 1fr;
+	row-gap: 2em;
 }
 .video-content{
 	background: #0d47a12a;
+	/*display: flex;*/
+	/*width: clamp(500px, 100%, 800px);*/
+	/*height: clamp(300px, 100%, 800px);*/
 }
 
 .video-footer{
@@ -14,6 +16,7 @@
 	justify-content: space-evenly;
 	justify-items: center;
 	align-items: center;
-	padding: 1rem;
+	padding: 4rem;
+	height: 100%;
 }
 

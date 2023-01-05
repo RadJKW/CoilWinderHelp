@@ -1,7 +1,7 @@
 ﻿@page "/"
 @layout DocViewLayout
 @implements IDisposable
-@using MudBlazorPWA.Client.Components
+
 <PageTitle>Index</PageTitle>
 
 <div class="index-grid">
@@ -16,9 +16,7 @@
   </div>
 
   <div class="video-footer">
-              <MudPaper Height="50px" Width="140px"/>
-              <MudPaper Height="50px" Width="140px"/>
-              <MudPaper Height="50px" Width="140px" />
+
   </div>
 </div>
 
@@ -28,7 +26,7 @@
       public MainLayout? MainLayout { get; set; }
 
 
-    private const string VideoUrl = "http://localhost:5165/TrainingVideos/D1%20Pole/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+    private const string VideoUrl = "http://localhost:5165/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
 
 
   private VideoPlayer? _videoPlayer;
