@@ -1,7 +1,6 @@
 ﻿@inherits LayoutComponentBase
 @layout MainLayout
 
-
 <MudLayout>
   <MudDrawer
       @bind-Open="@_open"
@@ -11,7 +10,7 @@
     <MudDrawerHeader Class="align-center" Dense="true">
       <MudText Typo="Typo.h6" GutterBottom="false">My App</MudText>
     </MudDrawerHeader>
-    <MudDivider/>
+    <MudDivider />
     <MudNavMenu>
       <MudNavLink Match="NavLinkMatch.All">Store</MudNavLink>
       <MudNavLink Match="NavLinkMatch.All">Library</MudNavLink>
@@ -20,16 +19,12 @@
   </MudDrawer>
   <MudMainContent>
     <MudContainer
-        Class="pa-0 doc-view container"
-        MaxWidth="MaxWidth.Large" >
+        Class="container doc-view pa-0"
+        MaxWidth="MaxWidth.Large">
       @Body
     </MudContainer>
   </MudMainContent>
 </MudLayout>
-
-
-
-
 
 @code {
 

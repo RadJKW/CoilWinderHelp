@@ -1,22 +1,22 @@
 ﻿
 .index-grid {
-	display: grid;
-	row-gap: 2em;
-}
-.video-content{
-	background: #0d47a12a;
-	/*display: flex;*/
-	/*width: clamp(500px, 100%, 800px);*/
-	/*height: clamp(300px, 100%, 800px);*/
+    display: grid;
+    row-gap: 2em;
 }
 
-.video-footer{
-	background: #2e7d321a;
-	display: flex;
-	justify-content: space-evenly;
-	justify-items: center;
-	align-items: center;
-	padding: 4rem;
-	height: 100%;
+.video-content {
+    background: #0d47a12a;
+    /*display: flex;*/
+    /*width: clamp(500px, 100%, 800px);*/
+    /*height: clamp(300px, 100%, 800px);*/
 }
 
+.video-footer {
+    background: #2e7d321a;
+    display: flex;
+    justify-content: space-evenly;
+    justify-items: center;
+    align-items: center;
+    padding: 4rem;
+    height: 100%;
+}

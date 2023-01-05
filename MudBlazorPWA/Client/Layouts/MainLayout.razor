@@ -3,15 +3,14 @@
 @*Theme="MyCustomTheme"*@
 <MudThemeProvider
     @bind-IsDarkmode="@_isDarkMode"
-    @ref="_mudThemeProvider"/>
+    @ref="_mudThemeProvider" />
 <MudDialogProvider
     CloseOnEscapeKey="true"
     DisableBackdropClick="true"
-    Position="DialogPosition.Center"/>
-<MudSnackbarProvider/>
+    Position="DialogPosition.Center" />
+<MudSnackbarProvider />
 
 <MudLayout>
-
 
   <MudAppBar
       Elevation="0"
@@ -20,8 +19,8 @@
         Color="Color.Inherit"
         Edge="Edge.Start"
         Icon="@Icons.Material.Filled.Menu"
-        OnClick="@(_ => DrawerToggle())"/>
-    <MudSpacer/>
+        OnClick="@(_ => DrawerToggle())" />
+    <MudSpacer />
     @*display the current PAGE TITLE *@
 
     <MudText
@@ -30,7 +29,7 @@
       @(PageTitle)
     </MudText>
 
-    <MudSpacer/>
+    <MudSpacer />
     <MudIconButton
         Color="Color.Inherit"
         Icon="@Icons.Custom.Brands.MudBlazor"
@@ -46,8 +45,6 @@
     </MudIconButton>
   </MudAppBar>
 
-
-
   <MudDrawer
       @bind-Open="_drawerOpen"
       Elevation="6"
@@ -58,9 +55,9 @@
         MudBlazorTest
       </MudText>
     </MudDrawerHeader>
-    <NavMenu/>
-    <MudSpacer/>
-    <MudDivider/>
+    <NavMenu />
+    <MudSpacer />
+    <MudDivider />
 
     <MudSwitch
         @bind-Checked="@_isDarkMode"
@@ -77,7 +74,6 @@
   </MudMainContent>
 </MudLayout>
 
-
 @code {
   bool _drawerOpen;
   private bool _hideAppBar;
@@ -87,34 +83,30 @@
   private string? _pageTitle;
   private bool _drawerDisabled;
 
-  public bool DrawerDisabled
-  {
+  public bool DrawerDisabled {
     get => _drawerDisabled;
-    set
-    {
+    set {
       _drawerDisabled = value;
       InvokeAsync(StateHasChanged);
     }
   }
 
-  public string PageTitle
-  {
+  public string PageTitle {
     get => _pageTitle ?? "MudBlazorTest";
-    set
-    {
+    set {
       _pageTitle = value;
       InvokeAsync(StateHasChanged);
     }
   }
 
-  public void HidAppBar(bool hide)
-  {
+  public void HidAppBar(bool hide) {
     _hideAppBar = hide;
     InvokeAsync(StateHasChanged);
   }
 
   void DrawerToggle() {
     if (_drawerDisabled) return;
+
     _drawerOpen = !_drawerOpen;
   }
 

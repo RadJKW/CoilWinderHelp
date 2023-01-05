@@ -7,7 +7,7 @@
       onloadedmetadata="@VideoLoaded"
       preload="auto"
       controls>
-    <source src="@VideoUrl" type="video/mp4"/>
+    <source src="@VideoUrl" type="video/mp4" />
   </video>
 </div>
 
@@ -15,7 +15,8 @@
   [Parameter]
   public string VideoPlayerId { get; set; } = "video-player";
 
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required string VideoUrl { get; set; }
 
   [Parameter]

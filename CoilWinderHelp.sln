@@ -13,6 +13,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoilWinderHelp.FileServer",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoilWinder.RaspberryPi", "CoilWinder.RaspberryPi\CoilWinder.RaspberryPi.csproj", "{813245A1-25BF-400A-8981-F857272693E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoilWinderHelp.Components", "CoilWinderHelp.Components\CoilWinderHelp.Components.csproj", "{AEE4F25A-F6CB-4F5C-A577-DEE139F054B6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionConfig", "{560F7C00-2B45-4E95-A02C-BAFE3B80E7C1}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
+		CoilWinderHelp.sln.DotSettings.user = CoilWinderHelp.sln.DotSettings.user
+		global.json = global.json
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +51,10 @@ Global
 		{813245A1-25BF-400A-8981-F857272693E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{813245A1-25BF-400A-8981-F857272693E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{813245A1-25BF-400A-8981-F857272693E6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEE4F25A-F6CB-4F5C-A577-DEE139F054B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE4F25A-F6CB-4F5C-A577-DEE139F054B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE4F25A-F6CB-4F5C-A577-DEE139F054B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE4F25A-F6CB-4F5C-A577-DEE139F054B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

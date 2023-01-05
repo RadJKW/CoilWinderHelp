@@ -1,9 +1,8 @@
 @page "/instructions-viewer"
 @using HtmlAgilityPack
-@inject IHttpClientFactory ClientFactory
 
 <!-- Breadcrumb -->
-<div class="py-2 border-bottom border-dark">
+<div class="border-bottom border-dark py-2">
   @foreach (var folder in Breadcrumb!) {
     <MudButton Class="py-1" OnClick="@(() => GoToParentFolder(folder))" Variant="Variant.Outlined" Size="Size.Small">@folder.Name</MudButton>
     <span class="px-1">/</span>
@@ -16,11 +15,9 @@
 <!-- Navigation buttons -->
 <div class="my-2">
   @if (!IsFileVisible) {
-
     @foreach (var folder in CurrentFolder!.SubFolders.Where(folder => folder!.Name is not "..")) {
       <MudButton OnClick="@(() => GoToFolder(folder))" Variant="@Variant.Outlined" Color="@Color.Secondary">@folder!.Name</MudButton>
     }
-
 
     @foreach (var file in CurrentFolder.Files.Where(_ => !IsFileVisible)) {
       <MudButton OnClick="@(() => ViewFile(file))" Variant="@Variant.Filled" Color="@Color.Info">@file.Replace("%20", " ")</MudButton>
@@ -33,10 +30,9 @@
   <!-- PDF Viewer -->
   <!-- Make the pdf viewer fill the remainder of the pages height -->
   @if (IsFileVisible) {
-    <div class="col-10 mx-auto d-flex justify-center pt-4" style="height: calc(100vh - 25vh)">
+    <div class="col-10 d-flex justify-center mx-auto pt-4" style="height: calc(100vh - 25vh)">
 
       @if (PdfViewer is null) {
-
         @MediaPlayer
       }
 
@@ -47,10 +43,7 @@
       }
 
     </div>
-
   }
-
-
 }
 
 @code {
@@ -67,6 +60,8 @@
   private string? CurrentFile { get; set; }
   private bool IsFileVisible { get; set; }
 
+      private const string RelativePath = "files";
+
   // private string? FileServerResponse { get; set; }
 
   // private string? HttpDirectoryNavigationUrl { get; set; }
@@ -76,11 +71,11 @@
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-    FileServer = ClientFactory.CreateClient("ApiFileServer");
-    BaseFolder = new Folder("Winding Practices", "/");
-    Breadcrumb = new List<Folder>();
+    FileServer = new HttpClient();
+    FileServer.BaseAddress = new Uri("http://localhost:5126");
+    BaseFolder = new("Winding Practices", $"{RelativePath}/");
+    Breadcrumb = new();
     await GoToFolder(BaseFolder);
-
   }
 
   private void ViewFile(string file) {
@@ -102,13 +97,11 @@
       case "mp4": {
         PdfViewer = null;
         MediaPlayer = @<video style="object-fit: fill;)" controls="controls" buffered="true" preload="auto">
-                        <source src="@fileUrl" type="video/mp4"/>
+                        <source src="@fileUrl" type="video/mp4" />
                       </video>;
         break;
       }
-
     }
-
   }
 
   private void CloseFile() {
@@ -125,14 +118,18 @@
 
   // Add the current folder to the breadcrumb
     Breadcrumb!.Add(CurrentFolder);
+  
+  //TODO: Get rid of janky 'Replace' at end of this
+    var requestUrl = $"{FileServer!.BaseAddress}{folder!.Path}".Replace("//files", "/files");
+    Console.WriteLine($"ReqURL: {requestUrl}");
 
-  // Build the full path for the folder
-    var path = folder!.Path;
-  // Send a GET request to the file server and parse the response
-    var response = await FileServer!.GetAsync(path);
+  // Create a new HttpRequestMessage with the request URL
+    var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+  // Send the request and get the response
+    var response = await FileServer.SendAsync(request);
     var responseString = await response.Content.ReadAsStringAsync();
     ParseFolder(responseString, folder);
-
   }
 
   private static void ParseFolder(string responseString, Folder folder) {
@@ -141,11 +138,15 @@
     doc.LoadHtml(responseString);
 
   // Get the list of folder and file items
-    var items = doc.DocumentNode.SelectNodes("//tbody/tr");
+    var items =
+      doc.DocumentNode.SelectNodes("//tbody/tr");
 
   // Get the full path of the current folder
-    var pathNodes = doc.DocumentNode.SelectNodes("//h1/a");
-    var path = string.Join("", pathNodes?.Select(n => n.InnerText) ?? Array.Empty<string>());
+    var pathNodes =
+      doc.DocumentNode.SelectNodes("//h1/a");
+    
+    var path =
+      string.Join("", pathNodes?.Select(n => n.InnerText) ?? Array.Empty<string>()).Replace("&amp;", "&");
 
     if (items is null) {
       return;
@@ -158,7 +159,7 @@
       switch (type) {
   // If the item is a directory, add a sub-folder
         case "directory": {
-          var name = item.SelectSingleNode("./td[@class='name']/a").InnerText;
+          var name = item.SelectSingleNode("./td[@class='name']/a").InnerText.Replace("&amp;", "&");
           var subFolderPath = item.SelectSingleNode("./td[@class='name']/a").Attributes["href"].Value;
           var subFolder = new Folder(name, path + subFolderPath);
           folder.AddSubFolder(subFolder);
@@ -166,7 +167,7 @@
         }
   // Otherwise, add a file
         case "file": {
-          var name = item.SelectSingleNode("./td[@class='name']").InnerText;
+          var name = item.SelectSingleNode("./td[@class='name']").InnerText.Replace("&amp;", "&");
           folder.AddFile(name);
           break;
         }
@@ -191,8 +192,8 @@
     public Folder(string name, string? path = null) {
       Name = name;
       Path = path ?? name;
-      SubFolders = new List<Folder?>();
-      Files = new List<string>();
+      SubFolders = new();
+      Files = new();
     }
 
     public void AddSubFolder(Folder? folder) {
@@ -203,4 +204,5 @@
       Files.Add(fileName);
     }
   }
+
 }
