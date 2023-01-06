@@ -1,5 +1,8 @@
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
+using MudBlazorPWA.Shared;
 
 const string windowsPath = @"B:\CoilWinderTraining-Edit\";
 const string macPath = @"/Users/jkw/WindingPractices/";
@@ -48,18 +51,18 @@ app.UseStaticFiles();
 app.UseFileServer(new FileServerOptions
 {
   EnableDirectoryBrowsing = true,
-  DirectoryBrowserOptions =
-  {
-    // if the operating system is windows, use the windows path
+  DirectoryBrowserOptions = {
+      // if the operating system is windows, use the windows path
     // if the operating system is mac, use the mac path
     RedirectToAppendTrailingSlash = false,
     RequestPath = "/files",
-
     FileProvider = new PhysicalFileProvider(OperatingSystem.IsWindows() ? windowsPath : macPath)
     {
+        
       UseActivePolling = true,
-      UsePollingFileWatcher = true
-    }
+      UsePollingFileWatcher = true,
+    },
+    Formatter = new HtmlDirectorySort(HtmlEncoder.Default)
   }
 });
 

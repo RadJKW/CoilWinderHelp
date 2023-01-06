@@ -84,6 +84,7 @@
     IsFileVisible = true;
 
     var fileUrl = $"{FileServer!.BaseAddress}{CurrentFolder!.Path}/{file}";
+    fileUrl = fileUrl.Replace("//file", "/file");
     // Create the PDF viewer
     // get the file type of the file by extracting the file extension from the end file
 

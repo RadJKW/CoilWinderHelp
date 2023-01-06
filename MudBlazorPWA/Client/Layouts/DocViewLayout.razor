@@ -3,14 +3,15 @@
 
 <MudLayout>
   <MudDrawer
-      @bind-Open="@_open"
-      Anchor="Anchor.Start"
-      Elevation="1"
-      Variant="DrawerVariant.Persistent">
+    class="doc-view-drawer"
+    @bind-Open="@_open"
+    Anchor="Anchor.Start"
+    Elevation="1"
+    Variant="DrawerVariant.Persistent">
     <MudDrawerHeader Class="align-center" Dense="true">
       <MudText Typo="Typo.h6" GutterBottom="false">My App</MudText>
     </MudDrawerHeader>
-    <MudDivider />
+    <MudDivider/>
     <MudNavMenu>
       <MudNavLink Match="NavLinkMatch.All">Store</MudNavLink>
       <MudNavLink Match="NavLinkMatch.All">Library</MudNavLink>
@@ -19,8 +20,8 @@
   </MudDrawer>
   <MudMainContent>
     <MudContainer
-        Class="container doc-view pa-0"
-        MaxWidth="MaxWidth.Large">
+      Class="container doc-view pa-0"
+      MaxWidth="MaxWidth.Large">
       @Body
     </MudContainer>
   </MudMainContent>

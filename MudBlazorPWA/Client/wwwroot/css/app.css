@@ -65,15 +65,25 @@
     --app-drawer-width: clamp(150px, 100%, 14vw);
 }
 
-.mud-drawer {
+.mud-drawer.doc-view-drawer {
     background-color: #7475751f;
-    font-size: 1.2rem;
+    elevation: 90deg;
+    font-size: 1.1rem;
+
+}
+.mud-drawer.doc-view-drawer .mud-navmenu{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    justify-content: flex-start ;
 
 }
 
-.mud-drawer .mud-drawer-content {
 
+.mud-drawer .mud-drawer-content .mud-nav-item {
+    background: #2c2c2c85;
 }
+
 
 .mud-drawer.mud-drawer-responsive.mud-drawer-pos-left, .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left {
     width: var(--app-drawer-width);

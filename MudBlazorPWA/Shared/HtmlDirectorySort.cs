@@ -1,0 +1,17 @@
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
+
+
+namespace MudBlazorPWA.Shared;
+public class HtmlDirectorySort : HtmlDirectoryFormatter
+{
+    public HtmlDirectorySort(HtmlEncoder encoder) : base(encoder) {}
+
+    public override Task GenerateContentAsync(HttpContext context, IEnumerable<IFileInfo> contents)
+    {
+        var sorted = contents.OrderBy(f => f.Name);
+        return base.GenerateContentAsync(context, sorted);
+    }
+}
