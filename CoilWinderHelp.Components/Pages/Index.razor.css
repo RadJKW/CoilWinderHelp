@@ -1,14 +1,13 @@
 ﻿
 .index-grid {
     display: grid;
-    row-gap: 2em;
+   row-gap: 10px;
+    flex: auto;
+    
 }
 
 .video-content {
     background: #0d47a12a;
-    /*display: flex;*/
-    /*width: clamp(500px, 100%, 800px);*/
-    /*height: clamp(300px, 100%, 800px);*/
 }
 
 .video-footer {

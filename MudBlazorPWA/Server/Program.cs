@@ -18,9 +18,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddDirectoryBrowser();
 // add logging + console logging
 builder.Services.AddLogging();
-builder.Services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder.AddConsole();
+builder.Services.AddLogging(loggingBuilder => {
+  loggingBuilder.AddConsole();
 });
 
 builder.Services.AddCors(options => {
@@ -47,22 +46,15 @@ else
 app.UseCors(corsPolicy);
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
-
 app.UseFileServer(new FileServerOptions
 {
   EnableDirectoryBrowsing = true,
-  DirectoryBrowserOptions = {
-      // if the operating system is windows, use the windows path
-    // if the operating system is mac, use the mac path
-    RedirectToAppendTrailingSlash = false,
-    RequestPath = "/files",
+  RequestPath = "/files",
+  RedirectToAppendTrailingSlash = false,
+  DirectoryBrowserOptions =
+  {
+    Formatter = new HtmlDirectorySort(HtmlEncoder.Default),
     FileProvider = new PhysicalFileProvider(OperatingSystem.IsWindows() ? windowsPath : macPath)
-    {
-        
-      UseActivePolling = true,
-      UsePollingFileWatcher = true,
-    },
-    Formatter = new HtmlDirectorySort(HtmlEncoder.Default)
   }
 });
 

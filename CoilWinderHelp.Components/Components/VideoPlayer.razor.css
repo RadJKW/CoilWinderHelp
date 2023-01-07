@@ -1,9 +1,3 @@
-* {
-
-    --video-view-port-width: calc(100vw - var(--app-drawer-width));
-    --video-grid-width: clamp(300px, 100%, var(--video-view-port-width));
-}
-
 .video-grid {
     display: grid;
     grid-template-columns: 0.1rem 1fr 0.1rem;

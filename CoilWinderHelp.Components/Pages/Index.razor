@@ -1,18 +1,21 @@
 ﻿@page "/"
 @layout DocViewLayout
 @implements IDisposable
+@inject IHttpClientFactory ClientFactory
 
 <PageTitle>Index</PageTitle>
 
 <div class="index-grid">
 
   <div class="video-content">
-
+  @if (VideoUrl is not null) {
+    
     <VideoPlayer
         @ref="_videoPlayer"
         VideoPlayerId="video"
         VideoUrl="@VideoUrl">
     </VideoPlayer>
+  }
   </div>
 
   <div class="video-footer">
@@ -22,13 +25,27 @@
 
 @code{
 
+      private const string RelativePath = "files";
+
+      private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+  
+  
+  
   [CascadingParameter]
   public MainLayout? MainLayout { get; set; }
-
-    private const string VideoUrl = "http://localhost:5126/files/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
-
+  
+  private HttpClient? FileServer { get; set; }
+  
   private VideoPlayer? _videoPlayer;
+  
+  private string? VideoUrl { get; set; }
 
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    FileServer = ClientFactory.CreateClient("FileServer");
+    VideoUrl = $"{RelativePath}/{RelativeVideoUrl}";
+  }
+  
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender && _videoPlayer != null) {
       await _videoPlayer.ReloadVideo();

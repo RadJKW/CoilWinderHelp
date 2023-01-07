@@ -1,10 +1,11 @@
 @page "/instructions-viewer"
 @using HtmlAgilityPack
+@inject IHttpClientFactory ClientFactory
 
 <!-- Breadcrumb -->
 <div class="border-bottom border-dark py-2">
   @foreach (var folder in Breadcrumb!) {
-    <MudButton Class="py-1" OnClick="@(() => GoToParentFolder(folder))" Variant="Variant.Outlined" Size="Size.Small">@folder.Name</MudButton>
+    <MudButton Class="py-1" OnClick="@(() => { CloseFile(); GoToParentFolder(folder);})" Variant="Variant.Outlined" Size="Size.Small">@folder.Name</MudButton>
     <span class="px-1">/</span>
   }
   @if (IsFileVisible) {
@@ -97,7 +98,7 @@
       }
       case "mp4": {
         PdfViewer = null;
-        MediaPlayer = @<video style="object-fit: fill;)" controls="controls" buffered="true" preload="auto">
+        MediaPlayer = @<video style="object-fit: fill;)" controls="controls" buffered="true" preload="auto" autoplay="autoplay">
                         <source src="@fileUrl" type="video/mp4" />
                       </video>;
         break;

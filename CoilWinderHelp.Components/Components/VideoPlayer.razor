@@ -6,7 +6,7 @@
       id="@VideoPlayerId"
       onloadedmetadata="@VideoLoaded"
       preload="auto"
-      controls>
+      controls="controls">
     <source src="@VideoUrl" type="video/mp4" />
   </video>
 </div>
@@ -28,7 +28,7 @@
     if (firstRender) {
       _videoJs = await JsRuntime
         .InvokeAsync<IJSObjectReference>(
-          "import", "../Components/VideoPlayer.razor.js");
+          "import", "./_content/CoilWinderHelp.Components/Components/VideoPlayer.razor.js");
     }
   }
 
