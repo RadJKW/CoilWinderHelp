@@ -1,0 +1,105 @@
+﻿@page "/"
+@layout MainLayout
+<MudAppBar
+    Class="appbar-top"
+    Color="Color.Primary"
+    Bottom="false"
+    Fixed="false"
+    Dense="true"
+    Elevation="3">
+  Top
+</MudAppBar>
+
+<MudGrid
+    Class="grid-container"
+    Justify="Justify.Center"
+    Spacing="0">
+  <MudItem
+      Class="sidebar-column"
+      xs="12"
+      sm="2">
+    <MudDrawer
+        Class="sidebar-left"
+        @bind-Open="@_openStart"
+        Width="100%"
+        Fixed="false"
+        Anchor="Anchor.Left"
+        Elevation="0"
+        Variant="@DrawerVariant.Persistent">
+      <MudDrawerHeader>
+        <MudText
+            Typo="Typo.h6">
+          My App
+        </MudText>
+      </MudDrawerHeader>
+      <MudNavMenu>
+        <MudNavLink
+            Match="NavLinkMatch.All"
+            Icon="@Icons.Material.Filled.Store">
+          Store
+        </MudNavLink>
+        <MudNavLink
+            Match="NavLinkMatch.All"
+            Icon="@Icons.Material.Filled.LocalLibrary">
+          Library
+        </MudNavLink>
+        <MudNavLink
+            Match="NavLinkMatch.All"
+            Icon="@Icons.Material.Filled.Forum">
+          Community
+        </MudNavLink>
+      </MudNavMenu>
+    </MudDrawer>
+  </MudItem>
+  <MudItem
+      Class="content-column"
+      xs="12"
+      sm="10">
+
+    <div
+        class="main-content">
+
+      <MudPage
+          Class="main-page mud-theme-secondary"
+          FullScreen="FullScreen">
+        <MudText
+            Class="pa-4"
+            Align="Align.Center">
+          Page
+        </MudText>
+        <div
+            class="align-center d-flex justify-center mud-height-full">
+          <MudButton
+              Color="Color.Inherit"
+              OnClick="@ToggleStartDrawer"
+              StartIcon="@(Icons.Material.Filled.East)"
+              Class="mx-2">
+            Toggle start
+          </MudButton>
+        </div>
+
+      </MudPage>
+      <MudAppBar
+          Class="appbar-bottom"
+          Bottom="true"
+          Fixed="false"
+          Color="Color.Primary"
+          Dense="true"
+          Elevation="3">
+        Bottom
+      </MudAppBar>
+
+    </div>
+  </MudItem>
+</MudGrid>
+
+@code {
+    private const FullScreen FullScreen = MudExtensions.Enums.FullScreen.FullWithoutAppbar;
+  //bool _showAppbar = true;
+  //bool _appbarBottom;
+  bool _openStart = true;
+
+  void ToggleStartDrawer() {
+    _openStart = !_openStart;
+  }
+}

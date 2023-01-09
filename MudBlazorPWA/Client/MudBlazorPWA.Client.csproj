@@ -15,22 +15,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\CoilWinderHelp.Components\CoilWinderHelp.Components.csproj" />
+        <ProjectReference Include="..\..\CoilWinderHelp.RCL\CoilWinderHelp.RCL.csproj" />
         <ProjectReference Include="..\Shared\MudBlazorPWA.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Components\VideoPlayer.razor" />
-      <_ContentIncludedByDefault Remove="Pages\Counter.razor" />
-      <_ContentIncludedByDefault Remove="Pages\FetchData.razor" />
-      <_ContentIncludedByDefault Remove="Pages\Index.razor" />
-      <_ContentIncludedByDefault Remove="Pages\InstructionsViewer.razor" />
-      <_ContentIncludedByDefault Remove="wwwroot\css\app.css" />
-      <_ContentIncludedByDefault Remove="wwwroot\css\MudBlazor.min.css" />
     </ItemGroup>
 
 

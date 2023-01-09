@@ -1,0 +1,211 @@
+﻿@page "/instructions-viewer"
+
+@using HtmlAgilityPack
+
+@layout BaseLayout
+
+<!-- Breadcrumb -->
+<div class="border-bottom border-dark py-2">
+  @foreach (var folder in Breadcrumb!) {
+    <MudButton Class="py-1" OnClick="@(() => { CloseFile(); GoToParentFolder(folder);})" Variant="Variant.Outlined" Size="Size.Small">@folder.Name</MudButton>
+    <span class="px-1">/</span>
+  }
+  @if (IsFileVisible) {
+    <MudButton OnClick="@(CloseFile)" Color="Color.Error" Variant="Variant.Filled" Size="Size.Small">Close</MudButton>
+  }
+</div>
+
+<!-- Navigation buttons -->
+<div class="my-2">
+  @if (!IsFileVisible) {
+    @foreach (var folder in CurrentFolder!.SubFolders.Where(folder => folder!.Name is not "..")) {
+      <MudButton OnClick="@(() => GoToFolder(folder))" Variant="@Variant.Outlined" Color="@Color.Secondary">@folder!.Name</MudButton>
+    }
+
+    @foreach (var file in CurrentFolder.Files.Where(_ => !IsFileVisible)) {
+      <MudButton OnClick="@(() => ViewFile(file))" Variant="@Variant.Filled" Color="@Color.Info">@file.Replace("%20", " ")</MudButton>
+    }
+  }
+</div>
+
+<!-- File view -->
+@if (CurrentFile != null) {
+  <!-- PDF Viewer -->
+  <!-- Make the pdf viewer fill the remainder of the pages height -->
+  @if (IsFileVisible) {
+    <div class="col-10 d-flex justify-center mx-auto pt-4" style="height: calc(100vh - 25vh)">
+
+      @if (PdfViewer is null) {
+        @MediaPlayer
+      }
+
+
+
+      @if (MediaPlayer is null) {
+        @PdfViewer
+      }
+
+    </div>
+  }
+}
+
+@code {
+
+  // the HttpClient used by this component
+  private HttpClient? FileServer { get; set; }
+  // The base folder of the file directory
+  private Folder? BaseFolder { get; set; }
+  // The current folder that the user is viewing
+  private Folder? CurrentFolder { get; set; }
+  // The breadcrumb of folders leading to the current folder
+  private List<Folder>? Breadcrumb { get; set; }
+  // The file that the user is currently viewing, or null if no file is being viewed
+  private string? CurrentFile { get; set; }
+  private bool IsFileVisible { get; set; }
+
+      private const string RelativePath = "files";
+
+  // private string? FileServerResponse { get; set; }
+
+  // private string? HttpDirectoryNavigationUrl { get; set; }
+
+  private RenderFragment? PdfViewer { get; set; }
+  private RenderFragment? MediaPlayer { get; set; }
+
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    FileServer = new HttpClient();
+    FileServer.BaseAddress = new Uri("http://localhost:5126");
+    BaseFolder = new("Winding Practices", $"{RelativePath}/");
+    Breadcrumb = new();
+    await GoToFolder(BaseFolder);
+  }
+
+  private void ViewFile(string file) {
+    // Set the current file and visibility
+    CurrentFile = file;
+    IsFileVisible = true;
+
+    var fileUrl = $"{FileServer!.BaseAddress}{CurrentFolder!.Path}/{file}";
+    fileUrl = fileUrl.Replace("//file", "/file");
+    // Create the PDF viewer
+    // get the file type of the file by extracting the file extension from the end file
+
+    var fileType = file.Split('.').Last();
+    switch (fileType) {
+      case "pdf": {
+        PdfViewer = @<iframe src="@(fileUrl)" width="100%" height="100%"></iframe>;
+        MediaPlayer = null;
+        break;
+      }
+      case "mp4": {
+        PdfViewer = null;
+        MediaPlayer = @<video style="object-fit: fill;)" controls="controls" buffered="true" preload="auto" autoplay="autoplay">
+                        <source src="@fileUrl" type="video/mp4" />
+                      </video>;
+        break;
+      }
+    }
+  }
+
+  private void CloseFile() {
+  // Clear the current file and visibility
+    CurrentFile = null;
+    IsFileVisible = false;
+  }
+
+  private async Task GoToFolder(Folder? folder) {
+  // Set the current folder
+    CurrentFolder = folder;
+    Console.WriteLine($"Current folder: {CurrentFolder!.Name}");
+    Console.WriteLine($"Current folder path: {CurrentFolder!.Path}");
+
+  // Add the current folder to the breadcrumb
+    Breadcrumb!.Add(CurrentFolder);
+  
+  //TODO: Get rid of janky 'Replace' at end of this
+    var requestUrl = $"{FileServer!.BaseAddress}{folder!.Path}".Replace("//files", "/files");
+    Console.WriteLine($"ReqURL: {requestUrl}");
+
+  // Create a new HttpRequestMessage with the request URL
+    var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+  // Send the request and get the response
+    var response = await FileServer.SendAsync(request);
+    var responseString = await response.Content.ReadAsStringAsync();
+    ParseFolder(responseString, folder);
+  }
+
+  private static void ParseFolder(string responseString, Folder folder) {
+  // Use the HtmlAgilityPack to parse the response
+    var doc = new HtmlDocument();
+    doc.LoadHtml(responseString);
+
+  // Get the list of folder and file items
+    var items =
+      doc.DocumentNode.SelectNodes("//tbody/tr");
+
+  // Get the full path of the current folder
+    var pathNodes =
+      doc.DocumentNode.SelectNodes("//h1/a");
+    
+    var path =
+      string.Join("", pathNodes?.Select(n => n.InnerText) ?? Array.Empty<string>()).Replace("&amp;", "&");
+
+    if (items is null) {
+      return;
+    }
+  // Iterate over the items and add sub-folders and files
+    foreach (var item in items) {
+  // Get the type of the item (Directory or File)
+      var type = item.Attributes["class"].Value;
+
+      switch (type) {
+  // If the item is a directory, add a sub-folder
+        case "directory": {
+          var name = item.SelectSingleNode("./td[@class='name']/a").InnerText.Replace("&amp;", "&");
+          var subFolderPath = item.SelectSingleNode("./td[@class='name']/a").Attributes["href"].Value;
+          var subFolder = new Folder(name, path + subFolderPath);
+          folder.AddSubFolder(subFolder);
+          break;
+        }
+  // Otherwise, add a file
+        case "file": {
+          var name = item.SelectSingleNode("./td[@class='name']").InnerText.Replace("&amp;", "&");
+          folder.AddFile(name);
+          break;
+        }
+      }
+    }
+  }
+
+  private void GoToParentFolder(Folder? folder) {
+    var index = Breadcrumb!.IndexOf(folder!);
+    Breadcrumb.RemoveRange(index + 1, Breadcrumb.Count - index - 1);
+    CurrentFolder = folder;
+  //InvokeAsync(StateHasChanged);
+  }
+
+  public class Folder {
+    public string Name { get; set; }
+    public string Path { get; set; }
+    public List<Folder?> SubFolders { get; set; }
+    public List<string> Files { get; set; }
+
+    public Folder(string name, string? path = null) {
+      Name = name;
+      Path = path ?? name;
+      SubFolders = new();
+      Files = new();
+    }
+
+    public void AddSubFolder(Folder? folder) {
+      SubFolders.Add(folder);
+    }
+
+    public void AddFile(string fileName) {
+      Files.Add(fileName);
+    }
+  }
+
+}

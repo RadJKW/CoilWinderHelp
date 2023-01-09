@@ -1,3 +1,4 @@
+using CoilWinderHelp.RCL.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -24,5 +25,6 @@ builder.Services
 		       .BaseAddress = new("https://localhost:7188/video/"));
 
 builder.Services.AddMudServices();
+builder.Services.TryAddCwHelpServices();
 
 await builder.Build().RunAsync();
