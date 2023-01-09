@@ -1,30 +1,21 @@
 ﻿@page "/"
 @layout MainLayout
-<MudAppBar
-    Class="appbar-top"
-    Color="Color.Primary"
-    Bottom="false"
-    Fixed="false"
-    Dense="true"
-    Elevation="3">
-  Top
-</MudAppBar>
 
 <MudGrid
     Class="grid-container"
     Justify="Justify.Center"
     Spacing="0">
   <MudItem
-      Class="sidebar-column"
+      Class="left sidebar-column"
       xs="12"
-      sm="2">
+      sm="1">
     <MudDrawer
         Class="sidebar-left"
         @bind-Open="@_openStart"
         Width="100%"
         Fixed="false"
         Anchor="Anchor.Left"
-        Elevation="0"
+        Elevation="3"
         Variant="@DrawerVariant.Persistent">
       <MudDrawerHeader>
         <MudText
@@ -55,20 +46,26 @@
       Class="content-column"
       xs="12"
       sm="10">
-
     <div
         class="main-content">
 
       <MudPage
           Class="main-page mud-theme-secondary"
           FullScreen="FullScreen">
-        <MudText
-            Class="pa-4"
-            Align="Align.Center">
-          Page
-        </MudText>
         <div
-            class="align-center d-flex justify-center mud-height-full">
+            class="video-player">
+        <video
+            id="videoPlayer"
+            preload="auto"
+            controls="controls">
+          <source
+              src="http://localhost:5126/files/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4"
+              type="video/mp4" />
+        </video>
+          
+        </div>
+        <div
+            class="align-center d-flex justify-center mud-height-full" style="grid-row: 2">
           <MudButton
               Color="Color.Inherit"
               OnClick="@ToggleStartDrawer"
@@ -79,22 +76,50 @@
         </div>
 
       </MudPage>
-      <MudAppBar
-          Class="appbar-bottom"
-          Bottom="true"
-          Fixed="false"
-          Color="Color.Primary"
-          Dense="true"
-          Elevation="3">
-        Bottom
-      </MudAppBar>
 
     </div>
+  </MudItem>
+  <MudItem
+      Class="right sidebar-column"
+      xs="12"
+      sm="1">
+    <MudDrawer
+        Class="sidebar-left"
+        @bind-Open="@_openStart"
+        Width="100%"
+        Fixed="false"
+        Anchor="Anchor.Right"
+        Elevation="3"
+        Variant="@DrawerVariant.Persistent">
+      <MudDrawerHeader>
+        <MudText
+            Typo="Typo.h6">
+          My App
+        </MudText>
+      </MudDrawerHeader>
+      <MudNavMenu>
+        <MudNavLink
+            Match="NavLinkMatch.All"
+            Icon="@Icons.Material.Filled.Store">
+          Store
+        </MudNavLink>
+        <MudNavLink
+            Match="NavLinkMatch.All"
+            Icon="@Icons.Material.Filled.LocalLibrary">
+          Library
+        </MudNavLink>
+        <MudNavLink
+            Match="NavLinkMatch.All"
+            Icon="@Icons.Material.Filled.Forum">
+          Community
+        </MudNavLink>
+      </MudNavMenu>
+    </MudDrawer>
   </MudItem>
 </MudGrid>
 
 @code {
-    private const FullScreen FullScreen = MudExtensions.Enums.FullScreen.FullWithoutAppbar;
+    private const FullScreen FullScreen = MudExtensions.Enums.FullScreen.Full;
   //bool _showAppbar = true;
   //bool _appbarBottom;
   bool _openStart = true;
