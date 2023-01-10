@@ -1,18 +1,12 @@
-﻿using CoilWinderHelp.RCL.Services;
+﻿using CoilWinderHelp.Components.Services;
 using Microsoft.Extensions.DependencyInjection;
-using MudBlazor;
-using MudBlazor.Services;
 
-namespace CoilWinderHelp.RCL.Extensions;
+namespace CoilWinderHelp.Components.Extensions;
 public static class ServicesExtension
 {
-
-
   public static void TryAddCwHelpServices(this IServiceCollection services)
   {
-    
     services.AddScoped<LayoutService>();
-
   }
 
 }

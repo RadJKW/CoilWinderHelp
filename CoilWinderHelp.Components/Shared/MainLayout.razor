@@ -1,8 +1,11 @@
 ﻿@inherits LayoutComponentBase
 @inject LayoutService LayoutService
+@using CoilWinderHelp.Components.Theme
 @implements IDisposable
 
 @*Theme="MyCustomTheme"*@
+<div>
+  
 <MudThemeProvider
     @ref="_mudThemeProvider"
     IsDarkMode="@LayoutService.IsDarkMode"
@@ -11,9 +14,12 @@
 <MudDialogProvider
     CloseOnEscapeKey="true"
     DisableBackdropClick="true"
+    FullWidth="true"
+    MaxWidth="MaxWidth.ExtraSmall"
     Position="DialogPosition.Center" />
 <MudSnackbarProvider />
 @Body
+</div>
 
 
 
@@ -27,15 +33,19 @@
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
-
     await base.OnAfterRenderAsync(firstRender);
+    
+    if (firstRender) {
+      LayoutService.SetBaseTheme(new());
+      LayoutService.SetDarkMode(true);
+    }
     
   }
 
   public void Dispose() {
     LayoutService.MajorUpdateOccured -= LayoutServiceOnMajorUpdateOccured!;
   }
-  
+
   private void LayoutServiceOnMajorUpdateOccured(object sender, EventArgs e) => StateHasChanged();
 
 }

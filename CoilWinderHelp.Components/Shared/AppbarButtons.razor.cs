@@ -1,8 +1,8 @@
-﻿using CoilWinderHelp.RCL.Services;
+﻿using CoilWinderHelp.Components.Services;
 using Microsoft.AspNetCore.Components;
 // ReSharper disable ClassNeverInstantiated.Global
 
-namespace CoilWinderHelp.RCL.Shared;
+namespace CoilWinderHelp.Components.Shared;
 public partial class AppbarButtons
 {
   [Inject] private LayoutService LayoutService { get; set; } = null!;
@@ -17,7 +17,7 @@ public partial class AppbarButtons
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (firstRender == true) {
+    if (firstRender) {
       _messages = GetNotifications();
       StateHasChanged();
     }

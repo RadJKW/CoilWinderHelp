@@ -1,0 +1,204 @@
+﻿@page "/"
+@layout MainLayout
+<MudAppBar
+    Class="appbar-top"
+    Bottom="false"
+    Fixed="false"
+    Elevation="5"
+    Dense="true"
+    ToolBarClass="toolbar-top">
+  <MudButton
+      OnClick="@(ToggleStartDrawer)"
+      StartIcon="@Icons.Material.Rounded.Menu">
+  </MudButton>
+  <MudSpacer />
+  <AppbarButtons />
+  <MudButton
+      OnClick="@(ToggleRightSidebar)"
+      StartIcon="@Icons.Material.Rounded.Menu">
+  </MudButton>
+</MudAppBar>
+<MudGrid
+    Class="grid-container"
+    Justify="Justify.Center"
+    Spacing="0">
+  @if (_leftSidebar) {
+    <MudItem
+        Class="left sidebar-column"
+        xs="12"
+        sm="1">
+      <MudDrawer
+          Class="sidebar-left"
+          Open="true"
+          Width="100%"
+          Fixed="false"
+          Anchor="Anchor.Left"
+          Elevation="3"
+          Variant="@DrawerVariant.Persistent">
+        <MudDrawerHeader>
+          <MudText
+              Typo="Typo.h6">
+            My App
+          </MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+          <MudNavLink
+              Match="NavLinkMatch.All"
+              Icon="@Icons.Material.Filled.Store">
+            Store
+          </MudNavLink>
+          <MudNavLink
+              Match="NavLinkMatch.All"
+              Icon="@Icons.Material.Filled.LocalLibrary">
+            Library
+          </MudNavLink>
+          <MudNavLink
+              Match="NavLinkMatch.All"
+              Icon="@Icons.Material.Filled.Forum">
+            Community
+          </MudNavLink>
+        </MudNavMenu>
+      </MudDrawer>
+    </MudItem>
+  }
+  <MudItem
+      @ref="_contentItem"
+      Class="@ContentItemClass"
+      xs="12"
+      sm="10">
+    <div
+        class="main-content">
+
+      <MudPage
+          Class="main-page"
+          FullScreen="FullScreen">
+        <div
+            class="video-player">
+          <video
+              id="videoPlayer"
+              preload="auto"
+              controls="controls">
+            <source
+                src="http://localhost:5126/files/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4"
+                type="video/mp4" />
+          </video>
+
+        </div>
+        <div
+            class="align-center d-flex justify-center main-video-footer">
+          <MudGrid
+              Class="video-footer-content"
+              Spacing="0"
+              Justify="Justify.SpaceEvenly">
+            <MudItem>
+              <MudButton
+                  Variant="Variant.Outlined"
+                  Color="Color.Inherit"
+                  OnClick="@ToggleStartDrawer"
+                  StartIcon="@(Icons.Material.Filled.West)"
+                  Class="mx-2">
+                Toggle start
+              </MudButton>
+
+            </MudItem>
+            <MudItem>
+              <div
+                  style="height: 100px; width: 300px">
+              </div>
+            </MudItem>
+            <MudItem>
+
+              <MudButton
+                  Color="Color.Inherit"
+                  Variant="Variant.Outlined"
+                  OnClick="@(ToggleRightSidebar)"
+                  EndIcon="@(Icons.Material.Filled.East)"
+                  Class="mx-2">
+                Toggle Right
+              </MudButton>
+
+            </MudItem>
+          </MudGrid>
+
+        </div>
+
+      </MudPage>
+
+    </div>
+  </MudItem>
+  @if (_rightSidebar) {
+
+    <MudItem
+        Class="right sidebar-column"
+        xs="12"
+        sm="1">
+      <MudDrawer
+          Class="sidebar-left"
+          Open="true"
+          Width="100%"
+          Fixed="false"
+          Anchor="Anchor.Right"
+          Elevation="5"
+          Variant="@DrawerVariant.Persistent">
+        <MudDrawerHeader>
+          <MudText
+              Typo="Typo.h6">
+            My App
+          </MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+          <MudNavLink
+              Match="NavLinkMatch.All"
+              Icon="@Icons.Material.Filled.Store">
+            Store
+          </MudNavLink>
+          <MudNavLink
+              Match="NavLinkMatch.All"
+              Icon="@Icons.Material.Filled.LocalLibrary">
+            Library
+          </MudNavLink>
+          <MudNavLink
+              Match="NavLinkMatch.All"
+              Icon="@Icons.Material.Filled.Forum">
+            Community
+          </MudNavLink>
+        </MudNavMenu>
+      </MudDrawer>
+    </MudItem>
+  }
+</MudGrid>
+
+@code {
+    private const FullScreen FullScreen = MudExtensions.Enums.FullScreen.Full;
+  //bool _showAppbar = true;
+  //bool _appbarBottom;
+  bool _leftSidebar = true;
+  bool _rightSidebar = true;
+  string ContentItemClass { get; set; } = "content-item";
+  MudItem? _contentItem;
+
+  Task ToggleStartDrawer() {
+    _leftSidebar = !_leftSidebar;
+    ResizeContentItem();
+    StateHasChanged();
+    return Task.CompletedTask;
+  }
+  Task ToggleRightSidebar() {
+    _rightSidebar = !_rightSidebar;
+  // append the class "content-expand" to the MudItem
+    ResizeContentItem();
+    StateHasChanged();
+    return Task.CompletedTask;
+  }
+
+  void ResizeContentItem() {
+    ContentItemClass = (_leftSidebar, _rightSidebar) switch
+    {
+      (true, true)   => "content-item",
+      (true, false)  => "content-item content-expand",
+      (false, true)  => "content-item content-expand",
+      (false, false) => "content-item content-full-expand"
+      
+      };
+  }
+}

@@ -1,4 +1,4 @@
-﻿namespace CoilWinderHelp.RCL.Models;
+﻿namespace CoilWinderHelp.Components.Models;
 public enum HelpBasePage
 {
   Admin,

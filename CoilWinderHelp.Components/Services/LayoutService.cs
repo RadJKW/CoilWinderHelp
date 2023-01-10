@@ -1,11 +1,11 @@
-﻿using CoilWinderHelp.RCL.Models;
-using CoilWinderHelp.RCL.Shared;
+﻿using CoilWinderHelp.Components.Models;
+using CoilWinderHelp.Components.Shared;
 using MudBlazor;
 
-namespace CoilWinderHelp.RCL.Services;
+namespace CoilWinderHelp.Components.Services;
 public class LayoutService
 {
-    public bool IsDarkMode { get; private set; } = true;
+    public bool IsDarkMode { get; private set; }
 
     public MudTheme CurrentTheme { get; private set; } = null!;
 
@@ -15,20 +15,14 @@ public class LayoutService
 
     }
 
-    public void ApplyUserPreferences(bool isDarkModeDefaultTheme)
-    {
-        IsDarkMode = true;
-    }
+    public event EventHandler MajorUpdateOccured = null!;
 
-    public event EventHandler? MajorUpdateOccured;
+    private void OnMajorUpdateOccured() => MajorUpdateOccured.Invoke(this, EventArgs.Empty);
 
-    private void OnMajorUpdateOccured() => MajorUpdateOccured?.Invoke(this, EventArgs.Empty);
-
-    public Task ToggleDarkMode()
+    public void ToggleDarkMode()
     {
         IsDarkMode = !IsDarkMode;
         OnMajorUpdateOccured();
-        return Task.CompletedTask;
     }
 
 

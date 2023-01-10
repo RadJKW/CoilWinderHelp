@@ -1,4 +1,4 @@
-using CoilWinderHelp.RCL.Extensions;
+using CoilWinderHelp.Components.Extensions;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;

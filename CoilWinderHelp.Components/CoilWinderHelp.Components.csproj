@@ -22,5 +22,6 @@
     <ItemGroup>
       <ProjectReference Include="..\MudBlazorPWA\Shared\MudBlazorPWA.Shared.csproj" />
     </ItemGroup>
-
+    
+    
 </Project>

@@ -1,7 +1,7 @@
 ﻿using MudBlazor;
 
-namespace CoilWinderHelp.RCL.Theme;
-public class Theme
+namespace CoilWinderHelp.Components.Theme;
+public abstract class Theme
 {
   public static MudTheme DocsTheme()
   {
@@ -9,15 +9,14 @@ public class Theme
     {
       Palette = DocsLightPalette,
       PaletteDark = DocsDarkPalette,
-      LayoutProperties = new LayoutProperties()
+      LayoutProperties = new()
     };
     return theme;
   }
 
-        
+
 
 #region Docs
-
   private static readonly Palette DocsLightPalette = new()
   {
     Black = "#110e2d",
@@ -28,10 +27,10 @@ public class Theme
     GrayLighter = "#f9f9f9"
   };
 
-  private static readonly PaletteDark DocsDarkPalette  = new()
+  private static readonly PaletteDark DocsDarkPalette = new()
   {
     Primary = "#7e6fff",
-    Surface= "#1e1e2d",
+    Surface = "#1e1e2d",
     Background = "#1a1a27",
     BackgroundGrey = "#151521",
     AppbarText = "#92929f",
@@ -57,4 +56,5 @@ public class Theme
     OverlayLight = "#1e1e2d80"
   };
 #endregion
+
 }
