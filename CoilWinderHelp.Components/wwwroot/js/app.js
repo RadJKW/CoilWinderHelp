@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 
- let coilWinderHelp = {
-  showPrompt: function (message) {
-    return prompt(message, 'Type anything here');
+const coilWinderHelp = {
+  showPrompt (message) {
+    return prompt(message, 'Type anything here')
   }
 }

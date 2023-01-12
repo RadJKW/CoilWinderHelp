@@ -1,5 +1,4 @@
-﻿using System.Net.Http;
-namespace CoilWinderHelp.Components.Services;
+namespace CoilWinderHelp.Pages.Services;
 public class VirtualDirectoryClient
 {
 

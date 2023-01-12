@@ -1,3 +1,4 @@
+@import url(../temp/MudBlazor.min.css);
 :root {
     --app-drawer-width: clamp(150px, 10vw, 300px);
 }
@@ -9,11 +10,11 @@
 }
 
 .mud-drawer-open-persistent-left:not(.mud-drawer-open-persistent-right, .sidebar-left) .mud-main-content {
-    padding-top: 16px;
-    margin-left: calc(24px + var(--app-drawer-width));
-    padding-left: 0;
-    padding-right: 0;
-    margin-right: 0;
+  padding-top: 16px;
+  margin-left: calc(24px + var(--app-drawer-width));
+  padding-left: 0;
+  padding-right: 0;
+  margin-right: 0;
 }
 
 .mud-appbar-dense ~ .mud-main-content {
@@ -130,7 +131,7 @@ div.mud-main-content {
 }
 
 .sidebar-left {
-    background-color: #2d2e34;
+    background-color:  var(--mud-palette-surface);
     position: absolute;
     width: 100%;
 }
@@ -154,6 +155,7 @@ div.mud-main-content {
 .main-content {
     flex-grow: 1;
     padding: 0 10px;
+    background-color: var(--mud-palette-dark);
 }
 
 .main-content > .main-page {

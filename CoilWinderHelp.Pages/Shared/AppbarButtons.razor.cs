@@ -1,8 +1,8 @@
-﻿using CoilWinderHelp.Components.Services;
 using Microsoft.AspNetCore.Components;
+using CoilWinderHelp.Pages.Services;
 // ReSharper disable ClassNeverInstantiated.Global
 
-namespace CoilWinderHelp.Components.Shared;
+namespace CoilWinderHelp.Pages.Shared;
 public partial class AppbarButtons
 {
   [Inject] private LayoutService LayoutService { get; set; } = null!;
@@ -17,17 +17,18 @@ public partial class AppbarButtons
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
-    if (firstRender) {
+    if (firstRender)
+    {
       _messages = GetNotifications();
       StateHasChanged();
     }
 
     await base.OnAfterRenderAsync(firstRender);
   }
-  private static IDictionary<string,bool> GetNotifications()
+  private static IDictionary<string, bool> GetNotifications()
   {
-   // return two new notifications 
-   var notifications = new Dictionary<string, bool>
+    // return two new notifications 
+    var notifications = new Dictionary<string, bool>
    {
      {
        "New Notification 1", true
@@ -37,8 +38,8 @@ public partial class AppbarButtons
      }
    };
 
-   return notifications;
+    return notifications;
   }
-  
+
 
 }

@@ -1,7 +1,7 @@
-﻿using CoilWinderHelp.Components.Services;
+﻿using CoilWinderHelp.Pages.Services;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CoilWinderHelp.Components.Extensions;
+namespace CoilWinderHelp.Pages.Extensions;
 public static class ServicesExtension
 {
   public static void TryAddCwHelpServices(this IServiceCollection services)

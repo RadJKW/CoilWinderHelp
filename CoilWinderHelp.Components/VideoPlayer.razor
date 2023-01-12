@@ -1,10 +1,10 @@
-﻿@implements IAsyncDisposable
+@implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
 
 <div class="video-grid video-player">
   <video
       id="@VideoPlayerId"
-      onloadedmetadata="@VideoLoaded"
+      onloadedmetadata="@(() => VideoLoaded)"
       preload="auto"
       controls="controls">
     <source src="@VideoUrl" type="video/mp4" />

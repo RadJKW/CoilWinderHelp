@@ -1,8 +1,8 @@
-﻿namespace CoilWinderHelp.Components.Models;
+﻿namespace MudBlazorPWA.Shared.Models;
 public enum HelpBasePage
 {
   Admin,
   Instructions,
   Index,
-  
+
 }
