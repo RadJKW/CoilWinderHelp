@@ -2,8 +2,9 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
-using MudBlazorPWA.Server.Hubs;
 using MudBlazorPWA.Shared;
+using MudBlazorPWA.Shared.Hubs;
+using MudBlazorPWA.Shared.Services;
 
 const string windowsPath = @"B:\CoilWinderTraining-Edit\";
 const string macPath = @"/Users/jkw/WindingPractices/";
@@ -30,6 +31,8 @@ builder.Services.AddCors(options => {
       .AllowAnyHeader()
       .AllowAnyOrigin());
 });
+
+builder.Services.AddScoped<IDirectoryService, DirectoryService>();
 
 var app = builder.Build();
 
@@ -66,6 +69,7 @@ app.UseHttpLogging();
 app.MapRazorPages();
 app.MapControllers();
 app.MapHub<ChatHub>("/chathub");
+app.MapHub<DirectoryHub>("/directoryhub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

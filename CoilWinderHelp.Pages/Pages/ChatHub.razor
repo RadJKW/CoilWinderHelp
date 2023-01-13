@@ -1,58 +1,141 @@
 @page "/messengerHub"
 @using Microsoft.AspNetCore.SignalR.Client
+@using MudBlazorPWA.Shared.Services
 @layout BaseLayout
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 
 <PageTitle>Index</PageTitle>
 
-<MudGrid Class="pa-6 d-flex justify-center align-center align-stretch">
-  <MudItem xs="6">
-    <MudPaper Class="pa-4">
+<MudGrid
+    Class="align-center align-stretch d-flex justify-center pa-6">
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="pa-4">
       <MudForm >
         <MudTextField
-          T="string"
-          Label="User"
-          @bind-Value="_userInput"
-          Variant="Variant.Outlined">
+            T="string"
+            Label="User"
+            @bind-Value="_userInput"
+            Variant="Variant.Outlined">
         </MudTextField>
-
         <MudTextField
-          T="string"
-          Label="Message"
-          @bind-Value="_messageInput"
-          Variant="Variant.Outlined">
+            T="string"
+            Label="Message"
+            @bind-Value="_messageInput"
+            Variant="Variant.Outlined">
         </MudTextField>
-        <div class="d-flex align-center justify-end pt-4 px-4">
+        <div
+            class="align-center d-flex justify-space-between pt-4 px-4">
           <MudButton
-            Variant="Variant.Outlined"
-            Color="Color.Success"
-            OnClick="Send" Disabled="!IsConnected">Send</MudButton>
+              OnClick="Send"
+              Variant="Variant.Outlined"
+              Color="Color.Success"
+              Disabled="!IsConnected">
+            Send
+          </MudButton>
+          <MudButton
+              OnClick="GetDirectoryContent"
+              Variant="Variant.Outlined"
+              Color="Color.Success"
+              Disabled="!IsConnected">
+            Update Directory
+          </MudButton>
         </div>
       </MudForm>
     </MudPaper>
   </MudItem>
-  <MudItem xs="6" >
-    <MudPaper Class="pa-4 mud-height-full">
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="mud-height-full pa-4">
       <MudGrid>
-        <MudItem xs="12">
-          <MudText Class="mud-width-full" Typo="Typo.subtitle2">@($"Messages : ({_messages.Count})")</MudText>
+        <MudItem
+            xs="12">
+          <MudText
+              Class="mud-width-full"
+              Typo="Typo.subtitle2">
+            @($"Messages : ({_messages.Count})")
+          </MudText>
         </MudItem>
         @foreach (var message in _messages) {
-          <MudItem xs="2" Class="d-flex justify-end pl-2 pr-1">
+          <MudItem
+              xs="2"
+              Class="d-flex justify-end pl-2 pr-1">
 
-              <MudIcon Icon="@Icons.Material.Filled.ArrowForward"/>
-              :
+            <MudIcon
+                Icon="@Icons.Material.Filled.ArrowForward"/>
+            :
 
           </MudItem>
 
-          <MudItem xs="10" Class="d-flex justify-start px-0" >
-            <MudText Class="" Color="@Color.Error">@message</MudText>
+          <MudItem
+              xs="10"
+              Class="d-flex justify-start px-0">
+            <MudText
+                Class=""
+                Color="@Color.Error">
+              @message
+            </MudText>
           </MudItem>
           <MudDivider/>
         }
 
       </MudGrid>
+    </MudPaper>
+  </MudItem>
+</MudGrid>
+
+<MudGrid
+    Class="align-center align-stretch d-flex justify-center pt-6 px-6">
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="pa-4">
+      <MudList
+          Clickable="true">
+        <MudListSubheader>
+          <MudText
+              Typo="Typo.h6">
+            Files
+          </MudText>
+        </MudListSubheader>
+        <MudDivider/>
+        @if (Files is not null) {
+          foreach (var file in Files) {
+
+            <MudListItem>
+              @file
+            </MudListItem>
+          }
+        }
+      </MudList>
+    </MudPaper>
+  </MudItem>
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="pa-4">
+
+      <MudList
+          Clickable="true">
+        <MudListSubheader>
+          <MudText
+              Typo="Typo.h6">
+            Folders
+          </MudText>
+        </MudListSubheader>
+        <MudDivider/>
+        @if (Folders is not null) {
+
+                    foreach (var folder in Folders.ToList()) {
+                      <MudListItem>
+                        @folder
+                      </MudListItem>
+                    }
+                  }
+      </MudList>
     </MudPaper>
   </MudItem>
 </MudGrid>
@@ -66,37 +149,70 @@
 @* </MudList> *@
 
 @code {
-  private HubConnection? _hubConnection;
+  private HubConnection? _chatHub;
+  private HubConnection? _directoryHub;
   private readonly List<string> _messages = new();
   private string? _userInput = "JKW";
   private string? _messageInput;
+  private string? RootDirectory { get; set; }
+  private List<string>? Folders { get; set; }
+  private List<string>? Files { get; set; }
 
   protected override async Task OnInitializedAsync() {
-    _hubConnection = new HubConnectionBuilder()
+    RootDirectory = @"B:\CoilWinderTraining-Edit\";
+    _messages.Add(RootDirectory);
+    await InitializeChatHub();
+    await InitializeDirectoryHub();
+
+  }
+
+  private async Task InitializeChatHub() {
+    _chatHub = new HubConnectionBuilder()
       .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
       .Build();
 
-    _hubConnection.On<string, string>("ReceiveMessage", (user, message) => {
+    _chatHub.On<string, string>("ReceiveMessage", (user, message) => {
       var encodedMsg = $"{user}: {message}";
       _messages.Add(encodedMsg);
       StateHasChanged();
     });
 
-    await _hubConnection.StartAsync();
+    await _chatHub.StartAsync();
+  }
+
+  private async Task InitializeDirectoryHub() {
+    _directoryHub = new HubConnectionBuilder()
+      .WithAutomaticReconnect()
+      .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
+      .Build();
+
+    _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
+  //since files and folders are an array, we need to convert them to the Files and Folders lists
+      Files = files?.ToList();
+      Folders = folders?.ToList();
+      StateHasChanged();
+    });
+    await _directoryHub.StartAsync();
+
+  }
+
+  private async Task GetDirectoryContent() {
+    if (_directoryHub is not null)
+      await _directoryHub.SendAsync("GetDirectoryContent", RootDirectory);
   }
 
   private async Task Send() {
-    if (_hubConnection is not null) {
-      await _hubConnection.SendAsync("SendMessage", _userInput, _messageInput);
+    if (_chatHub is not null) {
+      await _chatHub.SendAsync("SendMessage", _userInput, _messageInput);
     }
   }
 
   private bool IsConnected =>
-    _hubConnection?.State == HubConnectionState.Connected;
+    _chatHub?.State == HubConnectionState.Connected;
 
   public async ValueTask DisposeAsync() {
-    if (_hubConnection is not null) {
-      await _hubConnection.DisposeAsync();
+    if (_chatHub is not null) {
+      await _chatHub.DisposeAsync();
     }
   }
 }

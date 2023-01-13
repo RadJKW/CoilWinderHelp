@@ -1,17 +1,37 @@
-﻿@page "/counter"
+@page "/counter"
 @layout DocViewLayout
+@using Microsoft.AspNetCore.SignalR.Client;
+
 
 <PageTitle>Counter</PageTitle>
 
 <h1> Hello From Counter</h1>
 
+<MudButton Variant="Variant.Outlined" Size="Size.Large"></MudButton>
+
 @code {
 
-  [CascadingParameter]
-  public required BaseLayout Layout { get; set; }
+    [CascadingParameter]
+    public required BaseLayout Layout { get; set; }
 
-  protected override void OnInitialized() {
-    Layout.PageTitle = "Counter";
-    Layout.HidAppBar(true);
-  }
+    private HubConnection? hubConnection { get; set; }
+
+    private string[]? files { get; set; }
+
+    protected override void OnInitialized() {
+        Layout.PageTitle = "Counter";
+        Layout.HidAppBar(true);
+
+
+
+
+    }
+
+    private async Task GetDirectoryFiles()
+    {
+
+        await Task.CompletedTask;
+
+        
+    }
 }
