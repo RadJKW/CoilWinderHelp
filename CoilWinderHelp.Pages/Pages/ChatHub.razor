@@ -1,0 +1,102 @@
+@page "/messengerHub"
+@using Microsoft.AspNetCore.SignalR.Client
+@layout BaseLayout
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<PageTitle>Index</PageTitle>
+
+<MudGrid Class="pa-6 d-flex justify-center align-center align-stretch">
+  <MudItem xs="6">
+    <MudPaper Class="pa-4">
+      <MudForm >
+        <MudTextField
+          T="string"
+          Label="User"
+          @bind-Value="_userInput"
+          Variant="Variant.Outlined">
+        </MudTextField>
+
+        <MudTextField
+          T="string"
+          Label="Message"
+          @bind-Value="_messageInput"
+          Variant="Variant.Outlined">
+        </MudTextField>
+        <div class="d-flex align-center justify-end pt-4 px-4">
+          <MudButton
+            Variant="Variant.Outlined"
+            Color="Color.Success"
+            OnClick="Send" Disabled="!IsConnected">Send</MudButton>
+        </div>
+      </MudForm>
+    </MudPaper>
+  </MudItem>
+  <MudItem xs="6" >
+    <MudPaper Class="pa-4 mud-height-full">
+      <MudGrid>
+        <MudItem xs="12">
+          <MudText Class="mud-width-full" Typo="Typo.subtitle2">@($"Messages : ({_messages.Count})")</MudText>
+        </MudItem>
+        @foreach (var message in _messages) {
+          <MudItem xs="2" Class="d-flex justify-end pl-2 pr-1">
+
+              <MudIcon Icon="@Icons.Material.Filled.ArrowForward"/>
+              :
+
+          </MudItem>
+
+          <MudItem xs="10" Class="d-flex justify-start px-0" >
+            <MudText Class="" Color="@Color.Error">@message</MudText>
+          </MudItem>
+          <MudDivider/>
+        }
+
+      </MudGrid>
+    </MudPaper>
+  </MudItem>
+</MudGrid>
+
+@* <MudList> *@
+@*   @foreach (var message in _messages) { *@
+@*     <MudListItem> *@
+@*       <MudText>@message</MudText> *@
+@*     </MudListItem> *@
+@*   } *@
+@* </MudList> *@
+
+@code {
+  private HubConnection? _hubConnection;
+  private readonly List<string> _messages = new();
+  private string? _userInput = "JKW";
+  private string? _messageInput;
+
+  protected override async Task OnInitializedAsync() {
+    _hubConnection = new HubConnectionBuilder()
+      .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+      .Build();
+
+    _hubConnection.On<string, string>("ReceiveMessage", (user, message) => {
+      var encodedMsg = $"{user}: {message}";
+      _messages.Add(encodedMsg);
+      StateHasChanged();
+    });
+
+    await _hubConnection.StartAsync();
+  }
+
+  private async Task Send() {
+    if (_hubConnection is not null) {
+      await _hubConnection.SendAsync("SendMessage", _userInput, _messageInput);
+    }
+  }
+
+  private bool IsConnected =>
+    _hubConnection?.State == HubConnectionState.Connected;
+
+  public async ValueTask DisposeAsync() {
+    if (_hubConnection is not null) {
+      await _hubConnection.DisposeAsync();
+    }
+  }
+}

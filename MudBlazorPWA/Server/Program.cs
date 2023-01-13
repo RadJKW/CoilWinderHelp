@@ -2,6 +2,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
+using MudBlazorPWA.Server.Hubs;
 using MudBlazorPWA.Shared;
 
 const string windowsPath = @"B:\CoilWinderTraining-Edit\";
@@ -16,6 +17,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddDirectoryBrowser();
+builder.Services.AddSignalR();
 // add logging + console logging
 builder.Services.AddLogging();
 builder.Services.AddLogging(loggingBuilder => {
@@ -63,6 +65,7 @@ app.UseHttpLogging();
 
 app.MapRazorPages();
 app.MapControllers();
+app.MapHub<ChatHub>("/chathub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

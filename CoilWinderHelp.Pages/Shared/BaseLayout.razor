@@ -5,7 +5,8 @@
 <MudLayout>
   <MudAppBar
       Elevation="0"
-      Dense="true">
+      Dense="true"
+      Fixed="false">
     <MudIconButton
         Color="Color.Inherit"
         Edge="Edge.Start"
@@ -58,7 +59,7 @@
       InvokeAsync(StateHasChanged);
     }
   }
-  
+
   protected override void OnInitialized() {
     LayoutService.SetBaseTheme(new());
   }
