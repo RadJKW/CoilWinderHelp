@@ -21,7 +21,7 @@ public  class DirectoryService : IDirectoryService
     _hubContext = hubContext;
   }
 
-  public string? RootDirectory { get; set; }
+  private string? RootDirectory { get; set; }
   public Task<(string, string[], string[])> GetDirectoryContent(string path)
   {
     // only display files that end in .mp4 or .pdf
