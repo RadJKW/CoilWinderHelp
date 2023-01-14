@@ -1,9 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.FileProviders;
-using Microsoft.VisualBasic;
 using MudBlazorPWA.Shared.Services;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace MudBlazorPWA.Shared.Hubs;
 public class DirectoryHub : Hub
@@ -43,6 +39,10 @@ public class DirectoryHub : Hub
     var (currentPath, files, folders) = await _directoryService.GetDirectoryContent(path);
     await Clients.All.SendAsync(ReceiveFolderContentMethod, currentPath, files, folders);
   }
+
+  // ReSharper disable once UnusedMember.Global
+  public async Task SetCurrentDirectory(string? path)
+  {
+    await _directoryService.SetCurrentDirectory(path ?? null);
+  }
 }
-
-

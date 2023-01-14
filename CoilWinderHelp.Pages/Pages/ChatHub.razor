@@ -129,12 +129,13 @@
         <MudDivider/>
         @if (Folders is not null) {
 
-                    foreach (var folder in Folders.ToList()) {
-                      <MudListItem>
-                        @folder
-                      </MudListItem>
-                    }
-                  }
+          foreach (var folder in Folders.ToList()) {
+            <MudListItem
+                OnClick="async () => await GoToDirectory(folder)">
+              @folder
+            </MudListItem>
+          }
+        }
       </MudList>
     </MudPaper>
   </MudItem>
@@ -159,16 +160,17 @@
   private List<string>? Files { get; set; }
 
   protected override async Task OnInitializedAsync() {
-    RootDirectory = @"B:\CoilWinderTraining-Edit\";
-    _messages.Add(RootDirectory);
+
     await InitializeChatHub();
     await InitializeDirectoryHub();
 
   }
 
+
+
   private async Task InitializeChatHub() {
     _chatHub = new HubConnectionBuilder()
-      .WithUrl(Navigation.ToAbsoluteUri("/chathub"))
+      .WithUrl(Navigation.ToAbsoluteUri("/chatHub"))
       .Build();
 
     _chatHub.On<string, string>("ReceiveMessage", (user, message) => {
@@ -192,7 +194,15 @@
       Folders = folders?.ToList();
       StateHasChanged();
     });
+
+    _directoryHub.On<string>("UpdateCurrentDirectoryChange", async (path) => {
+      RootDirectory = path;
+      _messages.Add($"Current Directory : {RootDirectory}");
+      await _directoryHub.SendAsync("GetDirectoryContent", RootDirectory);
+    });
     await _directoryHub.StartAsync();
+
+    await _directoryHub.SendAsync("SetCurrentDirectory", null);
 
   }
 
@@ -215,4 +225,9 @@
       await _chatHub.DisposeAsync();
     }
   }
+  private async Task GoToDirectory(string folder) {
+    await _directoryHub!.SendAsync("SetCurrentDirectory", folder);
+  }
+
+
 }

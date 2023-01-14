@@ -1,6 +1,5 @@
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
-using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 using MudBlazorPWA.Shared;
 using MudBlazorPWA.Shared.Hubs;
@@ -68,8 +67,8 @@ app.UseHttpLogging();
 
 app.MapRazorPages();
 app.MapControllers();
-app.MapHub<ChatHub>("/chathub");
-app.MapHub<DirectoryHub>("/directoryhub");
+app.MapHub<ChatHub>("/chatHub");
+app.MapHub<DirectoryHub>("/directoryHub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

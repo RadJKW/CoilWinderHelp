@@ -1,19 +1,19 @@
-using MudBlazorPWA.Shared.Models;
-using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazorPWA.Shared.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
 {
-  public string RootDirectory { get; set; }
   Task<(string, string[], string[])> GetDirectoryContent(string path);
   Task<string?> GoToFolder(string currentPath, string folderName);
   Task<string?> GoBack(string currentPath);
+  Task SetCurrentDirectory(string? path);
 }
 
 public  class DirectoryService : IDirectoryService
 {
+  private const string WindowsPath = @"B:\CoilWinderTraining-Edit\";
+  private const string MacPath = @"/Users/jkw/WindingPractices/";
   private readonly IHubContext<DirectoryHub> _hubContext;
 
   public DirectoryService(IHubContext<DirectoryHub> hubContext)
@@ -21,7 +21,7 @@ public  class DirectoryService : IDirectoryService
     _hubContext = hubContext;
   }
 
-  public string RootDirectory { get; set; } = @"B:\CoilWinderTraining-Edit\";
+  public string? RootDirectory { get; set; }
   public Task<(string, string[], string[])> GetDirectoryContent(string path)
   {
     // only display files that end in .mp4 or .pdf
@@ -70,6 +70,14 @@ public  class DirectoryService : IDirectoryService
 
     // return the new path
     return parentDirectory.FullName;
+  }
+  public async Task SetCurrentDirectory(string? path)
+  {
+    if (path is not null)
+      RootDirectory = path;
+    if (path is null)
+      RootDirectory = OperatingSystem.IsWindows() ? WindowsPath : MacPath;
+    await _hubContext.Clients.All.SendAsync("UpdateCurrentDirectoryChange", RootDirectory);
   }
 
 }
