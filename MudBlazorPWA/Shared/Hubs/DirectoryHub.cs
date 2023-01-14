@@ -28,10 +28,7 @@ public class DirectoryHub : Hub
   public async Task GoBack(string currentPath)
   {
     var newPath = await _directoryService.GoBack(currentPath);
-    if (newPath != null)
-    {
-      await Clients.All.SendAsync(DirectoryChangedMethod, newPath);
-    }
+    await Clients.All.SendAsync(DirectoryChangedMethod, newPath);
   }
 
   public async Task GetDirectoryContent(string path)
@@ -45,4 +42,6 @@ public class DirectoryHub : Hub
   {
     await _directoryService.SetCurrentDirectory(path ?? null);
   }
+
+
 }

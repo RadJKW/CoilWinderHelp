@@ -5,48 +5,9 @@
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
 
-<PageTitle>Index</PageTitle>
-
 <MudGrid
     Class="align-center align-stretch d-flex justify-center pa-6">
-  <MudItem
-      xs="6">
-    <MudPaper
-        Class="pa-4">
-      <MudForm >
-        <MudTextField
-            T="string"
-            Label="User"
-            @bind-Value="_userInput"
-            Variant="Variant.Outlined">
-        </MudTextField>
-        <MudTextField
-            T="string"
-            Label="Message"
-            @bind-Value="_messageInput"
-            Variant="Variant.Outlined">
-        </MudTextField>
-        <div
-            class="align-center d-flex justify-space-between pt-4 px-4">
-          <MudButton
-              OnClick="Send"
-              Variant="Variant.Outlined"
-              Color="Color.Success"
-              Disabled="!IsConnected">
-            Send
-          </MudButton>
-          @*// TODO: Add a button to 'GoBack' one directory *@
-          <MudButton
-              OnClick="GetDirectoryContent"
-              Variant="Variant.Outlined"
-              Color="Color.Success"
-              Disabled="!IsConnected">
-            Update Directory
-          </MudButton>
-        </div>
-      </MudForm>
-    </MudPaper>
-  </MudItem>
+
   <MudItem
       xs="6">
     <MudPaper
@@ -57,8 +18,9 @@
           <MudText
               Class="mud-width-full"
               Typo="Typo.subtitle2">
-            @($"Messages : ({_messages.Count})")
+            "Directory:"
           </MudText>
+
         </MudItem>
         @foreach (var message in _messages) {
           <MudItem
@@ -80,8 +42,8 @@
               @message
             </MudText>
           </MudItem>
-          <MudDivider/>
         }
+        <MudDivider/>
 
       </MudGrid>
     </MudPaper>
@@ -96,11 +58,29 @@
         Class="pa-4">
       <MudList
           Clickable="true">
-        <MudListSubheader>
+        <MudListSubheader Class="d-flex flex-row flex-nowrap align-center ">
           <MudText
+              Class="flex-grow-1"
               Typo="Typo.h6">
             Files
           </MudText>
+           <div
+                                class="align-center d-flex gap-2 justify-end pt-4 px-4">
+                              <MudButton
+                                  OnClick="GoBack"
+                                  Variant="Variant.Outlined"
+                                  Color="Color.Success"
+                                  Disabled="!IsConnected">
+                                Back
+                              </MudButton>
+                              <MudButton
+                                  OnClick="GetDirectoryContent"
+                                  Variant="Variant.Outlined"
+                                  Color="Color.Success"
+                                  Disabled="!IsConnected">
+                                Update Directory
+                              </MudButton>
+                            </div>
         </MudListSubheader>
         <MudDivider/>
         @if (Files is not null) {
@@ -142,46 +122,19 @@
   </MudItem>
 </MudGrid>
 
-@* <MudList> *@
-@*   @foreach (var message in _messages) { *@
-@*     <MudListItem> *@
-@*       <MudText>@message</MudText> *@
-@*     </MudListItem> *@
-@*   } *@
-@* </MudList> *@
-
 @code {
-  private HubConnection? _chatHub;
   private HubConnection? _directoryHub;
   private readonly List<string> _messages = new();
-  private string? _userInput = "JKW";
-  private string? _messageInput;
-  private string? RootDirectory { get; set; }
+  private string? CurrentDirectory { get; set; }
   private List<string>? Folders { get; set; }
   private List<string>? Files { get; set; }
 
   protected override async Task OnInitializedAsync() {
 
-    await InitializeChatHub();
     await InitializeDirectoryHub();
 
   }
 
-
-
-  private async Task InitializeChatHub() {
-    _chatHub = new HubConnectionBuilder()
-      .WithUrl(Navigation.ToAbsoluteUri("/chatHub"))
-      .Build();
-
-    _chatHub.On<string, string>("ReceiveMessage", (user, message) => {
-      var encodedMsg = $"{user}: {message}";
-      _messages.Add(encodedMsg);
-      StateHasChanged();
-    });
-
-    await _chatHub.StartAsync();
-  }
 
   private async Task InitializeDirectoryHub() {
     _directoryHub = new HubConnectionBuilder()
@@ -196,10 +149,10 @@
       StateHasChanged();
     });
 
-    _directoryHub.On<string>("UpdateCurrentDirectoryChange", async (path) => {
-      RootDirectory = path;
-      _messages.Add($"Current Directory : {RootDirectory}");
-      await _directoryHub.SendAsync("GetDirectoryContent", RootDirectory);
+    _directoryHub.On<string>("DirectoryChanged", async (path) => {
+      CurrentDirectory = path;
+      _messages.Add($"Current Directory : {CurrentDirectory}");
+      await _directoryHub.SendAsync("GetDirectoryContent", CurrentDirectory);
     });
     await _directoryHub.StartAsync();
 
@@ -209,25 +162,24 @@
 
   private async Task GetDirectoryContent() {
     if (_directoryHub is not null)
-      await _directoryHub.SendAsync("GetDirectoryContent", RootDirectory);
-  }
-
-  private async Task Send() {
-    if (_chatHub is not null) {
-      await _chatHub.SendAsync("SendMessage", _userInput, _messageInput);
-    }
+      await _directoryHub.SendAsync("GetDirectoryContent", CurrentDirectory);
   }
 
   private bool IsConnected =>
-    _chatHub?.State == HubConnectionState.Connected;
+    _directoryHub?.State == HubConnectionState.Connected;
 
   public async ValueTask DisposeAsync() {
-    if (_chatHub is not null) {
-      await _chatHub.DisposeAsync();
+    if (_directoryHub is not null) {
+      await _directoryHub.DisposeAsync();
     }
   }
   private async Task GoToDirectory(string folder) {
     await _directoryHub!.SendAsync("SetCurrentDirectory", folder);
+  }
+
+  private async Task GoBack() {
+  // to get the parent directory, we need to remove the last folder from the path
+    await _directoryHub!.SendAsync("GoBack", CurrentDirectory);
   }
 
 
