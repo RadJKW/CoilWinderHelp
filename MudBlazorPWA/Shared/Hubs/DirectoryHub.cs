@@ -6,9 +6,9 @@ public class DirectoryHub : Hub
 {
   private const string DirectoryChangedMethod = "DirectoryChanged";
   private const string ReceiveFolderContentMethod = "ReceiveFolderContent";
-  private const string UpdateDirectoryMethod = "UpdateCurrentDirectory";
-  private const string UpdateFilesMethod = "UpdateFiles";
-  private const string UpdateFoldersMethod = "UpdateFolders";
+  // private const string UpdateDirectoryMethod = "UpdateCurrentDirectory";
+  // private const string UpdateFilesMethod = "UpdateFiles";
+  // private const string UpdateFoldersMethod = "UpdateFolders";
   private readonly IDirectoryService _directoryService;
 
   public DirectoryHub(IDirectoryService directoryService)
@@ -31,16 +31,18 @@ public class DirectoryHub : Hub
     await Clients.All.SendAsync(DirectoryChangedMethod, newPath);
   }
 
-  public async Task GetDirectoryContent(string path)
+  // ReSharper disable once UnusedMember.Global
+  public async Task GetFolderContent()
   {
-    var (currentPath, files, folders) = await _directoryService.GetDirectoryContent(path);
+    var (currentPath, files, folders) = await _directoryService.GetFolderContent();
     await Clients.All.SendAsync(ReceiveFolderContentMethod, currentPath, files, folders);
+
   }
 
   // ReSharper disable once UnusedMember.Global
-  public async Task SetCurrentDirectory(string? path)
+  public async Task SetCurrentFolder(string? path)
   {
-    await _directoryService.SetCurrentDirectory(path ?? null);
+    await _directoryService.SetCurrentFolder(path);
   }
 
 

@@ -58,29 +58,30 @@
         Class="pa-4">
       <MudList
           Clickable="true">
-        <MudListSubheader Class="d-flex flex-row flex-nowrap align-center ">
+        <MudListSubheader
+            Class="align-center d-flex flex-nowrap flex-row">
           <MudText
               Class="flex-grow-1"
               Typo="Typo.h6">
             Files
           </MudText>
-           <div
-                                class="align-center d-flex gap-2 justify-end pt-4 px-4">
-                              <MudButton
-                                  OnClick="GoBack"
-                                  Variant="Variant.Outlined"
-                                  Color="Color.Success"
-                                  Disabled="!IsConnected">
-                                Back
-                              </MudButton>
-                              <MudButton
-                                  OnClick="GetDirectoryContent"
-                                  Variant="Variant.Outlined"
-                                  Color="Color.Success"
-                                  Disabled="!IsConnected">
-                                Update Directory
-                              </MudButton>
-                            </div>
+          <div
+              class="align-center d-flex gap-2 justify-end pt-4 px-4">
+            <MudButton
+                OnClick="GoBack"
+                Variant="Variant.Outlined"
+                Color="Color.Success"
+                Disabled="!IsConnected">
+              Back
+            </MudButton>
+            <MudButton
+                OnClick="GetFolderContent"
+                Variant="Variant.Outlined"
+                Color="Color.Success"
+                Disabled="!IsConnected">
+              Update Directory
+            </MudButton>
+          </div>
         </MudListSubheader>
         <MudDivider/>
         @if (Files is not null) {
@@ -152,17 +153,17 @@
     _directoryHub.On<string>("DirectoryChanged", async (path) => {
       CurrentDirectory = path;
       _messages.Add($"Current Directory : {CurrentDirectory}");
-      await _directoryHub.SendAsync("GetDirectoryContent", CurrentDirectory);
+      await _directoryHub.SendAsync("GetFolderContent", CurrentDirectory);
     });
     await _directoryHub.StartAsync();
 
-    await _directoryHub.SendAsync("SetCurrentDirectory", null);
+    // await _directoryHub.SendAsync("SetCurrentDirectory", null);
 
   }
 
-  private async Task GetDirectoryContent() {
+  private async Task GetFolderContent() {
     if (_directoryHub is not null)
-      await _directoryHub.SendAsync("GetDirectoryContent", CurrentDirectory);
+      await _directoryHub.SendAsync("GetFolderContent", CurrentDirectory);
   }
 
   private bool IsConnected =>

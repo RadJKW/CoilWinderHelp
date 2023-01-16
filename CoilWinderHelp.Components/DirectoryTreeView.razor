@@ -1,0 +1,73 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using MudBlazorPWA.Shared.Models
+@using MudBlazorPWA.Shared.Extensions
+@inject NavigationManager Navigation
+<MudTreeView
+    ServerData="LoadServerData"
+    Items="TreeItems"
+    ExpandOnClick="true"
+    Hover="true">
+  <ItemTemplate>
+    <MudTreeViewItem
+        Value="@context"
+        Icon="@context.Icon"
+        LoadingIconColor="Color.Info"
+        CanExpand="@context.CanExpand"
+        Text="@context.Title"
+        EndText="@context.Number?.ToString()"
+        EndTextTypo="@Typo.caption"/>
+        @* OnClick="() => GetFolderContent(context)" *@
+  </ItemTemplate>
+</MudTreeView>
+
+@code{
+  private HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
+  private TreeItemData? CurrentTreeItemData { get; set; }
+
+  private HubConnection? _directoryHub;
+
+  protected override async Task OnInitializedAsync() {
+    await InitializeDirectoryHub();
+  }
+
+  private async Task InitializeDirectoryHub() {
+    _directoryHub = new HubConnectionBuilder()
+      .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
+      .Build();
+
+    _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
+      ConvertToTreeItems(path, files, folders);
+      StateHasChanged();
+    });
+
+    await _directoryHub.StartAsync();
+    await _directoryHub.SendAsync("GetFolderContent");
+  }
+
+  private Task ConvertToTreeItems(string path, string[]? files, string[]? folders) {
+    if (folders != null) {
+      foreach (var folder in folders) {
+        TreeItems.Add(new(folder, Icons.Material.Outlined.Folder) {
+          TreeItems = new()
+        });
+      }
+    }
+
+  // ReSharper disable once InvertIf
+    if (files != null) {
+      foreach (var file in files) {
+        TreeItems.Add(new(title: file,icon: Icons.Material.Outlined.PictureAsPdf, canExpand: false));
+      }
+    }
+
+    return Task.CompletedTask;
+  }
+
+  private async Task<HashSet<TreeItemData>>  LoadServerData(TreeItemData parentNode) {
+  // return the updated TreeItems property
+    CurrentTreeItemData = parentNode;
+    await _directoryHub!.SendAsync("GetFolderContent", parentNode.Title);
+    return CurrentTreeItemData.TreeItems;
+  }
+
+}

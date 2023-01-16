@@ -1,4 +1,3 @@
-@import url(../temp/MudBlazor.min.css);
 :root {
     --app-drawer-width: clamp(150px, 10vw, 300px);
 }
@@ -165,7 +164,7 @@ div.mud-main-content {
     align-items: flex-start;
     grid-template-rows: 0.5fr auto 3fr;
     grid-template-columns: 1fr;
-    
+
 }
 
 

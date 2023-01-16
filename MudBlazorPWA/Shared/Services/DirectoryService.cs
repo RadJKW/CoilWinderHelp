@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.SignalR;
 namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
 {
-    Task<(string, string[], string[])> GetDirectoryContent(string path);
+    string? CurrentDirectory { get; }
+    Task<(string, string[], string[])> GetFolderContent();
     Task<string?> GoToFolder(string currentPath, string folderName);
     Task<string> GoBack(string currentPath);
-    Task SetCurrentDirectory(string? path);
+    Task SetCurrentFolder(string? path);
 }
 
 public class DirectoryService : IDirectoryService
@@ -15,16 +16,22 @@ public class DirectoryService : IDirectoryService
     private const string WindowsPath = @"B:\CoilWinderTraining-Edit\";
     private const string MacPath = @"/Users/jkw/WindingPractices/";
     private readonly IHubContext<DirectoryHub> _hubContext;
+    private string RootDirectory { get; } = OperatingSystem.IsWindows() ? WindowsPath : MacPath;
+    private string? _currentDirectory;
 
     public DirectoryService(IHubContext<DirectoryHub> hubContext)
     {
         _hubContext = hubContext;
     }
 
-    private string? RootDirectory { get; set; }
-    public Task<(string, string[], string[])> GetDirectoryContent(string path)
+    public string? CurrentDirectory
     {
-        // only display files that end in .mp4 or .pdf
+        get => _currentDirectory ?? RootDirectory;
+        set => _currentDirectory = value;
+    }
+    public Task<(string, string[], string[])> GetFolderContent()
+    {
+        var path = _currentDirectory ?? RootDirectory;
 
         var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf")).ToArray();
         var folders = Directory.GetDirectories(path);
@@ -52,13 +59,15 @@ public class DirectoryService : IDirectoryService
         return Task.FromResult(parentDirectory == null ? currentPath : parentDirectory.FullName);
 
     }
-    public async Task SetCurrentDirectory(string? path)
+    public Task SetCurrentFolder(string? path)
     {
-        if (path is not null)
-            RootDirectory = path;
-        if (path is null)
-            RootDirectory = OperatingSystem.IsWindows() ? WindowsPath : MacPath;
-        await _hubContext.Clients.All.SendAsync("DirectoryChanged", RootDirectory);
+        if (path == null || !Path.GetRelativePath(path, RootDirectory).StartsWith(".."))
+
+        {
+            throw new ArgumentException("Invalid path. The path must be within the RootDirectory or its parent.");
+        }
+        _currentDirectory = path;
+        return Task.CompletedTask;
     }
 
 }
