@@ -6,6 +6,7 @@ public interface IDirectoryService
 {
     string? CurrentDirectory { get; }
     Task<(string, string[], string[])> GetFolderContent();
+    Task<(string, string[], string[])> GetFolderContent(string path);
     Task<string?> GoToFolder(string currentPath, string folderName);
     Task<string> GoBack(string currentPath);
     Task SetCurrentFolder(string? path);
@@ -33,6 +34,13 @@ public class DirectoryService : IDirectoryService
     {
         var path = _currentDirectory ?? RootDirectory;
 
+        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf")).ToArray();
+        var folders = Directory.GetDirectories(path);
+        return Task.FromResult((path, files, folders));
+    }
+
+    public Task<(string, string[], string[])> GetFolderContent(string path)
+    {
         var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf")).ToArray();
         var folders = Directory.GetDirectories(path);
         return Task.FromResult((path, files, folders));

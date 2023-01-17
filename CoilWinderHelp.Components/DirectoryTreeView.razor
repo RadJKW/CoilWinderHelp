@@ -16,11 +16,12 @@
         Text="@context.Title"
         EndText="@context.Number?.ToString()"
         EndTextTypo="@Typo.caption"/>
-        @* OnClick="() => GetFolderContent(context)" *@
+    @* OnClick="() => GetFolderContent(context)" *@
   </ItemTemplate>
 </MudTreeView>
 
 @code{
+  private string? _rootDirectoryPath;
   private HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
   private TreeItemData? CurrentTreeItemData { get; set; }
 
@@ -36,37 +37,44 @@
       .Build();
 
     _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
+      _rootDirectoryPath ??= path;
       ConvertToTreeItems(path, files, folders);
       StateHasChanged();
     });
 
     await _directoryHub.StartAsync();
-    await _directoryHub.SendAsync("GetFolderContent");
+    await _directoryHub.SendAsync("GetFolderContent", null);
   }
 
   private Task ConvertToTreeItems(string path, string[]? files, string[]? folders) {
     if (folders != null) {
       foreach (var folder in folders) {
-        TreeItems.Add(new(folder, Icons.Material.Outlined.Folder) {
+        var folderPath = folder.Replace(_rootDirectoryPath!, "");
+        CurrentTreeItemData = new(folderPath, Icons.Material.Outlined.Folder, 20, true) {
           TreeItems = new()
-        });
+        };
+        TreeItems.Add(CurrentTreeItemData);
       }
     }
+
 
   // ReSharper disable once InvertIf
     if (files != null) {
       foreach (var file in files) {
-        TreeItems.Add(new(title: file,icon: Icons.Material.Outlined.PictureAsPdf, canExpand: false));
+        var filePath = file.Replace(_rootDirectoryPath!, "");
+        CurrentTreeItemData = new(title: filePath, icon: Icons.Material.Outlined.PictureAsPdf, canExpand: false);
+        TreeItems.Add(CurrentTreeItemData); }
       }
-    }
-
     return Task.CompletedTask;
   }
 
-  private async Task<HashSet<TreeItemData>>  LoadServerData(TreeItemData parentNode) {
+  //TODO: NO WORKEEEEEEEYYYYY
+  private async Task<HashSet<TreeItemData>> LoadServerData(TreeItemData parentNode) {
   // return the updated TreeItems property
     CurrentTreeItemData = parentNode;
-    await _directoryHub!.SendAsync("GetFolderContent", parentNode.Title);
+    var currentPath = _rootDirectoryPath + parentNode.Title;
+    await _directoryHub!
+      .SendAsync("GetFolderContent", currentPath);
     return CurrentTreeItemData.TreeItems;
   }
 
