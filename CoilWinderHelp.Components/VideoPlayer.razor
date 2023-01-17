@@ -1,26 +1,22 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
 
-<div class="video-grid video-player">
   <video
       id="@VideoPlayerId"
-      onloadedmetadata="@(() => VideoLoaded)"
+      onloadedmetadata="@(VideoLoaded)"
+      buffered="true"
       preload="auto"
-      controls="controls">
+      controls="controls"
+      autoplay="autoplay">
     <source src="@VideoUrl" type="video/mp4" />
   </video>
-</div>
 
 @code {
-  [Parameter]
-  public string VideoPlayerId { get; set; } = "video-player";
+  private string VideoPlayerId { get; set; } = "video-player";
 
   [Parameter]
   [EditorRequired]
   public required string VideoUrl { get; set; }
-
-  [Parameter]
-  public string? Class { get; set; }
 
   private IJSObjectReference? _videoJs;
 
@@ -28,19 +24,19 @@
     if (firstRender) {
       _videoJs = await JsRuntime
         .InvokeAsync<IJSObjectReference>(
-          "import", "./_content/CoilWinderHelp.Components/Components/VideoPlayer.razor.js");
+          "import", "./_content/CoilWinderHelp.Components/VideoPlayer.razor.js");
     }
   }
 
   private async Task VideoLoaded() {
     await JsSetVideoPlayer();
   }
-  
+
   private async Task JsSetVideoPlayer() {
     if (_videoJs != null)
       await _videoJs.InvokeVoidAsync("init", VideoPlayerId);
   }
-  
+
 
   public async ValueTask DisposeAsync() {
     if (_videoJs != null) {

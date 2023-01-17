@@ -1,10 +1,15 @@
-let video;
+// noinspection JSUnusedGlobalSymbols
+/* eslint-disable no-unused-vars */
 
-export const init = (videoPlayerId) => {
-    console.log('initializing...')
-    video = document.getElementById(videoPlayerId);
-    video.volume = 0.1;
-};
+let video
 
-// return the duration of the video in seconds
-export const getVideoDuration = () => parseInt(video.duration);
+export function init (videoPlayerId) {
+  console.log('initializing...')
+  document.getElementById(videoPlayerId).volume = 0.1
+}
+
+export function getVideDuration () {
+  return video.duration
+}
+
+/* eslint-enable no-unused-vars */

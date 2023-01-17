@@ -1,8 +1,27 @@
-﻿ /*noinspection CssInvalidPseudoSelector*/
-
- .directory-tree ::deep .tree-paper{
-    background-color: black;
+﻿ .directory-tree ::deep .tree-paper{
+     background-color: var(--mud-palette-surface);
      margin: 5px;
-     padding: 5px;
-     height: 100%;
+      padding: 5px;
+     height: 91vh;
+     width: 100%;
+     border: 3px solid #8d8d8da3;
 }
+
+ /*noinspection ALL*/
+ .directory-tree ::deep .mud-treeview-item.file > .mud-treeview-item-content {
+
+     border-radius: 5px;
+     padding: 0.2rem 2rem;
+     justify-content: flex-end;
+ }
+
+ .directory-tree ::deep .mud-treeview-item-arrow{
+     margin:0;
+ }
+
+ .directory-tree{
+     padding-inline: 10px;
+     justify-content: flex-start;
+     display: flex;
+     flex: 1;
+ }

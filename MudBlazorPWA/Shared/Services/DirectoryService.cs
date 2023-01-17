@@ -10,6 +10,7 @@ public interface IDirectoryService
     Task<string?> GoToFolder(string currentPath, string folderName);
     Task<string> GoBack(string currentPath);
     Task SetCurrentFolder(string? path);
+    Task<string> GetRelativePath(string path);
 }
 
 public class DirectoryService : IDirectoryService
@@ -76,6 +77,13 @@ public class DirectoryService : IDirectoryService
         }
         _currentDirectory = path;
         return Task.CompletedTask;
+    }
+
+    public Task<string> GetRelativePath(string path)
+    {
+        return Task.FromResult(
+            Path.GetRelativePath(RootDirectory, path));
+
     }
 
 }

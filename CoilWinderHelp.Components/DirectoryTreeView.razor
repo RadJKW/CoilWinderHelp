@@ -1,29 +1,35 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
-@using MudBlazorPWA.Shared.Models
 @using MudBlazorPWA.Shared.Extensions
+@using MudBlazorPWA.Shared.Models
 @inject NavigationManager Navigation
+@implements IDisposable
 <MudTreeView
+    @bind-SelectedValue="SelectedValue"
     ServerData="LoadServerData"
     Items="TreeItems"
     ExpandOnClick="true"
-    Hover="true">
+    Color="Color.Primary"
+    Hover="true"
+    Dense="true">
   <ItemTemplate>
     <MudTreeViewItem
+        Class="@(context.CanExpand ? "folder" : "file")"
         Value="@context"
         Icon="@context.Icon"
         LoadingIconColor="Color.Info"
         CanExpand="@context.CanExpand"
         Text="@context.Title"
         EndText="@context.Number?.ToString()"
-        EndTextTypo="@Typo.caption"/>
-    @* OnClick="() => GetFolderContent(context)" *@
+        EndTextTypo="@Typo.caption"
+        OnClick="@(() => NotifyFileSelected(context))">
+    </MudTreeViewItem>
   </ItemTemplate>
 </MudTreeView>
 
 @code{
   private string? _rootDirectoryPath;
   private HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
-  private TreeItemData? CurrentTreeItemData { get; set; }
+  private TreeItemData? SelectedValue { get; set; }
 
   private HubConnection? _directoryHub;
 
@@ -38,7 +44,7 @@
 
     _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
       _rootDirectoryPath ??= path;
-      ConvertToTreeItems(path, files, folders);
+      ConvertToTreeItems(path, files, folders, SelectedValue);
       StateHasChanged();
     });
 
@@ -46,36 +52,85 @@
     await _directoryHub.SendAsync("GetFolderContent", null);
   }
 
-  private Task ConvertToTreeItems(string path, string[]? files, string[]? folders) {
+  private Task ConvertToTreeItems(string path, string[]? files, string[]? folders, TreeItemData? selectedNode = null) {
     if (folders != null) {
+
       foreach (var folder in folders) {
-        var folderPath = folder.Replace(_rootDirectoryPath!, "");
-        CurrentTreeItemData = new(folderPath, Icons.Material.Outlined.Folder, 20, true) {
-          TreeItems = new()
-        };
-        TreeItems.Add(CurrentTreeItemData);
+        var folderTitle = GetLastIndexOf(folder);
+        var newNode = new TreeItemData(
+          title: folderTitle,
+          path: folder,
+          icon: Icons.Material.Outlined.Folder,
+          number: null,
+          canExpand: true);
+        if (selectedNode == null) {
+          TreeItems.Add(newNode);
+        } else {
+          var nodeTitle = newNode.Title.Replace(selectedNode.Title +"\\", "");
+          newNode.Title = nodeTitle;
+          selectedNode.TreeItems.Add(newNode);
+        }
       }
     }
-
-
-  // ReSharper disable once InvertIf
+    //ReSharper disable once InvertIf
     if (files != null) {
       foreach (var file in files) {
-        var filePath = file.Replace(_rootDirectoryPath!, "");
-        CurrentTreeItemData = new(title: filePath, icon: Icons.Material.Outlined.PictureAsPdf, canExpand: false);
-        TreeItems.Add(CurrentTreeItemData); }
+        var fileTitle = GetLastIndexOf(file);
+        var newNode = new TreeItemData(
+          title: fileTitle,
+          path: file,
+          icon: Icons.Material.Outlined.PictureAsPdf,
+          number: null,
+          canExpand: false);
+        if (selectedNode == null) {
+          TreeItems.Add(newNode);
+        } else {
+          var nodeTitle = newNode.Title.Replace(selectedNode.Title +"\\", "");
+          newNode.Title = nodeTitle;
+          selectedNode.TreeItems.Add(newNode);
+        }
       }
+    }
     return Task.CompletedTask;
   }
 
-  //TODO: NO WORKEEEEEEEYYYYY
+  private string GetLastIndexOf(string path) {
+  return path.Contains("\\") ?
+    path
+      [(path.LastIndexOf("\\", StringComparison.Ordinal) + 1)..]
+    :
+    path
+      [(path.LastIndexOf("/", StringComparison.Ordinal) + 1)..];
+  }
+
+  private async Task NotifyFileSelected(TreeItemData node) {
+    switch (node.CanExpand)
+    {
+      case false when _directoryHub != null:
+        await _directoryHub.SendAsync("FileSelected", node.Path);
+        break;
+      case true:
+       SelectedValue = node;
+        break;
+    }
+  }
+
+  private bool IsFolder(TreeItemData node) {
+    return node.Type != TreeItemData.ItemType.File;
+  }
+
   private async Task<HashSet<TreeItemData>> LoadServerData(TreeItemData parentNode) {
-  // return the updated TreeItems property
-    CurrentTreeItemData = parentNode;
-    var currentPath = _rootDirectoryPath + parentNode.Title;
+    var currentPath = parentNode.Path;
     await _directoryHub!
       .SendAsync("GetFolderContent", currentPath);
-    return CurrentTreeItemData.TreeItems;
+    SelectedValue = parentNode;
+    // find the parent node in _mudTreeView and set Activated to true
+    return parentNode.TreeItems;
   }
+
+  public void Dispose() {
+    _directoryHub?.DisposeAsync();
+  }
+
 
 }

@@ -1,5 +1,8 @@
 ﻿@page "/"
 @layout MainLayout
+@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@implements IDisposable
 <DirAppBar
     LeftButtonClicked="ToggleStartDrawer"
     RightButtonClicked="ToggleRightSidebar">
@@ -30,18 +33,23 @@
           FullScreen="FullScreen">
         <div
             class="video-player">
-          <video
-              id="videoPlayer"
-              preload="auto"
-              controls="controls">
-            <source
-                src="http://localhost:5126/files/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4"
-                type="video/mp4"/>
-          </video>
+          @if (CurrentFile != null && IsFileVisible) {
+            @if (PdfViewer is null) {
+              @MediaPlayer
+            }
 
+
+
+            @if (MediaPlayer is null) {
+              @PdfViewer
+            }
+          }
         </div>
+
         <div
             class="align-center d-flex justify-center main-video-footer">
+          @* TODO: move footer to component*@
+          @* TODO: Implement DataBase Lookup Table to find current Media References  *@
           <MudGrid
               Class="video-footer-content"
               Spacing="0"
@@ -49,7 +57,7 @@
             <MudItem>
               <MudButton
                   Variant="Variant.Outlined"
-                  Color="Color.Inherit"
+                  Color="Color.Info"
                   OnClick="@ToggleStartDrawer"
                   StartIcon="@(Icons.Material.Filled.West)"
                   Class="mx-2">
@@ -65,7 +73,7 @@
             <MudItem>
 
               <MudButton
-                  Color="Color.Inherit"
+                  Color="Color.Info"
                   Variant="Variant.Outlined"
                   OnClick="@(ToggleRightSidebar)"
                   EndIcon="@(Icons.Material.Filled.East)"
@@ -89,7 +97,7 @@
         xs="12"
         sm="1">
       <MudDrawer
-          Class="sidebar-left"
+          Class="sidebar-right"
           Open="true"
           Width="100%"
           Fixed="false"
@@ -117,6 +125,34 @@
   string ContentItemClass { get; set; } = "content-item";
   MudItem? _contentItem;
 
+  private string? CurrentFile { get; set; }
+  private bool IsFileVisible { get; set; }
+
+  private HttpClient? FileServer { get; set; }
+  private HubConnection? _directoryHub;
+  private RenderFragment? PdfViewer { get; set; }
+  private RenderFragment? MediaPlayer { get; set; }
+
+  protected override async Task OnInitializedAsync() {
+    FileServer = new HttpClient();
+    FileServer.BaseAddress = new Uri("http://localhost:5126");
+    await InitializeDirectoryHub();
+
+  }
+
+  private async Task InitializeDirectoryHub() {
+    _directoryHub = new HubConnectionBuilder()
+      .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
+      .Build();
+    _directoryHub.On<string, string>("FileSelected", (_, relativePath) => {
+      MediaPlayer = null;
+      PdfViewer = null;
+      InvokeAsync(StateHasChanged);
+      ViewFile(relativePath);
+      InvokeAsync(StateHasChanged);
+    });
+    await _directoryHub.StartAsync();
+  }
   Task ToggleStartDrawer() {
     _leftSidebar = !_leftSidebar;
     ResizeContentItem();
@@ -140,5 +176,39 @@
       (false, false) => "content-item content-full-expand"
 
       };
+  }
+
+  private void ViewFile(string file) {
+    // Set the current file and visibility
+    CurrentFile = file;
+    IsFileVisible = true;
+
+    var fileUrl = $"{FileServer!.BaseAddress}files/{CurrentFile}";
+    var fileType = CurrentFile.Split('.').Last();
+    switch (fileType) {
+      case "pdf": {
+        MediaPlayer = null;
+        PdfViewer =
+          @<object
+               data="@(fileUrl)">
+          </object>;
+        break;
+      }
+      case "mp4": {
+        PdfViewer = null;
+        MediaPlayer =
+          @<VideoPlayer
+               VideoUrl="@fileUrl">
+
+          </VideoPlayer>;
+        break;
+
+      }
+    }
+
+  }
+
+  public void Dispose() {
+    _directoryHub?.DisposeAsync();
   }
 }
