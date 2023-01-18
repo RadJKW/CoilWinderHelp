@@ -37,6 +37,8 @@ public class DirectoryService : IDirectoryService
 
         var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf")).ToArray();
         var folders = Directory.GetDirectories(path);
+        // return the files and folders as sorted alphabetically
+        return Task.FromResult((path, files.OrderBy(f => f).ToArray(), folders.OrderBy(f => f).ToArray()));
         return Task.FromResult((path, files, folders));
     }
 

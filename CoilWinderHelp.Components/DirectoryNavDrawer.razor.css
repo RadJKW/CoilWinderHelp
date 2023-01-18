@@ -5,18 +5,26 @@
      height: 91vh;
      width: 100%;
      border: 3px solid #8d8d8da3;
+     overflow: scroll;
 }
 
  /*noinspection ALL*/
  .directory-tree ::deep .mud-treeview-item.file > .mud-treeview-item-content {
 
      border-radius: 5px;
-     padding: 0.2rem 2rem;
+     margin-block: 4px;
+     /* padding-block: 0.4rem; */
+     padding-inline: 0 2rem;
      justify-content: flex-end;
+     backdrop-filter: saturate(2) blur(2px) contrast(0.8);
  }
 
  .directory-tree ::deep .mud-treeview-item-arrow{
      margin:0;
+ }
+
+ .directory-tree ::deep .mud-treeview-item.folder  p{
+     word-break: break-word;
  }
 
  .directory-tree{
@@ -24,4 +32,5 @@
      justify-content: flex-start;
      display: flex;
      flex: 1;
+
  }
