@@ -11,5 +11,3 @@ export function init (videoPlayerId) {
 export function getVideDuration () {
   return video.duration
 }
-
-/* eslint-enable no-unused-vars */

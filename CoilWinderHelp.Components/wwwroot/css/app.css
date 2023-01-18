@@ -1,3 +1,4 @@
+@import url("./sidebar.css");
 :root {
     --app-drawer-width: clamp(150px, 10vw, 300px);
 }
@@ -124,22 +125,7 @@ div.mud-main-content {
 
 }
 
-.sidebar-column {
-    /*background-color: rgba(224, 82, 82, 0.39);*/
-    position: relative;
-}
 
-.sidebar-left {
-    background-color:  var(--mud-palette-drawer-background);
-    position: absolute;
-    width: 100%;
-}
-
-.sidebar-right {
-    background-color:  var(--mud-palette-surface);
-    position: absolute;
-    width: 100%;
-}
 
 .appbar-top {
 
@@ -189,8 +175,9 @@ div.mud-main-content {
     top: 0;
     left: 0;
     object-fit: contain;
-    z-index: 1;
-
+    background: rgb(255 255 255 / 7%);
+    backdrop-filter: blur(100px);
+    filter: saturate(1.1);
 }
 .main-page object{
     width: 100%;
@@ -216,7 +203,8 @@ div.mud-main-content {
 aside.sidebar-left .mud-drawer-header{
     min-height: unset;
     padding: 12px 0 0 0;
-    margin-inline: auto;
+    margin-inline: 5px;
+    padding-inline: 10px
 }
 
 @media (min-width: 900px) {

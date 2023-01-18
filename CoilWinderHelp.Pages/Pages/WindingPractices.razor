@@ -1,8 +1,5 @@
 ﻿@page "/"
 @layout MainLayout
-@using Microsoft.AspNetCore.SignalR.Client
-@inject NavigationManager Navigation
-@implements IDisposable
 <DirAppBar
     LeftButtonClicked="ToggleStartDrawer"
     RightButtonClicked="ToggleRightSidebar">
@@ -17,7 +14,12 @@
         Class="left sidebar-column"
         xs="12"
         sm="1">
-      <DirectoryNavDrawer/>
+      <DocViewSidebar
+          DrawerClass="sidebar-left"
+          Anchor="Anchor.Right"
+          HeaderText="User'sName">
+        <SidebarDirectoryTree/>
+      </DocViewSidebar>
     </MudItem>
   }
   <MudItem
@@ -25,70 +27,8 @@
       Class="@ContentItemClass"
       xs="12"
       sm="10">
-    <div
-        class="main-content">
+    <DocViewMedia/>
 
-      <MudPage
-          Class="main-page"
-          FullScreen="FullScreen">
-        <div
-            class="video-player">
-          @if (CurrentFile != null && IsFileVisible) {
-            @if (PdfViewer is null) {
-              @MediaPlayer
-            }
-
-
-
-            @if (MediaPlayer is null) {
-              @PdfViewer
-            }
-          }
-        </div>
-
-        <div
-            class="align-center d-flex justify-center main-video-footer">
-          @* TODO: move footer to component*@
-          @* TODO: Implement DataBase Lookup Table to find current Media References  *@
-          <MudGrid
-              Class="video-footer-content"
-              Spacing="0"
-              Justify="Justify.SpaceEvenly">
-            <MudItem>
-              <MudButton
-                  Variant="Variant.Outlined"
-                  Color="Color.Info"
-                  OnClick="@ToggleStartDrawer"
-                  StartIcon="@(Icons.Material.Filled.West)"
-                  Class="mx-2">
-                Toggle start
-              </MudButton>
-
-            </MudItem>
-            <MudItem>
-              <div
-                  style="height: 100px; width: 300px">
-              </div>
-            </MudItem>
-            <MudItem>
-
-              <MudButton
-                  Color="Color.Info"
-                  Variant="Variant.Outlined"
-                  OnClick="@(ToggleRightSidebar)"
-                  EndIcon="@(Icons.Material.Filled.East)"
-                  Class="mx-2">
-                Toggle Right
-              </MudButton>
-
-            </MudItem>
-          </MudGrid>
-
-        </div>
-
-      </MudPage>
-
-    </div>
   </MudItem>
   @if (_rightSidebar) {
 
@@ -96,28 +36,18 @@
         Class="right sidebar-column"
         xs="12"
         sm="1">
-      <MudDrawer
-          Class="sidebar-right"
-          Open="true"
-          Width="100%"
-          Fixed="false"
-          Anchor="Anchor.Right"
-          Elevation="5"
-          Variant="@DrawerVariant.Persistent">
-        <MudDrawerHeader>
-          <MudText
-              Typo="Typo.h6">
-            My App
-          </MudText>
-        </MudDrawerHeader>
+      <DocViewSidebar
+          DrawerClass="sidebar-right"
+          HeaderText="WindingLogs"
+          Anchor="Anchor.Right">
         <NavMenu/>
-      </MudDrawer>
+      </DocViewSidebar>
     </MudItem>
   }
 </MudGrid>
 
 @code {
-    private const FullScreen FullScreen = MudExtensions.Enums.FullScreen.Full;
+
   //bool _showAppbar = true;
   //bool _appbarBottom;
   bool _leftSidebar = true;
@@ -125,34 +55,6 @@
   string ContentItemClass { get; set; } = "content-item";
   MudItem? _contentItem;
 
-  private string? CurrentFile { get; set; }
-  private bool IsFileVisible { get; set; }
-
-  private HttpClient? FileServer { get; set; }
-  private HubConnection? _directoryHub;
-  private RenderFragment? PdfViewer { get; set; }
-  private RenderFragment? MediaPlayer { get; set; }
-
-  protected override async Task OnInitializedAsync() {
-    FileServer = new HttpClient();
-    FileServer.BaseAddress = new Uri("http://localhost:5126");
-    await InitializeDirectoryHub();
-
-  }
-
-  private async Task InitializeDirectoryHub() {
-    _directoryHub = new HubConnectionBuilder()
-      .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
-      .Build();
-    _directoryHub.On<string, string>("FileSelected", (_, relativePath) => {
-      MediaPlayer = null;
-      PdfViewer = null;
-      InvokeAsync(StateHasChanged);
-      ViewFile(relativePath);
-      InvokeAsync(StateHasChanged);
-    });
-    await _directoryHub.StartAsync();
-  }
   Task ToggleStartDrawer() {
     _leftSidebar = !_leftSidebar;
     ResizeContentItem();
@@ -178,37 +80,5 @@
       };
   }
 
-  private void ViewFile(string file) {
-    // Set the current file and visibility
-    CurrentFile = file;
-    IsFileVisible = true;
 
-    var fileUrl = $"{FileServer!.BaseAddress}files/{CurrentFile}";
-    var fileType = CurrentFile.Split('.').Last();
-    switch (fileType) {
-      case "pdf": {
-        MediaPlayer = null;
-        PdfViewer =
-          @<object
-               data="@(fileUrl)">
-          </object>;
-        break;
-      }
-      case "mp4": {
-        PdfViewer = null;
-        MediaPlayer =
-          @<VideoPlayer
-               VideoUrl="@fileUrl">
-
-          </VideoPlayer>;
-        break;
-
-      }
-    }
-
-  }
-
-  public void Dispose() {
-    _directoryHub?.DisposeAsync();
-  }
 }

@@ -6,11 +6,17 @@
       Elevation="3"
       Dense="true"
       Fixed="false">
-    <MudIconButton
-        Color="Color.Inherit"
-        Edge="Edge.Start"
-        Icon="@Icons.Material.Filled.Menu"
-        OnClick="@(_ => DrawerToggle())" />
+  <MudIconButton
+      Color="Color.Inherit"
+      Edge="Edge.Start"
+      Icon="@Icons.Material.Filled.Menu"
+      OnClick="@(_ => DrawerToggle())" />
+  <MudSpacer/>
+   <MudText
+          Style="text-wrap: none"
+          Typo="Typo.h6">
+        @(PageTitle)
+      </MudText>
     <MudSpacer />
     <AppbarButtons/>
   </MudAppBar>
@@ -24,23 +30,18 @@
       <MudText Typo="Typo.h6" GutterBottom="false">My App</MudText>
     </MudDrawerHeader>
     <MudDivider />
-    <MudNavMenu Class="directory-nav" Dense="true">
-      <MudNavLink Match="NavLinkMatch.All">Store</MudNavLink>
-      <MudNavLink Match="NavLinkMatch.All">Library</MudNavLink>
-      <MudNavLink Match="NavLinkMatch.All">Community</MudNavLink>
-    </MudNavMenu>
+    <NavMenu/>
     <MudSpacer/>
-    <MudNavMenu Class="app-nav" Dense="true" Rounded="true">
-      <MudNavLink Match="NavLinkMatch.All">Store</MudNavLink>
-      <MudNavLink Match="NavLinkMatch.All">Library</MudNavLink>
-      <MudNavLink Match="NavLinkMatch.All">Community</MudNavLink>
-    </MudNavMenu>
   </MudDrawer>
-  <MudMainContent Class="dov-view main-content">
+  <MudMainContent
+      Class="dov-view main-content">
     <MudContainer
         Class="container doc-view"
         MaxWidth="MaxWidth.False">
-      @Body
+      <CascadingValue
+          Value="this">
+        @Body
+      </CascadingValue>
     </MudContainer>
   </MudMainContent>
 </MudLayout>
@@ -48,13 +49,22 @@
 @code {
   bool _open;
 
+  private string? _pageTitle;
+  public string PageTitle {
+    get => _pageTitle ?? "MudBlazorTest";
+    set {
+      _pageTitle = value;
+      InvokeAsync(StateHasChanged);
+    }
+  }
+
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender) {
       _open = true;
       await InvokeAsync(StateHasChanged);
     }
   }
-  
+
   void DrawerToggle() {
     _open = !_open;
   }

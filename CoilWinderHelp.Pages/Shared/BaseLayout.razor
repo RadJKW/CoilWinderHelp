@@ -2,6 +2,7 @@
 @inherits LayoutComponentBase
 @layout MainLayout
 @inject LayoutService LayoutService
+
 <MudLayout>
   <MudAppBar
       Elevation="0"
@@ -64,7 +65,7 @@
     LayoutService.SetBaseTheme(new());
   }
 
-  public string PageTitle {
+  private string PageTitle {
     get => _pageTitle ?? "MudBlazorTest";
     set {
       _pageTitle = value;

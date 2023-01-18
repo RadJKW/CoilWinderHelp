@@ -1,4 +1,4 @@
-.sidebar-left ::deep div.drawer-header {
+﻿::deep div.drawer-header {
     background: var(--mud-palette-surface);
     width: 100%;
     height: 100%;

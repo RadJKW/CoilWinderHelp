@@ -3,28 +3,37 @@
 @using MudBlazorPWA.Shared.Models
 @inject NavigationManager Navigation
 @implements IDisposable
-<MudTreeView
-    @bind-SelectedValue="SelectedValue"
-    ServerData="LoadServerData"
-    Items="TreeItems"
-    ExpandOnClick="true"
-    Color="Color.Primary"
-    Hover="true"
-    Dense="true">
-  <ItemTemplate>
-    <MudTreeViewItem
-        Class="@(context.CanExpand ? "folder" : "file")"
-        Value="@context"
-        Icon="@context.Icon"
-        LoadingIconColor="Color.Info"
-        CanExpand="@context.CanExpand"
-        Text="@context.Title"
-        EndText="@context.Number?.ToString()"
-        EndTextTypo="@Typo.caption"
-        OnClick="@(() => NotifyFileSelected(context))">
-    </MudTreeViewItem>
-  </ItemTemplate>
-</MudTreeView>
+<div
+    class="directory-tree">
+
+  <MudPaper
+      Class="tree-paper">
+
+    <MudTreeView
+        id="directory-tree-list"
+        @bind-SelectedValue="SelectedValue"
+        ServerData="LoadServerData"
+        Items="TreeItems"
+        ExpandOnClick="true"
+        Color="Color.Primary"
+        Hover="true"
+        Dense="true">
+      <ItemTemplate>
+        <MudTreeViewItem
+            Class="@(context.CanExpand ? "folder" : "file")"
+            Value="@context"
+            Icon="@context.Icon"
+            LoadingIconColor="Color.Info"
+            CanExpand="@context.CanExpand"
+            Text="@context.Title"
+            EndText="@context.Number?.ToString()"
+            EndTextTypo="@Typo.caption"
+            OnClick="@(() => NotifyFileSelected(context))">
+        </MudTreeViewItem>
+      </ItemTemplate>
+    </MudTreeView>
+  </MudPaper>
+</div>
 
 @code{
   private string? _rootDirectoryPath;
@@ -66,13 +75,13 @@
         if (selectedNode == null) {
           TreeItems.Add(newNode);
         } else {
-          var nodeTitle = newNode.Title.Replace(selectedNode.Title +"\\", "");
+          var nodeTitle = newNode.Title.Replace(selectedNode.Title + "\\", "");
           newNode.Title = nodeTitle;
           selectedNode.TreeItems.Add(newNode);
         }
       }
     }
-    //ReSharper disable once InvertIf
+  //ReSharper disable once InvertIf
     if (files != null) {
       foreach (var file in files) {
         var fileTitle = GetLastIndexOf(file);
@@ -85,7 +94,7 @@
         if (selectedNode == null) {
           TreeItems.Add(newNode);
         } else {
-          var nodeTitle = newNode.Title.Replace(selectedNode.Title +"\\", "");
+          var nodeTitle = newNode.Title.Replace(selectedNode.Title + "\\", "");
           newNode.Title = nodeTitle;
           selectedNode.TreeItems.Add(newNode);
         }
@@ -95,22 +104,20 @@
   }
 
   private string GetLastIndexOf(string path) {
-  return path.Contains("\\") ?
-    path
-      [(path.LastIndexOf("\\", StringComparison.Ordinal) + 1)..]
-    :
-    path
-      [(path.LastIndexOf("/", StringComparison.Ordinal) + 1)..];
+    return path.Contains("\\") ?
+      path
+        [(path.LastIndexOf("\\", StringComparison.Ordinal) + 1)..]
+      : path
+        [(path.LastIndexOf("/", StringComparison.Ordinal) + 1)..];
   }
 
   private async Task NotifyFileSelected(TreeItemData node) {
-    switch (node.CanExpand)
-    {
+    switch (node.CanExpand) {
       case false when _directoryHub != null:
         await _directoryHub.SendAsync("FileSelected", node.Path);
         break;
       case true:
-       SelectedValue = node;
+        SelectedValue = node;
         break;
     }
   }
@@ -124,7 +131,7 @@
     await _directoryHub!
       .SendAsync("GetFolderContent", currentPath);
     SelectedValue = parentNode;
-    // find the parent node in _mudTreeView and set Activated to true
+  // find the parent node in _mudTreeView and set Activated to true
     return parentNode.TreeItems;
   }
 

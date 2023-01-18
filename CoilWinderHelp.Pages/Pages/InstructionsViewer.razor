@@ -122,8 +122,8 @@
 
   // Add the current folder to the breadcrumb
     Breadcrumb!.Add(CurrentFolder);
-  
-  //TODO: Get rid of janky 'Replace' at end of this
+
+  //TODO: Get rid of sloppy 'Replace' at end of this
     var requestUrl = $"{FileServer!.BaseAddress}{folder!.Path}".Replace("//files", "/files");
     Console.WriteLine($"ReqURL: {requestUrl}");
 
@@ -148,7 +148,7 @@
   // Get the full path of the current folder
     var pathNodes =
       doc.DocumentNode.SelectNodes("//h1/a");
-    
+
     var path =
       string.Join("", pathNodes?.Select(n => n.InnerText) ?? Array.Empty<string>()).Replace("&amp;", "&");
 

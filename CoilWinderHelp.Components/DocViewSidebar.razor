@@ -1,0 +1,43 @@
+﻿<MudDrawer
+    Class="@($"{DrawerClass} object-center")"
+    Open="true"
+    Width="100%"
+    Fixed="false"
+    Anchor="Anchor"
+    Elevation="3"
+    Variant="@DrawerVariant.Persistent">
+  <MudDrawerHeader>
+    <div
+        class="@($"{HeaderClass}")">
+      <MudText
+          Typo="Typo.h6"
+          GutterBottom="false">
+        @HeaderText
+      </MudText>
+    </div>
+  </MudDrawerHeader>
+  @ChildContent
+</MudDrawer>
+
+@code {
+  [Parameter, EditorRequired]
+  public Anchor Anchor { get; set; }
+
+  [Parameter, EditorRequired]
+  public string HeaderText { get; set; } = string.Empty;
+
+  [Parameter]
+  public string? HeaderClass { get; set; }
+
+  [Parameter]
+  public string? DrawerClass { get; set; }
+
+  [Parameter]
+  public RenderFragment? ChildContent { get; set; }
+
+  protected override async Task OnParametersSetAsync() {
+    await base.OnParametersSetAsync();
+    HeaderClass ??= "drawer-header";
+
+  }
+}

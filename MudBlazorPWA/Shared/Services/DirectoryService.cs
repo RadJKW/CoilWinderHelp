@@ -39,7 +39,6 @@ public class DirectoryService : IDirectoryService
         var folders = Directory.GetDirectories(path);
         // return the files and folders as sorted alphabetically
         return Task.FromResult((path, files.OrderBy(f => f).ToArray(), folders.OrderBy(f => f).ToArray()));
-        return Task.FromResult((path, files, folders));
     }
 
     public Task<(string, string[], string[])> GetFolderContent(string path)
