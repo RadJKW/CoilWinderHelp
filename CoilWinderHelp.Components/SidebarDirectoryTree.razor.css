@@ -10,7 +10,7 @@
     background-color: var(--mud-palette-surface);
     margin: 5px;
     padding: 5px;
-    height: 90vh;
+    height: calc(100vh - var(--mud-appbar-height) - 60px);
     width: 100%;
     border: 3px solid #8d8d8da3;
     overflow-y: scroll;
@@ -20,8 +20,6 @@
     .directory-tree ::deep .tree-paper {
         height: 89vh;
     }
-
-
 }
 
 .directory-tree ::deep .tree-paper .mud-treeview-group {

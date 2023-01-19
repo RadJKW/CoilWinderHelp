@@ -9,7 +9,7 @@
 
   <div class="video-content">
     @if (VideoUrl is not null) {
-    
+
       <VideoPlayer
           @ref="_videoPlayer"
           VideoPlayerId="video"
@@ -28,24 +28,24 @@
       private const string RelativePath = "files";
 
       private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
-  
-  
-  
+
+
+
   //[CascadingParameter]
   //public BaseLayout? BaseLayout { get; set; }
-  
+
   private HttpClient? FileServer { get; set; }
-  
+
   private VideoPlayer? _videoPlayer;
-  
+
   private string? VideoUrl { get; set; }
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-    FileServer = ClientFactory.CreateClient("FileServer");
+    FileServer = ClientFactory.CreateClient("PwaServer");
     VideoUrl = $"{RelativePath}/{RelativeVideoUrl}";
   }
-  
+
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender && _videoPlayer != null) {
      // BaseLayout!.DrawerDisabled = false;

@@ -1,6 +1,7 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
 @inject NavigationManager Navigation
 @inject IJSRuntime JsRuntime
+@inject IHttpClientFactory ClientFactory
 @implements IAsyncDisposable
 <div
     class="main-content">
@@ -75,8 +76,7 @@
 
 
   protected override async Task OnInitializedAsync() {
-    FileServer = new HttpClient();
-    FileServer.BaseAddress = new Uri("http://localhost:5126");
+    FileServer = ClientFactory.CreateClient("PwaServer");
     await InitializeDirectoryHub();
 
   }
@@ -118,17 +118,16 @@
       case "pdf": {
         MediaPlayer = null;
         PdfViewer =
-          @<object
-               data="@(fileUrl)">
-          </object>;
-        break;
+          @<iframe
+               src="@fileUrl"
+               style="width:100%; height:100%; border: none;"></iframe>;
+          break;
       }
       case "mp4": {
         PdfViewer = null;
         MediaPlayer =
           @<VideoPlayer
                VideoUrl="@fileUrl">
-
           </VideoPlayer>;
         break;
 

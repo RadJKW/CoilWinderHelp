@@ -1,6 +1,7 @@
 ﻿@page "/instructions-viewer"
 
 @using HtmlAgilityPack
+@inject IHttpClientFactory ClientFactory
 
 @layout BaseLayout
 
@@ -74,8 +75,7 @@
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-    FileServer = new HttpClient();
-    FileServer.BaseAddress = new Uri("http://localhost:5126");
+    FileServer = ClientFactory.CreateClient("PwaServer");
     BaseFolder = new("Winding Practices", $"{RelativePath}/");
     Breadcrumb = new();
     await GoToFolder(BaseFolder);

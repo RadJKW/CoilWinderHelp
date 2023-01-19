@@ -145,13 +145,14 @@ div.mud-main-content {
 
 .main-content {
     flex-grow: 1;
-    padding: 0 10px;
+    padding-block: 0 10px;
+    padding-inline: 10px;
     background-color: var(--mud-palette-dark);
 }
 
 .main-content > .main-page {
     min-height: auto;
-    height: 95%;
+    height:  calc(100vh - var(--mud-appbar-height));
     place-content: flex-start;
     align-items: flex-start;
     grid-template-rows: 1vh 5fr 1fr;
@@ -191,7 +192,8 @@ div.mud-main-content {
 }
 .main-page .main-video-footer {
     grid-row: 3;
-    padding: 10px 5px 20px 5px;
+    padding-block: 5px 0;
+    padding-inline: 5px;
     background-color: #5c0e0eb3;
     height: 100%;
     width: 100%;

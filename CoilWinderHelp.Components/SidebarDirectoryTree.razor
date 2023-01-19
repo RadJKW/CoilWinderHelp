@@ -88,7 +88,7 @@
         var newNode = new TreeItemData(
           title: fileTitle,
           path: file,
-          icon: Icons.Material.Outlined.PictureAsPdf,
+          icon: fileTitle.EndsWith(".pdf") ? Icons.Material.Outlined.PictureAsPdf : Icons.Material.Outlined.PlayCircleOutline,
           number: null,
           canExpand: false);
         if (selectedNode == null) {
