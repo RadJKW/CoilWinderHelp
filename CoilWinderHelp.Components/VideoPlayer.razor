@@ -9,7 +9,7 @@
       preload="auto"
       controls="controls"
       autoplay="autoplay">
-    <source src="@VideoUrl" type="video/mp4" />
+    <source src="@Src" type="@SrcType" />
   </video>
 
 @code {
@@ -17,7 +17,12 @@
 
   [Parameter]
   [EditorRequired]
-  public required string VideoUrl { get; set; }
+  public required string Src { get; set; }
+
+
+  [Parameter]
+  [EditorRequired]
+  public required string SrcType { get; set; }
 
   private IJSObjectReference? _videoJs;
 
