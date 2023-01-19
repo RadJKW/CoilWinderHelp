@@ -1,5 +1,10 @@
 # CoilWinderHelp
 
+## Issues
+
+- [ ] Raspberry Pi Video Playback is choppy.
+    - Need to figure out how to get it to play smoothly.
+
 ## Development Tasks
 
 **SignalR**
