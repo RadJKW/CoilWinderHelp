@@ -12,14 +12,15 @@
     <div
         class="video-player">
       @if (CurrentFile != null && IsFileVisible) {
-        @if (PdfViewer is null) {
-          @MediaPlayer
+        if (MediaRenderFragment is null) {
+          <MudSkeleton
+              SkeletonType="SkeletonType.Rectangle"
+              Height="100%"
+              Animation="Animation.Wave">
+          </MudSkeleton>
         }
-
-
-
-        @if (MediaPlayer is null) {
-          @PdfViewer
+        else {
+          @MediaRenderFragment
         }
       }
     </div>
@@ -72,7 +73,7 @@
   private HttpClient? FileServer { get; set; }
   private HubConnection? _directoryHub;
   private RenderFragment? PdfViewer { get; set; }
-  private RenderFragment? MediaPlayer { get; set; }
+  private RenderFragment? MediaRenderFragment { get; set; }
 
 
   protected override async Task OnInitializedAsync() {
@@ -99,7 +100,7 @@
       .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
       .Build();
     _directoryHub.On<string, string>("FileSelected", (_, relativePath) => {
-      MediaPlayer = null;
+      MediaRenderFragment = null;
       PdfViewer = null;
       InvokeAsync(StateHasChanged);
       ViewFile(relativePath);
@@ -113,25 +114,9 @@
     IsFileVisible = true;
 
     var fileUrl = $"{FileServer!.BaseAddress}files/{CurrentFile}";
-    var fileType = CurrentFile.Split('.').Last();
-    switch (fileType) {
-      case "abc": {
-        MediaPlayer = null;
-        PdfViewer =
-          @<iframe
-               src="@fileUrl"
-               style="width:100%; height:100%; border: none;"></iframe>;
-          break;
-      }
-      default: {
-        PdfViewer = null;
-        MediaPlayer = @<iframe
-                           src="@fileUrl"
-                           style="width:100%; height:100%; border: none;"></iframe>;
-        break;
-
-      }
-    }
+    MediaRenderFragment = @<MediaViewer
+                       Src="@fileUrl">
+                  </MediaViewer>;
 
   }
 

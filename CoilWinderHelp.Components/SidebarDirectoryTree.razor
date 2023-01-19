@@ -37,7 +37,7 @@
 
 @code{
   private string? _rootDirectoryPath;
-  private HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
+  protected virtual HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
   private TreeItemData? SelectedValue { get; set; }
 
   private HubConnection? _directoryHub;
@@ -126,7 +126,7 @@
     return node.Type != TreeItemData.ItemType.File;
   }
 
-  private async Task<HashSet<TreeItemData>> LoadServerData(TreeItemData parentNode) {
+  protected virtual async Task<HashSet<TreeItemData>> LoadServerData(TreeItemData parentNode) {
     var currentPath = parentNode.Path;
     await _directoryHub!
       .SendAsync("GetFolderContent", currentPath);

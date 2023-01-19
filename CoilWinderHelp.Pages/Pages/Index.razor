@@ -10,11 +10,9 @@
   <div class="video-content">
     @if (VideoUrl is not null) {
 
-      <VideoPlayer
-          @ref="_videoPlayer"
-          Src="@VideoUrl"
-          SrcType="video/mp4">
-      </VideoPlayer>
+      <MediaViewer
+          Src="@VideoUrl">
+      </MediaViewer>
     }
   </div>
 
@@ -36,8 +34,6 @@
 
   private HttpClient? FileServer { get; set; }
 
-  private VideoPlayer? _videoPlayer;
-
   private string? VideoUrl { get; set; }
 
   protected override async Task OnInitializedAsync() {
@@ -46,12 +42,6 @@
     VideoUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativeVideoUrl}";
   }
 
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (firstRender && _videoPlayer != null) {
-     // BaseLayout!.DrawerDisabled = false;
-    }
-    await base.OnAfterRenderAsync(firstRender);
-  }
    public void Dispose() {
   //   if (BaseLayout != null)
   //     BaseLayout.DrawerDisabled = false;

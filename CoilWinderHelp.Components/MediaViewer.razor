@@ -2,27 +2,21 @@
 @inject IJSRuntime JsRuntime
 
 
-<video
-      id="@VideoPlayerId"
-      onloadedmetadata="@(VideoLoaded)"
-      buffered="true"
-      preload="auto"
-      controls="controls"
-      autoplay="autoplay">
-    <source src="@Src" type="@SrcType" />
-  </video>
+<iframe
+    id="@Id"
+    onload="@JsSetVideoPlayer"
+    allow="autoplay; fullscreen"
+    style="width:100%; height:100%"
+    src="@Src"></iframe>
 
 @code {
-  private string VideoPlayerId { get; set; } = "video-player";
+
+  [Parameter]
+  public string Id { get; set; } = "media-viewer";
 
   [Parameter]
   [EditorRequired]
   public required string Src { get; set; }
-
-
-  [Parameter]
-  [EditorRequired]
-  public required string SrcType { get; set; }
 
   private IJSObjectReference? _videoJs;
 
@@ -30,7 +24,7 @@
     if (firstRender) {
       _videoJs = await JsRuntime
         .InvokeAsync<IJSObjectReference>(
-          "import", "./_content/CoilWinderHelp.Components/VideoPlayer.razor.js");
+          "import", "./_content/CoilWinderHelp.Components/MediaViewer.razor.js");
     }
   }
 
@@ -40,7 +34,7 @@
 
   private async Task JsSetVideoPlayer() {
     if (_videoJs != null)
-      await _videoJs.InvokeVoidAsync("init", VideoPlayerId);
+      await _videoJs.InvokeVoidAsync("init", Id );
   }
 
 
