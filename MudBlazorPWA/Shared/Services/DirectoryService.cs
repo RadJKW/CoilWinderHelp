@@ -35,7 +35,7 @@ public class DirectoryService : IDirectoryService
     {
         var path = _currentDirectory ?? RootDirectory;
 
-        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf")).ToArray();
+        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf") || f.EndsWith(".webm")).ToArray();
         var folders = Directory.GetDirectories(path);
         // return the files and folders as sorted alphabetically
         return Task.FromResult((path, files.OrderBy(f => f).ToArray(), folders.OrderBy(f => f).ToArray()));
@@ -43,7 +43,7 @@ public class DirectoryService : IDirectoryService
 
     public Task<(string, string[], string[])> GetFolderContent(string path)
     {
-        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf")).ToArray();
+        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf") || f.EndsWith(".webm")).ToArray();
         var folders = Directory.GetDirectories(path);
         return Task.FromResult((path, files, folders));
     }

@@ -5,7 +5,16 @@ let video
 
 export function init (videoPlayerId) {
   console.log('initializing...')
-  document.getElementById(videoPlayerId).volume = 0.1
+  video = document.getElementById(videoPlayerId)
+  video.volume = 0.1
+  // log the video metadata
+  video.addEventListener('loadedmetadata', () => {
+    console.log('metadata loaded')
+    console.log('duration: ' + video.duration)
+    console.log('videoWidth: ' + video.videoWidth)
+    console.log('videoHeight: ' + video.videoHeight)
+    console.log('video..: ' + video)
+  })
 }
 
 export function getVideDuration () {
