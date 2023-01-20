@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -32,6 +33,7 @@ builder.Services.AddCors(options => {
       .AllowAnyOrigin());
 });
 
+builder.Services.Configure<DirectoryServiceOptions>(options => options.RootDirectoryPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath);
 builder.Services.AddScoped<IDirectoryService, DirectoryService>();
 builder.Services.AddResponseCompression(opts => {
   opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(

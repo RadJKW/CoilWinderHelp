@@ -68,7 +68,7 @@
   private string? CurrentFile { get; set; }
   private bool IsFileVisible { get; set; }
 
-  private IJSObjectReference? _moduleJs;
+  private IJSObjectReference? _moduleJs = default!;
 
   private HttpClient? FileServer { get; set; }
   private HubConnection? _directoryHub;
@@ -82,30 +82,24 @@
 
   }
 
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
+  /*protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender) {
       _moduleJs = await JsRuntime
         .InvokeAsync<IJSObjectReference>(
           "import", "./_content/CoilWinderHelp.Components/DocViewMedia.razor.js");
       if (_moduleJs != null) {
         await _moduleJs.InvokeVoidAsync("init", "directory-tree-list");
-  /*// not changing the colors
-        await _moduleJs.InvokeVoidAsync("setBackgroundColor");*/
+  /#1#/ not changing the colors
+        await _moduleJs.InvokeVoidAsync("setBackgroundColor");#1#
       }
     }
-  }
+  }*/
 
   private async Task InitializeDirectoryHub() {
     _directoryHub = new HubConnectionBuilder()
       .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
       .Build();
-    _directoryHub.On<string, string>("FileSelected", (_, relativePath) => {
-      MediaRenderFragment = null;
-      PdfViewer = null;
-      InvokeAsync(StateHasChanged);
-      ViewFile(relativePath);
-      InvokeAsync(StateHasChanged);
-    });
+    _directoryHub.On<string>("FileSelected", ViewFile);
     await _directoryHub.StartAsync();
   }
   private void ViewFile(string file) {
@@ -117,6 +111,7 @@
     MediaRenderFragment = @<MediaViewer
                        Src="@fileUrl">
                   </MediaViewer>;
+    InvokeAsync(StateHasChanged);
 
   }
 

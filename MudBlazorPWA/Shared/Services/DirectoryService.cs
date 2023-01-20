@@ -1,89 +1,57 @@
-using MudBlazorPWA.Shared.Hubs;
-using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
 {
-    string? CurrentDirectory { get; }
-    Task<(string, string[], string[])> GetFolderContent();
-    Task<(string, string[], string[])> GetFolderContent(string path);
-    Task<string?> GoToFolder(string currentPath, string folderName);
-    Task<string> GoBack(string currentPath);
-    Task SetCurrentFolder(string? path);
+    Task<(string, string[], string[])> GetFolderContent(string? path = null);
     Task<string> GetRelativePath(string path);
+}
+
+public class DirectoryServiceOptions
+{
+    public string RootDirectoryPath { get; set; } = string.Empty;
 }
 
 public class DirectoryService : IDirectoryService
 {
-    private const string WindowsPath = @"B:\CoilWinderTraining-Edit\";
-    private const string MacPath = @"/Users/jkw/WindingPractices/";
-    private readonly IHubContext<DirectoryHub> _hubContext;
-    private string RootDirectory { get; } = OperatingSystem.IsWindows() ? WindowsPath : MacPath;
-    private string? _currentDirectory;
+    private readonly ILogger<DirectoryService> _logger;
+    private readonly string _rootDirectory;
 
-    public DirectoryService(IHubContext<DirectoryHub> hubContext)
+    private readonly string[] _allowedExtensions =
     {
-        _hubContext = hubContext;
+        ".mp4", ".pdf", ".webm"
+    };
+
+    public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger)
+    {
+        _logger = logger;
+        _rootDirectory = options.Value.RootDirectoryPath;
     }
 
-    public string? CurrentDirectory
+    // Used by the hub to get the contents of the root
+    public Task<(string, string[], string[])> GetFolderContent(string? path = null)
     {
-        get => _currentDirectory ?? RootDirectory;
-        set => _currentDirectory = value;
-    }
-    public Task<(string, string[], string[])> GetFolderContent()
-    {
-        var path = _currentDirectory ?? RootDirectory;
+        var directory = path ?? _rootDirectory;
 
-        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf") || f.EndsWith(".webm")).ToArray();
-        var folders = Directory.GetDirectories(path);
-        // return the files and folders as sorted alphabetically
-        return Task.FromResult((path, files.OrderBy(f => f).ToArray(), folders.OrderBy(f => f).ToArray()));
-    }
+        var files = Directory.EnumerateFiles(directory)
+            .Where(f => _allowedExtensions.Any(f.EndsWith))
+            .OrderBy(f => f)
+            .ToArray();
+        var folders = Directory.GetDirectories(directory)
+            .OrderBy(f => f)
+            .ToArray();
 
-    public Task<(string, string[], string[])> GetFolderContent(string path)
-    {
-        var files = Directory.EnumerateFiles(path).Where(f => f.EndsWith(".mp4") || f.EndsWith(".pdf") || f.EndsWith(".webm")).ToArray();
-        var folders = Directory.GetDirectories(path);
-        return Task.FromResult((path, files, folders));
-    }
+        // _logger.LogInformation("FolderContent: \n Path: {Path} \n Files: {Files} \n Folder: {Folders}", path, files, folders);
 
-    public async Task<string?> GoToFolder(string currentPath, string folderName)
-    {
-        // check if the folder exists in the current path
-        var newPath = Path.Combine(currentPath, folderName);
-        if (!Directory.Exists(newPath))
-        {
-            return null;
-        }
-        // invoke the DirectoryChanged method on all connected clients
-        await _hubContext.Clients.All.SendAsync("DirectoryChanged", newPath);
+        return Task.FromResult((directory, files, folders));
 
-        // return the new path
-        return newPath;
-    }
-
-    public Task<string> GoBack(string currentPath)
-    {
-        var parentDirectory = Directory.GetParent(currentPath);
-        return Task.FromResult(parentDirectory == null ? currentPath : parentDirectory.FullName);
-
-    }
-    public Task SetCurrentFolder(string? path)
-    {
-        if (path == null || !Path.GetRelativePath(path, RootDirectory).StartsWith(".."))
-
-        {
-            throw new ArgumentException("Invalid path. The path must be within the RootDirectory or its parent.");
-        }
-        _currentDirectory = path;
-        return Task.CompletedTask;
     }
 
     public Task<string> GetRelativePath(string path)
     {
-        return Task.FromResult(
-            Path.GetRelativePath(RootDirectory, path));
+        return
+            Task.FromResult(Path.GetRelativePath(_rootDirectory, path));
 
     }
 

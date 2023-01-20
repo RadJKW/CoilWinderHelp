@@ -8,7 +8,7 @@
 
   <MudPaper
       Class="tree-paper">
-
+    @*TODO: MudTreeView causes UI to stutter when Expanded Folder has MANY children.*@
     <MudTreeView
         id="directory-tree-list"
         @bind-SelectedValue="SelectedValue"
@@ -36,7 +36,7 @@
 </div>
 
 @code{
-  private string? _rootDirectoryPath;
+  private string? _rootDirectory;
   protected virtual HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
   private TreeItemData? SelectedValue { get; set; }
 
@@ -52,8 +52,12 @@
       .Build();
 
     _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
-      _rootDirectoryPath ??= path;
-      ConvertToTreeItems(path, files, folders, SelectedValue);
+     _rootDirectory ??= path;
+      ConvertToTreeItems(
+        files: files,
+        folders: folders,
+        SelectedValue
+      );
       StateHasChanged();
     });
 
@@ -61,7 +65,7 @@
     await _directoryHub.SendAsync("GetFolderContent", null);
   }
 
-  private Task ConvertToTreeItems(string path, string[]? files, string[]? folders, TreeItemData? selectedNode = null) {
+  private Task ConvertToTreeItems(string[]? files, string[]? folders, TreeItemData? selectedNode = null) {
     if (folders != null) {
 
       foreach (var folder in folders) {
