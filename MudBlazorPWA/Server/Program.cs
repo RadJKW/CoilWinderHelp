@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.FileProviders;
+using MudBlazor.Services;
 using MudBlazorPWA.Shared;
 using MudBlazorPWA.Shared.Hubs;
 using MudBlazorPWA.Shared.Services;
@@ -18,6 +19,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddMudServices();
 builder.Services.AddDirectoryBrowser();
 builder.Services.AddSignalR();
 // add logging + console logging

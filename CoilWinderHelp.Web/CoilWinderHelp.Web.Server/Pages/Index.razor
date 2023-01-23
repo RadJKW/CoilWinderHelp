@@ -1,18 +1,106 @@
 ﻿@page "/"
+@layout DocViewLayout
+@implements IDisposable
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Index</PageTitle>
 
-<div class="flex flex-grow">
-  <div class="w-1/2 m-16">
-    <h1 class="">Hello, world!</h1>
+<MudDrawer
+    Class="docview drawer-left"
+    Open="true"
+    Anchor="Anchor.Left"
+    Fixed="true"
+    Elevation="1"
+    Variant="@DrawerVariant.Mini"
+    Width="85%"
+    MiniWidth="70%"
+    ClipMode="DrawerClipMode.Always"
+    PreserveOpenState="true"
+    OpenMiniOnHover="true">
 
-    <p class="">Welcome to your new app.</p>
-
-    <SurveyPrompt Title="How is Blazor working for you?" />
+  <div
+      class="index-grid">
+    <div
+        class="video-content">
+      <MudSkeleton
+          SkeletonType="SkeletonType.Rectangle"
+          Animation="Animation.Pulse"
+          Height="100%"
+          Width="100%">
+      </MudSkeleton>
+    </div>
+    <div
+        class="py-4 video-footer">
+      <MudSkeleton
+          Animation="Animation.Wave"
+          SkeletonType="SkeletonType.Rectangle"
+          Height="100%"
+          Width="100%">
+      </MudSkeleton>
+    </div>
   </div>
-  <div class="w-1/2 m-16">
-    <SlideIn>
-      <Tailwind />
-    </SlideIn>
-  </div>
-</div>
+
+</MudDrawer>
+<MudDrawer
+    Class="docview drawer-right"
+    @bind-Open="@_drawerRightOpen"
+    Anchor="Anchor.Right"
+    Fixed="true"
+    Elevation="1"
+    Variant="@DrawerVariant.Mini"
+    MiniWidth="15%"
+    Width="25%"
+    ClipMode="DrawerClipMode.Always"
+    PreserveOpenState="true"
+    OpenMiniOnHover="true">
+   <div
+        class="index-grid">
+      <div
+          class="pdf-content">
+        <MudSkeleton
+            SkeletonType="SkeletonType.Rectangle"
+            Animation="Animation.Pulse"
+            Height="100%"
+            Width="100%">
+        </MudSkeleton>
+      </div>
+      <div
+          class="py-4 pdf-footer">
+        <MudSkeleton
+            Animation="Animation.Wave"
+            SkeletonType="SkeletonType.Rectangle"
+            Height="100%"
+            Width="100%">
+        </MudSkeleton>
+      </div>
+    </div>
+
+</MudDrawer>
+
+@code{
+  private bool _drawerOpen;
+  private bool _drawerRightOpen;
+
+
+  [CascadingParameter]
+  public DocViewLayout? DocViewLayout { get; set; }
+
+
+  protected override Task OnParametersSetAsync() {
+    DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;
+    DocViewLayout!.ToggleDrawerRightEvent += ToggleDrawerRight;
+    return base.OnParametersSetAsync();
+  }
+
+  private void ToggleDrawer() {
+    _drawerOpen = !_drawerOpen;
+  }
+
+  private void ToggleDrawerRight() {
+    _drawerRightOpen = !_drawerRightOpen;
+  }
+
+  public void Dispose() {
+    DocViewLayout!.ToggleDrawerEvent -= ToggleDrawer;
+    DocViewLayout!.ToggleDrawerRightEvent -= ToggleDrawerRight;
+  }
+}
