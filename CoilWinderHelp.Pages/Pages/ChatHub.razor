@@ -1,6 +1,5 @@
 @page "/messengerHub"
 @using Microsoft.AspNetCore.SignalR.Client
-@using MudBlazorPWA.Shared.Services
 @layout BaseLayout
 @inject NavigationManager Navigation
 @implements IAsyncDisposable
@@ -143,7 +142,7 @@
       .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
       .Build();
 
-    _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
+    _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (_, files, folders) => {
   //since files and folders are an array, we need to convert them to the Files and Folders lists
       Files = files?.ToList();
       Folders = folders?.ToList();

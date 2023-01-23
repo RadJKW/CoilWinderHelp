@@ -15,6 +15,7 @@ public class DirectoryServiceOptions
 
 public class DirectoryService : IDirectoryService
 {
+    // ReSharper disable once NotAccessedField.Local
     private readonly ILogger<DirectoryService> _logger;
     private readonly string _rootDirectory;
 

@@ -1,6 +1,4 @@
-﻿using MudBlazorPWA.Shared.Models;
-
-namespace MudBlazorPWA.Shared.Extensions;
+﻿namespace MudBlazorPWA.Shared.Extensions;
 
 public static class TreeItemDataExtensions
 {

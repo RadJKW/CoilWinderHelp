@@ -24,6 +24,6 @@
 
 .sidebar-right {
     background-color:  var(--mud-palette-surface);
-    position: absolute;
-    width: 100%;
+    /*position: absolute;*/
+    /*width: 100%;*/
 }

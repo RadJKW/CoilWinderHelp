@@ -1,25 +1,26 @@
 @import url("./sidebar.css");
+@import url("./index.css");
 :root {
     --app-drawer-width: clamp(150px, 10vw, 300px);
 }
 
 
-.mud-drawer.mud-drawer-responsive.mud-drawer-pos-left:not(.sidebar-left), .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left:not(.sidebar-left) {
-    width: var(--app-drawer-width);
-    height: 94vh;
-}
+/*.mud-drawer.mud-drawer-responsive.mud-drawer-pos-left:not(.sidebar-left), .mud-drawer.mud-drawer-persistent.mud-drawer-pos-left:not(.sidebar-left) {*/
+/*    width: var(--app-drawer-width);*/
+/*    height: 94vh;*/
+/*}*/
 
-.mud-drawer-open-persistent-left:not(.mud-drawer-open-persistent-right, .sidebar-left) .mud-main-content {
-  padding-top: 16px;
-  margin-left: calc(24px + var(--app-drawer-width));
-  padding-left: 0;
-  padding-right: 0;
-  margin-right: 0;
-}
+/*.mud-drawer-open-persistent-left:not(.mud-drawer-open-persistent-right, .sidebar-left) .mud-main-content {*/
+/*  padding-top: 16px;*/
+/*  margin-left: calc(24px + var(--app-drawer-width));*/
+/*  padding-left: 0;*/
+/*  padding-right: 0;*/
+/*  margin-right: 0;*/
+/*}*/
 
-.mud-appbar-dense ~ .mud-main-content {
-    padding-top: 0;
-}
+/*.mud-appbar-dense ~ .mud-main-content {*/
+/*    padding-top: 0;*/
+/*}*/
 
 
 div.mud-main-content {
@@ -78,52 +79,7 @@ div.mud-main-content {
     }
 }
 
-.index-grid {
-    display: grid;
-    row-gap: 10px;
-    flex: auto;
 
-}
-
-.video-content {
-    background: #0d47a12a;
-}
-
-.view-port {
-    display: grid;
-    height: calc(100vh - 3rem);
-    grid-template-columns: 1fr 3fr;
-}
-
-
-.video-footer {
-    background: #2e7d321a;
-    display: flex;
-    justify-content: space-evenly;
-    justify-items: center;
-    align-items: center;
-    padding: 4rem;
-    height: 100%;
-}
-
-.video-grid {
-    display: grid;
-    grid-template-columns: 0.1rem 1fr 0.1rem;
-}
-
-.video-grid video {
-    grid-column: 2;
-    grid-row: 2;
-    width: 100%;
-    height: 100%;
-}
-
-.grid-container {
-    position: fixed;
-    height: 100vh;
-
-
-}
 
 
 
@@ -238,14 +194,14 @@ aside.sidebar-left .mud-drawer-header{
         padding: 1rem;
     }
 
-    .mud-drawer-open-responsive-md-left.mud-drawer-left-clipped-never .mud-appbar {
-        margin-left: 0;
-        width: 100%;
-    }
+    /*.mud-drawer-open-responsive-md-left.mud-drawer-left-clipped-never .mud-appbar {*/
+    /*    margin-left: 0;*/
+    /*    width: 100%;*/
+    /*}*/
 
-    .mud-drawer-open-responsive-md-left .mud-main-content {
-        margin-left: var(--app-drawer-width);
-    }
+    /*.mud-drawer-open-responsive-md-left .mud-main-content {*/
+    /*    margin-left: var(--app-drawer-width);*/
+    /*}*/
 }
 
 @media (max-width: 900px) {

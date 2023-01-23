@@ -1,49 +1,123 @@
-﻿@page "/index"
+﻿@page "/"
 @layout DocViewLayout
 @implements IDisposable
 @inject IHttpClientFactory ClientFactory
 
 <PageTitle>Index</PageTitle>
 
-<div class="index-grid">
+<MudDrawer
+    Class="docview drawer-left"
+    @bind-Open="@_drawerOpen"
+    Anchor="Anchor.Left"
+    Fixed="true"
+    Elevation="1"
+    Variant="@DrawerVariant.Mini"
+    Width="70%"
+    MiniWidth="50%"
+    ClipMode="DrawerClipMode.Always"
+    PreserveOpenState="true"
+    OpenMiniOnHover="true">
 
-  <div class="video-content">
-    @if (VideoUrl is not null) {
-
-      <MediaViewer
-          Src="@VideoUrl">
-      </MediaViewer>
-    }
+  <div
+      class="index-grid">
+    <div
+        class="video-content">
+      @if (VideoUrl is not null) {
+        <MediaViewer
+            Src="@VideoUrl">
+        </MediaViewer>
+      }
+    </div>
+    <div
+        class="py-4 video-footer">
+      <MudSkeleton
+          Animation="Animation.Wave"
+          SkeletonType="SkeletonType.Rectangle"
+          Height="100%"
+          Width="100%">
+      </MudSkeleton>
+    </div>
   </div>
 
-  <div class="video-footer">
+</MudDrawer>
+<MudDrawer
+    Class="docview drawer-right"
+    @bind-Open="@_drawerRightOpen"
+    Anchor="Anchor.Right"
+    Fixed="true"
+    Elevation="1"
+    Variant="@DrawerVariant.Mini"
+    MiniWidth="50%"
+    Width="70%"
+    ClipMode="DrawerClipMode.Always"
+    PreserveOpenState="true"
+    OpenMiniOnHover="true">
+   <div
+        class="index-grid">
+      <div
+          class="video-content">
+        @if (VideoUrl is not null) {
+          <MediaViewer
+              Src="@PdfUrl">
+          </MediaViewer>
+        }
+      </div>
+      <div
+          class="py-4 video-footer">
+        <MudSkeleton
+            Animation="Animation.Wave"
+            SkeletonType="SkeletonType.Rectangle"
+            Height="100%"
+            Width="100%">
+        </MudSkeleton>
+      </div>
+    </div>
 
-  </div>
-</div>
+</MudDrawer>
 
 @code{
 
-      private const string RelativePath = "files";
+    private const string RelativePath = "files";
 
-      private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+    private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+      private const string RelativePdfUrl = "/D1 Pole/01.Setup/Computer OPS/computerOps.pdf";
+  private bool _drawerOpen;
+  private bool _drawerRightOpen;
 
 
-
-  //[CascadingParameter]
-  //public BaseLayout? BaseLayout { get; set; }
+  [CascadingParameter]
+  public DocViewLayout? DocViewLayout { get; set; }
 
   private HttpClient? FileServer { get; set; }
 
+
   private string? VideoUrl { get; set; }
+  private string? PdfUrl { get; set; }
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
     FileServer = ClientFactory.CreateClient("PwaServer");
     VideoUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativeVideoUrl}";
+    PdfUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativePdfUrl}";
+
   }
 
-   public void Dispose() {
-  //   if (BaseLayout != null)
-  //     BaseLayout.DrawerDisabled = false;
-   }
+  protected override Task OnParametersSetAsync() {
+    DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;
+    DocViewLayout!.ToggleDrawerRightEvent += ToggleDrawerRight;
+    return base.OnParametersSetAsync();
+  }
+
+  private void ToggleDrawer() {
+    _drawerOpen = !_drawerOpen;
+  }
+
+  private void ToggleDrawerRight() {
+    _drawerRightOpen = !_drawerRightOpen;
+  }
+
+  public void Dispose() {
+    DocViewLayout!.ToggleDrawerEvent -= ToggleDrawer;
+    DocViewLayout!.ToggleDrawerRightEvent -= ToggleDrawerRight;
+  }
 }
