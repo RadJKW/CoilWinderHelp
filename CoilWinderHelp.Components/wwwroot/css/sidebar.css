@@ -1,5 +1,6 @@
-﻿.sidebar-column {
-    /*background-color: rgba(224, 82, 82, 0.39);*/
+﻿/*
+.sidebar-column {
+    !*background-color: rgba(224, 82, 82, 0.39);*!
     position: relative;
 }
 
@@ -24,6 +25,7 @@
 
 .sidebar-right {
     background-color:  var(--mud-palette-surface);
-    /*position: absolute;*/
-    /*width: 100%;*/
+    !*position: absolute;*!
+    !*width: 100%;*!
 }
+*/

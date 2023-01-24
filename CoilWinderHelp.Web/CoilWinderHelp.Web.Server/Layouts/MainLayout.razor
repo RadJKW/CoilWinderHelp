@@ -14,8 +14,8 @@
     DisableBackdropClick="true"
     FullWidth="true"
     MaxWidth="MaxWidth.ExtraSmall"
-    Position="DialogPosition.Center" />
-<MudSnackbarProvider />
+    Position="DialogPosition.Center"/>
+<MudSnackbarProvider/>
 @Body
 
 
@@ -24,8 +24,8 @@
 @code {
   private MudThemeProvider? _mudThemeProvider;
 
-  protected override void OnInitialized()
-  {
+
+  protected override void OnInitialized() {
     LayoutService.MajorUpdateOccured += LayoutServiceOnMajorUpdateOccured!;
     base.OnInitialized();
   }

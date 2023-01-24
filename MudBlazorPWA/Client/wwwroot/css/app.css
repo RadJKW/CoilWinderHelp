@@ -1,6 +1,10 @@
-body{
-    overflow-y:hidden;
+@import url('index.css');
+@import url('main-layout.css');
+
+body {
+    height: 100vh;
 }
+
 #blazor-error-ui {
     background: #404040;
     bottom: 0;

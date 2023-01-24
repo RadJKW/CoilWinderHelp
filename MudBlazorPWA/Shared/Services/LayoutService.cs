@@ -1,7 +1,6 @@
 using MudBlazor;
-using MudBlazorPWA.Shared.Models;
 
-namespace CoilWinderHelp.Pages.Services;
+namespace MudBlazorPWA.Shared.Services;
 public class LayoutService
 {
   public bool IsDarkMode { get; private set; }

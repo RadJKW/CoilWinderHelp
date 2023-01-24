@@ -1,4 +1,4 @@
-﻿@layout MainLayout
+@layout MainLayout
 @inherits LayoutComponentBase
 @inject LayoutService LayoutService
 <CascadingValue
@@ -11,7 +11,7 @@
           Icon="@Icons.Material.Filled.Menu"
           Color="Color.Inherit"
           Edge="Edge.Start"
-          OnClick="@(_ => ToggleDrawer())"/>
+          OnClick="@(ToggleDrawer)"/>
       <MudSpacer/>
       @*display the current PAGE TITLE *@
 
@@ -36,39 +36,10 @@
       <NavMenu/>
     </MudDrawer>
 
-    <MudMainContent
-        Class="docview main-content">
-      <MudContainer
-          Class="docview main-container"
-          MaxWidth="MaxWidth.ExtraLarge">
+    @Body
 
-        @Body
-      </MudContainer>
-    </MudMainContent>
 
-    <MudDrawer
-        Class="docview drawer-right"
-        @bind-Open="@_drawerRightOpen"
-        Anchor="Anchor.Right"
-        Fixed="true"
-        Elevation="1"
-        Variant="@DrawerVariant.Mini"
-        MiniWidth="15%"
-        Width="25%"
-        ClipMode="DrawerClipMode.Always"
-        PreserveOpenState="true"
-        OpenMiniOnHover="true">
-      <div
-          class="pdf-content">
-        <MudSkeleton
-            SkeletonType="SkeletonType.Rectangle"
-            Animation="Animation.Pulse"
-            Height="100%"
-            Width="100%">
-        </MudSkeleton>
-      </div>
 
-    </MudDrawer>
   </MudLayout>
 </CascadingValue>
 
@@ -77,18 +48,15 @@
 
   // create a delegate for the event that will be raised when the drawer is toggled
 
-  public RenderFragment? RightDrawerContent { get; set; }
-
   public delegate void ToggleDrawerEventHandler();
 
   public event ToggleDrawerEventHandler? ToggleDrawerEvent;
 
-  public delegate void ToggleDrawerRightEventHandler();
-
-  public event ToggleDrawerRightEventHandler? ToggleDrawerRightEvent;
+  // public delegate void ToggleDrawerRightEventHandler();
+  //
+  // public event ToggleDrawerRightEventHandler? ToggleDrawerRightEvent;
 
   private bool _drawerOpen;
-  private bool _drawerRightOpen;
 
   protected override void OnInitialized() {
     LayoutService.SetBaseTheme(new());
@@ -115,8 +83,4 @@
 
 
   }
-  void ToggleDrawerRight() {
-    ToggleDrawerRightEvent?.Invoke();
-  }
-
 }

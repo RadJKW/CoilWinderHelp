@@ -1,24 +1,8 @@
 ﻿@page "/"
 @layout DocViewLayout
 @implements IDisposable
-@inject IHttpClientFactory ClientFactory
 
-<PageTitle>Index</PageTitle>
-
-<MudDrawer
-    Class="docview drawer-left"
-    Open="true"
-    Anchor="Anchor.Left"
-    Fixed="true"
-    Elevation="1"
-    Variant="@DrawerVariant.Mini"
-    Width="85%"
-    MiniWidth="70%"
-    ClipMode="DrawerClipMode.Always"
-    PreserveOpenState="true"
-    OpenMiniOnHover="true">
-
-  <div
+<div
       class="index-grid">
     <div
         class="video-content">
@@ -30,7 +14,7 @@
       </MudSkeleton>
     </div>
     <div
-        class="py-4 video-footer">
+        class="py-4 px-4 video-footer">
       <MudSkeleton
           Animation="Animation.Wave"
           SkeletonType="SkeletonType.Rectangle"
@@ -40,49 +24,8 @@
     </div>
   </div>
 
-</MudDrawer>
-<MudDrawer
-    Class="docview drawer-right"
-    @bind-Open="@_drawerRightOpen"
-    Anchor="Anchor.Right"
-    Fixed="true"
-    Elevation="1"
-    Variant="@DrawerVariant.Mini"
-    MiniWidth="15%"
-    Width="25%"
-    ClipMode="DrawerClipMode.Always"
-    PreserveOpenState="true"
-    OpenMiniOnHover="true">
-   <div
-        class="index-grid">
-      <div
-          class="pdf-content">
-        <MudSkeleton
-            SkeletonType="SkeletonType.Rectangle"
-            Animation="Animation.Pulse"
-            Height="100%"
-            Width="100%">
-        </MudSkeleton>
-      </div>
-      <div
-          class="py-4 pdf-footer">
-        <MudSkeleton
-            Animation="Animation.Wave"
-            SkeletonType="SkeletonType.Rectangle"
-            Height="100%"
-            Width="100%">
-        </MudSkeleton>
-      </div>
-    </div>
-
-</MudDrawer>
 
 @code{
-
-    private const string RelativePath = "files";
-
-    private const string RelativeVideoUrl = "/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
-      private const string RelativePdfUrl = "/D1 Pole/01.Setup/Computer OPS/computerOps.pdf";
   private bool _drawerOpen;
   private bool _drawerRightOpen;
 
@@ -90,19 +33,6 @@
   [CascadingParameter]
   public DocViewLayout? DocViewLayout { get; set; }
 
-  private HttpClient? FileServer { get; set; }
-
-
-  private string? VideoUrl { get; set; }
-  private string? PdfUrl { get; set; }
-
-  protected override async Task OnInitializedAsync() {
-    await base.OnInitializedAsync();
-    FileServer = ClientFactory.CreateClient("PwaServer");
-    VideoUrl = $"{FileServer.BaseAddress}{RelativePath}{RelativeVideoUrl}";
-    PdfUrl = $"{FileServer.BaseAddress}{RelativePath}{RelativePdfUrl}";
-
-  }
 
   protected override Task OnParametersSetAsync() {
     DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;

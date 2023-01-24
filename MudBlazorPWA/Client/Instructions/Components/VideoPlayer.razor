@@ -1,0 +1,43 @@
+@implements IAsyncDisposable
+@inject IJSRuntime JsRuntime
+
+
+<iframe
+    id="@Id"
+    onload="@JsSetVideoPlayer"
+    allow="autoplay; fullscreen"
+    style="width:100%; height:100%"
+    src="@Src"></iframe>
+
+@code {
+  // use reflection to gets the NameSpace of this component
+  [Parameter]
+  public string Id { get; set; } = "media-viewer";
+
+  [Parameter]
+  [EditorRequired]
+  public required string Src { get; set; }
+
+  private IJSObjectReference? _videoJs;
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      _videoJs = await JsRuntime
+        .InvokeAsync<IJSObjectReference>(
+          "import", "./Instructions/Components/VidePlayer.razor.js");
+    }
+  }
+
+
+  private async Task JsSetVideoPlayer() {
+    if (_videoJs != null)
+      await _videoJs.InvokeVoidAsync("init", Id );
+  }
+
+
+  public async ValueTask DisposeAsync() {
+    if (_videoJs != null) {
+      await _videoJs.DisposeAsync();
+    }
+  }
+}

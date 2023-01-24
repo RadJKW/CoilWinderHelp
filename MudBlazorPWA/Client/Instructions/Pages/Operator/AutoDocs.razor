@@ -1,5 +1,6 @@
-﻿@page "/"
+@page "/"
 @layout DocViewLayout
+@inject IHttpClientFactory HttpClientFactory
 @implements IDisposable
 
 <MudMainContent
@@ -11,17 +12,16 @@
         class="pdf-grid">
       <div
           class="pdf-content">
-        <MudSkeleton
-            SkeletonType="SkeletonType.Rectangle"
-            Animation="Animation.Pulse"
-            Height="100%"
-            Width="100%">
-
-        </MudSkeleton>
-        <div class="z-10 d-flex justify-center align-center mud-width-full"
-            style="margin-inline: -100%">
+       @if (VideoUrl is not null) {
+                 <PdfViewer
+                     Src="@PdfUrl">
+                 </PdfViewer>
+               }
+        <div class="z-10 d-flex justify-start align-content-start mud-height-full"
+            style="margin: -100%; padding-top: 20%; padding-left: 5%">
         <MudText
-            Typo="Typo.h4">
+            Typo="Typo.h4"
+            Style="">
           PDF
         </MudText>
         </div>
@@ -104,12 +104,31 @@
 </MudDrawer>
 
 @code{
+
+      private const string RelativePath = "files";
+
+      private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+      private const string RelativePdfUrl = "D1 Pole/01.Setup/Computer OPS/computerOps.pdf";
+
   private bool _drawerOpen;
   private bool _drawerRightOpen;
-  private bool _openOnHover = true;
+  private bool _openOnHover;
 
   [CascadingParameter]
   public DocViewLayout? DocViewLayout { get; set; }
+
+  private HttpClient? FileServer { get; set; }
+
+  private string? VideoUrl { get; set; }
+  private string? PdfUrl { get; set; }
+
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    FileServer = HttpClientFactory.CreateClient("PwaServer");
+    VideoUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativeVideoUrl}";
+    PdfUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativePdfUrl}";
+
+  }
 
 
   protected override Task OnParametersSetAsync() {
