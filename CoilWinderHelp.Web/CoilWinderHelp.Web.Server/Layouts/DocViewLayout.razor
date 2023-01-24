@@ -1,90 +1,102 @@
-﻿@inherits LayoutComponentBase
-<div id="docview-layout">
+﻿@layout MainLayout
+@inherits LayoutComponentBase
+@inject LayoutService LayoutService
+<CascadingValue
+      Value="this">
+  <MudLayout>
+    <MudAppBar
+          Elevation="5"
+          Dense="true"
+          Color="Color.Info">
+        <MudIconButton
+            Icon="@Icons.Material.Filled.Menu"
+            Color="Color.Inherit"
+            Edge="Edge.Start"
+            OnClick="@(_ => ToggleDrawer())"/>
+        <MudSpacer/>
+        @*display the current PAGE TITLE *@
 
-<MudThemeProvider
-    Theme="MyCustomTheme"
-    @ref="_mudThemeProvider"
-    @bind-IsDarkmode="@_isDarkMode"/>
-<MudDialogProvider
-    FullWidth="true"
-    MaxWidth="MaxWidth.Medium"
-    CloseButton="true"
-    DisableBackdropClick="true"
-    NoHeader="false"
-    Position="DialogPosition.Center"
-    CloseOnEscapeKey="true"/>
-<MudSnackbarProvider/>
+        <MudText
+            Typo="Typo.h6"
+            Style="text-wrap: none">
+          @(PageTitle)
+        </MudText>
 
-<MudLayout
-    Style="overflow:hidden; position:relative">
+        <MudSpacer/>
+        <AppbarButtons/>
+      </MudAppBar>
+      <MudDrawer
+          Class="docview drawer-left z-100"
+          @bind-Open="_drawerOpen"
+          Anchor="Anchor.Left"
+          Elevation="1"
+          Variant="@DrawerVariant.Mini"
+          ClipMode="DrawerClipMode.Always"
+          PreserveOpenState="true"
+          OpenMiniOnHover="true">
+        <NavMenu/>
+      </MudDrawer>
 
-  <MudAppBar
-      Elevation="5"
-      Dense="true"
-      Color="Color.Info">
-    <MudIconButton
-        Icon="@Icons.Material.Filled.Menu"
-        Color="Color.Inherit"
-        Edge="Edge.Start"
-        OnClick="@(_ => ToggleDrawer())"/>
-    <MudSpacer/>
-    @*display the current PAGE TITLE *@
+    <MudMainContent
+        Class="docview main-content">
+      <MudContainer
+          Class="docview main-container"
+          MaxWidth="MaxWidth.ExtraLarge">
 
-    <MudText
-        Typo="Typo.h6"
-        Style="text-wrap: none">
-      @(PageTitle)
-    </MudText>
-
-    <MudSpacer/>
-    <MudIconButton
-        Icon="@Icons.Custom.Brands.MudBlazor"
-        Color="Color.Inherit"
-        Link="https://mudblazor.com/"
-        Target="_blank">
-    </MudIconButton>
-    <MudIconButton
-        Icon="@Icons.Custom.Brands.GitHub"
-        Color="Color.Inherit"
-        Link="https://github.com/MudBlazor/MudBlazor/"
-        Target="_blank">
-    </MudIconButton>
-    <MudIconButton
-
-        Icon="@Icons.Material.Filled.Menu"
-        Color="Color.Inherit"
-        Edge="Edge.End"
-        OnClick="@(_ => ToggleDrawerRight())"/>
-  </MudAppBar>
-
-  <MudMainContent
-      Class="docview main-content">
-    <MudContainer
-        Class="docview main-container"
-        MaxWidth="MaxWidth.ExtraLarge">
-      <CascadingValue
-          Value="this">
         @Body
-      </CascadingValue>
-    </MudContainer>
-  </MudMainContent>
-</MudLayout>
-</div>
+      </MudContainer>
+    </MudMainContent>
+
+    <MudDrawer
+        Class="docview drawer-right"
+        @bind-Open="@_drawerRightOpen"
+        Anchor="Anchor.Right"
+        Fixed="true"
+        Elevation="1"
+        Variant="@DrawerVariant.Mini"
+        MiniWidth="15%"
+        Width="25%"
+        ClipMode="DrawerClipMode.Always"
+        PreserveOpenState="true"
+        OpenMiniOnHover="true">
+      <div
+            class="pdf-content">
+          <MudSkeleton
+              SkeletonType="SkeletonType.Rectangle"
+              Animation="Animation.Pulse"
+              Height="100%"
+              Width="100%">
+          </MudSkeleton>
+        </div>
+
+
+    </MudDrawer>
+  </MudLayout>
+  </CascadingValue>
 
 @code {
 
-  private bool _isDarkMode = true;
-  private MudThemeProvider? _mudThemeProvider;
 
+  // create a delegate for the event that will be raised when the drawer is toggled
 
-// create a delegate for the event that will be raised when the drawer is toggled
+  public RenderFragment? RightDrawerContent { get; set; }
 
   public delegate void ToggleDrawerEventHandler();
+
   public event ToggleDrawerEventHandler? ToggleDrawerEvent;
 
   public delegate void ToggleDrawerRightEventHandler();
+
   public event ToggleDrawerRightEventHandler? ToggleDrawerRightEvent;
 
+  private bool _drawerOpen;
+  private bool _drawerRightOpen;
+
+  protected override void OnInitialized() {
+    LayoutService.SetBaseTheme(new());
+    LayoutService.SetDarkMode(true);
+
+  }
   // create a method that will raise the event
 
   public void HandleToggleDrawerEvent() {
@@ -94,73 +106,14 @@
 
 
 
-
-
   private string PageTitle { get; set; } = "MudBlazorTest";
 
-  private static readonly MudTheme MyCustomTheme = new() {
-    Palette = new Palette() {
 
-      AppbarText = "#424242",
-      AppbarBackground = "rgba(0,0,0,0)",
-      BackgroundGrey = "#F9FAFC",
-      TextSecondary = "#425466",
-      Dark = "#110E2D",
-      DarkLighten = "#1A1643",
-      GrayDefault = "#4B5563",
-      GrayLight = "#9CA3AF",
-      GrayLighter = "#adbdccff"
-    },
-    PaletteDark = new PaletteDark() {
-      Primary = "#7e6fff",
-      Surface = "#1e1e2d",
-      Background = "#1a1a27",
-      BackgroundGrey = "#151521",
-      AppbarText = "#92929f",
-      AppbarBackground = "rgba(26,26,39,0.8)",
-      DrawerBackground = "#1a1a27",
-      ActionDefault = "#74718e",
-      ActionDisabled = "#9999994d",
-      ActionDisabledBackground = "#605f6d4d",
-      TextPrimary = "#b2b0bf",
-      TextSecondary = "#92929f",
-      TextDisabled = "#ffffff33",
-      DrawerIcon = "#92929f",
-      DrawerText = "#92929f",
-      GrayLight = "#2a2833",
-      GrayLighter = "#1e1e2d",
-      Info = "#4a86ff",
-      Success = "#3dcb6c",
-      Warning = "#ffb545",
-      Error = "#ff3f5f",
-      LinesDefault = "#33323e",
-      TableLines = "#33323e",
-      Divider = "#a1a1a1",
-      OverlayLight = "#1e1e2d80"
-
-
-
-    },
-    LayoutProperties = new LayoutProperties() {
-      DrawerMiniWidthLeft = "20px",
-      DrawerMiniWidthRight = "20px",
-      DrawerWidthLeft = "240px",
-      DrawerWidthRight = "300px"
-    }
-  };
-
-
-
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (firstRender) {
-      _isDarkMode = await _mudThemeProvider!.GetSystemPreference();
-    }
-  }
 
   // after the route changes, update the page title
   void ToggleDrawer() {
-
-   ToggleDrawerEvent?.Invoke();
+    _drawerOpen = !_drawerOpen;
+    ToggleDrawerEvent?.Invoke();
 
 
   }

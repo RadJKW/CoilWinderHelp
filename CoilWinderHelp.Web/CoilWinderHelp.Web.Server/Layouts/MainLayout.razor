@@ -3,22 +3,21 @@
 @implements IDisposable
 
 @*Theme="MyCustomTheme"*@
-<div>
 
-  <MudThemeProvider
-      @ref="_mudThemeProvider"
-      IsDarkMode="@LayoutService.IsDarkMode"
-      IsDarkModeChanged="LayoutService.SetDarkMode"
-      Theme="LayoutService.CurrentTheme"/>
-  <MudDialogProvider
-      CloseOnEscapeKey="true"
-      DisableBackdropClick="true"
-      FullWidth="true"
-      MaxWidth="MaxWidth.ExtraSmall"
-      Position="DialogPosition.Center" />
-  <MudSnackbarProvider />
-  @Body
-</div>
+<MudThemeProvider
+    @ref="_mudThemeProvider"
+    IsDarkMode="@LayoutService.IsDarkMode"
+    IsDarkModeChanged="LayoutService.SetDarkMode"
+    Theme="LayoutService.CurrentTheme"/>
+<MudDialogProvider
+    CloseOnEscapeKey="true"
+    DisableBackdropClick="true"
+    FullWidth="true"
+    MaxWidth="MaxWidth.ExtraSmall"
+    Position="DialogPosition.Center" />
+<MudSnackbarProvider />
+@Body
+
 
 
 
@@ -45,6 +44,6 @@
     LayoutService.MajorUpdateOccured -= LayoutServiceOnMajorUpdateOccured!;
   }
 
-  private void LayoutServiceOnMajorUpdateOccured(object sender, EventArgs e) => StateHasChanged();
+  private void LayoutServiceOnMajorUpdateOccured(object sender, EventArgs e) => InvokeAsync(StateHasChanged);
 
 }

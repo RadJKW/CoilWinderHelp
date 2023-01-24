@@ -6,7 +6,7 @@ public class LayoutService
 {
   public bool IsDarkMode { get; private set; }
 
-  public MudTheme CurrentTheme { get; private set; } = null!;
+  public MudTheme? CurrentTheme { get; private set; }
 
   public void SetDarkMode(bool value)
   {
@@ -22,8 +22,6 @@ public class LayoutService
     IsDarkMode = !IsDarkMode;
     OnMajorUpdateOccured();
   }
-
-
 
   public void SetBaseTheme(MudTheme theme)
   {

@@ -2,22 +2,7 @@
 @layout DocViewLayout
 @implements IDisposable
 
-<PageTitle>Index</PageTitle>
-
-<MudDrawer
-    Class="docview drawer-left"
-    Open="true"
-    Anchor="Anchor.Left"
-    Fixed="true"
-    Elevation="1"
-    Variant="@DrawerVariant.Mini"
-    Width="85%"
-    MiniWidth="70%"
-    ClipMode="DrawerClipMode.Always"
-    PreserveOpenState="true"
-    OpenMiniOnHover="true">
-
-  <div
+<div
       class="index-grid">
     <div
         class="video-content">
@@ -29,7 +14,7 @@
       </MudSkeleton>
     </div>
     <div
-        class="py-4 video-footer">
+        class="py-4 px-4 video-footer">
       <MudSkeleton
           Animation="Animation.Wave"
           SkeletonType="SkeletonType.Rectangle"
@@ -39,42 +24,6 @@
     </div>
   </div>
 
-</MudDrawer>
-<MudDrawer
-    Class="docview drawer-right"
-    @bind-Open="@_drawerRightOpen"
-    Anchor="Anchor.Right"
-    Fixed="true"
-    Elevation="1"
-    Variant="@DrawerVariant.Mini"
-    MiniWidth="15%"
-    Width="25%"
-    ClipMode="DrawerClipMode.Always"
-    PreserveOpenState="true"
-    OpenMiniOnHover="true">
-   <div
-        class="index-grid">
-      <div
-          class="pdf-content">
-        <MudSkeleton
-            SkeletonType="SkeletonType.Rectangle"
-            Animation="Animation.Pulse"
-            Height="100%"
-            Width="100%">
-        </MudSkeleton>
-      </div>
-      <div
-          class="py-4 pdf-footer">
-        <MudSkeleton
-            Animation="Animation.Wave"
-            SkeletonType="SkeletonType.Rectangle"
-            Height="100%"
-            Width="100%">
-        </MudSkeleton>
-      </div>
-    </div>
-
-</MudDrawer>
 
 @code{
   private bool _drawerOpen;

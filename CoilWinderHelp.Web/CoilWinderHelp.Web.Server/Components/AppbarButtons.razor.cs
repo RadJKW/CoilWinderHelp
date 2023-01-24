@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 namespace CoilWinderHelp.Web.Server.Components;
 public partial class AppbarButtons
 {
-  [Inject] private LayoutService LayoutService { get; set; } = null!;
+  [Inject] private LayoutService? LayoutService { get; set; }
   private IDictionary<string, bool>? _messages;
   private bool _newNotificationsAvailable = true;
 

@@ -4,9 +4,9 @@ using MudBlazor;
 namespace CoilWinderHelp.Web.Server.Services;
 public class LayoutService
 {
-  public bool IsDarkMode { get; private set; }
+  public bool IsDarkMode { get; set; }
 
-  public MudTheme CurrentTheme { get; private set; } = null!;
+  public MudTheme? CurrentTheme { get; private set; }
 
   public void SetDarkMode(bool value)
   {
