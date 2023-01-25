@@ -1,5 +1,6 @@
-@import url('index.css');
+@import url('autoDocs.css');
 @import url('main-layout.css');
+@import url('menus.css');
 
 body {
     height: 100vh;

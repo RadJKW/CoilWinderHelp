@@ -1,44 +1,52 @@
 @layout MainLayout
 @inherits LayoutComponentBase
 @inject LayoutService LayoutService
-<CascadingValue
-    Value="this">
+@inject DocViewService DocViewSettings
+@implements IDisposable
+<CascadingValue Value="this">
   <MudLayout>
-    <MudAppBar
-        Elevation="5"
-        Dense="true">
-      <MudIconButton
-          Icon="@Icons.Material.Filled.Menu"
-          Color="Color.Inherit"
-          Edge="Edge.Start"
-          OnClick="@(ToggleDrawer)"/>
-      <MudSpacer/>
-      @*display the current PAGE TITLE *@
+    @if (AppSettings!.AppBarIsVisible) {
 
-      <MudText
-          Typo="Typo.h6"
-          Style="text-wrap: none">
-        @(PageTitle)
-      </MudText>
+      <MudAppBar Elevation="5"
+          Dense="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+            Color="Color.Inherit"
+            Edge="Edge.Start"
+            OnClick="@(ToggleDrawer)"/>
+        <MudSpacer/>
+        @*display the current PAGE TITLE *@
 
-      <MudSpacer/>
-      <AppbarButtons/>
-    </MudAppBar>
-    <MudDrawer
-        Class="docview drawer-left z-100"
-        @bind-Open="_drawerOpen"
+        <MudText Typo="Typo.h6"
+            Style="text-wrap: none">
+          @(PageTitle)
+        </MudText>
+
+        <MudSpacer/>
+        <AppbarButtons/>
+      </MudAppBar>
+    }
+    <MudDrawer Class="docview drawer-left z-100"
+        @bind-Open="@AppSettings!.DrawerOpen"
         Anchor="Anchor.Left"
         Elevation="1"
         Variant="@DrawerVariant.Mini"
         ClipMode="DrawerClipMode.Always"
         PreserveOpenState="true"
-        OpenMiniOnHover="true">
+        OpenMiniOnHover="@AppSettings!.DrawerOpenOnHover">
       <NavMenu/>
+      <MudDivider DividerType="DividerType.FullWidth"
+          Class="mx-2"/>
+      <MudSpacer/>
+      <MudDivider DividerType="DividerType.FullWidth"
+          Class="mx-2"/>
+      <AutoDocSettings/>
     </MudDrawer>
-
-    @Body
-
-
+    <MudMainContent Class="docview main-content">
+      <MudContainer Class="docview main-container"
+          MaxWidth="MaxWidth.ExtraLarge">
+        @Body
+      </MudContainer>
+    </MudMainContent>
 
   </MudLayout>
 </CascadingValue>
@@ -56,31 +64,33 @@
   //
   // public event ToggleDrawerRightEventHandler? ToggleDrawerRightEvent;
 
-  private bool _drawerOpen;
+  private AppSettings? AppSettings { get; set; }
 
-  protected override void OnInitialized() {
+  protected override async Task OnInitializedAsync() {
     LayoutService.SetBaseTheme(new());
     LayoutService.SetDarkMode(true);
-
+    AppSettings = DocViewSettings.AppSettings;
+    DocViewSettings.MajorUpdateOccured += DocViewSettingsOnMajorUpdateOccured!;
+    await base.OnInitializedAsync();
   }
-  // create a method that will raise the event
+  private void DocViewSettingsOnMajorUpdateOccured(object sender, EventArgs e) {
+    AppSettings = DocViewSettings.AppSettings;
+    InvokeAsync(StateHasChanged);
+  }
+  public void Dispose() {
+    if (DocViewSettings != null) {
+      DocViewSettings.MajorUpdateOccured -= DocViewSettingsOnMajorUpdateOccured!;
+    }
+  }
 
   public void HandleToggleDrawerEvent() {
     ToggleDrawerEvent?.Invoke();
   }
 
-
-
-
   private string PageTitle { get; set; } = "MudBlazorTest";
 
-
-
-  // after the route changes, update the page title
   void ToggleDrawer() {
-    _drawerOpen = !_drawerOpen;
-    ToggleDrawerEvent?.Invoke();
-
-
+    AppSettings!.DrawerOpen = !AppSettings.DrawerOpen;
+    DocViewSettings.SetAppSettings(AppSettings);
   }
 }

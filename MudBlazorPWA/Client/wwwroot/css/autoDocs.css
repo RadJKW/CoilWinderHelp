@@ -1,16 +1,19 @@
-.index-grid{
+.auto-docs.container{
     display: grid;
-    grid-template-rows: 0.5fr 5fr;
-    flex: auto;
-    min-height: 100%;
-    padding: 0;
+    grid-template-columns: 1fr;
+    height: 100%;
+    flex: none;
 }
 
+.auto-docs.splitter{
+
+}
 .pdf-grid {
     display: grid;
     grid-template-rows: 1fr;
     flex: auto;
-    min-height: 100%;
+    height: 100%;
+    width: auto;
     padding: 0;
 }
 
@@ -19,6 +22,8 @@
     justify-content: flex-start;
     justify-items: center;
     align-items: center;
+    flex: 1 1 auto;
+    height: 100%;
     padding: 0;
     background: rgba(177, 46, 30, 0.6);
 }
@@ -31,32 +36,25 @@
     padding: 4rem;
     height: 100%;
 }
+.video-grid{
+    display: grid;
+    grid-template-rows: min-content minmax(10%, 1fr);
+    min-height: 100%;
+    flex: 1;
+    padding: 0;
+}
 .video-content {
     display: flex;
-    flex-direction: row;
-    justify-content: start;
-    justify-items: center;
-    align-items: center;
-    height: 100%;
+    background: transparent;
+    overflow: hidden;
     width: 100%;
-    padding: 1rem;
-    background: rgba(13, 71, 161, 0.6);
 }
-.video-header {
-    background: rgba(46, 125, 50, 0.5);
+.video-footer {
+    background: rgba(41, 68, 7, 0.51);
     display: flex;
-    flex-direction: row;
+    justify-content: space-evenly;
     justify-items: center;
-    justify-content: start;
     align-items: center;
-    padding: 1rem;
+    padding: 4rem;
     height: 100%;
-}
-
-.mud-popover.mud-popover-open.todo-menu{
-    left: unset;
-    right: 0;
-}
-.todo-menu.item{
-    backdrop-filter: blur(5px) contrast(0.925);
 }

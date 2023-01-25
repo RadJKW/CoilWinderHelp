@@ -3,47 +3,101 @@
 @inject IHttpClientFactory HttpClientFactory
 @implements IDisposable
 
-<MudMainContent
-    Class="docview main-content">
-  <MudContainer
-      Class="docview main-container"
-      MaxWidth="MaxWidth.ExtraLarge">
-    <div
-        class="pdf-grid">
+<div
+class="auto-docs container">
+<MudSplitter
+    Class="auto-docs splitter"
+    @bind-Dimension="@_startWidth"
+    StyleBar="width: 6px !important;"
+    OnDoubleClicked="HandleDoubleClicked"
+    EnableSlide="true"
+    EnableMargin="false"
+    Sensitivity="0.1d">
+  <StartContent>
+    <PrimaryContent
+        Src="@PdfUrl">
+    </PrimaryContent>
+    @if (_startWidth <= 50) {
       <div
-          class="pdf-content">
-       @if (VideoUrl is not null) {
-                 <PdfViewer
-                     Src="@PdfUrl">
-                 </PdfViewer>
-               }
-        <div class="z-10 d-flex justify-start align-content-start mud-height-full"
-            style="margin: -100%; padding-top: 20%; padding-left: 5%">
-        <MudText
-            Typo="Typo.h4"
-            Style="">
-          PDF
-        </MudText>
-        </div>
+          class="d-flex justify-center">
+        <MudIconButton
+            Size="Size.Large"
+            Variant="Variant.Filled"
+            Class="justify-center align-center"
+            Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
+            OnClick="StartContentClicked">
+        </MudIconButton>
       </div>
-    </div>
-  </MudContainer>
-</MudMainContent>
-<MudDrawer
-    Class="docview drawer-right"
-    @bind-Open="@_drawerRightOpen"
-    Anchor="Anchor.Right"
-    Fixed="true"
-    Elevation="1"
-    Variant="@DrawerVariant.Mini"
-    MiniWidth="15%"
-    Width="30%"
-    ClipMode="DrawerClipMode.Always"
-    PreserveOpenState="true"
-    OpenMiniOnHover="@_openOnHover">
+    }
+  </StartContent>
+  <EndContent>
+    @if (_startWidth > 50) {
+      <div
+          class="d-flex justify-center">
+        <MudIconButton
+            Size="Size.Large"
+            Variant="Variant.Filled"
+            Class="justify-center align-center"
+            Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
+            OnClick="EndContentClicked">
+        </MudIconButton>
+      </div>
+    }
+    <SecondaryContent/>
+  </EndContent>
+</MudSplitter>
+</div>
+
+@code{
+
+    private const string RelativePath = "files";
+    private const string RelativePdfUrl = "D1 Pole/01.Setup/Computer OPS/computerOps.pdf";
+
+  private bool _drawerOpen;
+  private double _startWidth = 65;
+
+  [CascadingParameter]
+  public DocViewLayout? DocViewLayout { get; set; }
+
+  private HttpClient? FileServer { get; set; }
+
+  private string? PdfUrl { get; set; }
+
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    FileServer = HttpClientFactory.CreateClient("PwaServer");
+    PdfUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativePdfUrl}";
+
+  }
+
+
+  protected override Task OnParametersSetAsync() {
+    DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;
+  // DocViewLayout!.ToggleDrawerRightEvent += ToggleDrawerRight;
+    return base.OnParametersSetAsync();
+  }
+
+  private void ToggleDrawer() {
+    _drawerOpen = !_drawerOpen;
+  }
+
+  public void Dispose() {
+    DocViewLayout!.ToggleDrawerEvent -= ToggleDrawer;
+  // DocViewLayout!.ToggleDrawerRightEvent -= ToggleDrawerRight;
+  }
+  private void HandleDoubleClicked() {
+    _startWidth = _startWidth <= 50 ? 70 : 30;
+  }
+  private void StartContentClicked() {
+    _startWidth = 70;
+  }
+  private void EndContentClicked() {
+    _startWidth = 40;
+  }
+}
+
+@*
   <div
-      class="index-grid">
-    <div
         class="video-header">
       <MudSkeleton
           SkeletonType="SkeletonType.Rectangle"
@@ -83,72 +137,4 @@
         </MudButtonGroup>
       </div>
     </div>
-    <div
-        class="video-content">
-      <MudSkeleton
-          SkeletonType="SkeletonType.Rectangle"
-          Animation="Animation.Pulse"
-          Height="100%"
-          Width="100%">
-      </MudSkeleton>
-      <MudText
-          Class="z-10 mud-width-full"
-          Style="margin-inline: -100%"
-          Typo="Typo.h4"
-          Align="Align.Center">
-        Videos List
-      </MudText>
-    </div>
-  </div>
-
-</MudDrawer>
-
-@code{
-
-      private const string RelativePath = "files";
-
-      private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
-      private const string RelativePdfUrl = "D1 Pole/01.Setup/Computer OPS/computerOps.pdf";
-
-  private bool _drawerOpen;
-  private bool _drawerRightOpen;
-  private bool _openOnHover;
-
-  [CascadingParameter]
-  public DocViewLayout? DocViewLayout { get; set; }
-
-  private HttpClient? FileServer { get; set; }
-
-  private string? VideoUrl { get; set; }
-  private string? PdfUrl { get; set; }
-
-  protected override async Task OnInitializedAsync() {
-    await base.OnInitializedAsync();
-    FileServer = HttpClientFactory.CreateClient("PwaServer");
-    VideoUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativeVideoUrl}";
-    PdfUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativePdfUrl}";
-
-  }
-
-
-  protected override Task OnParametersSetAsync() {
-    DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;
-  // DocViewLayout!.ToggleDrawerRightEvent += ToggleDrawerRight;
-    return base.OnParametersSetAsync();
-  }
-
-  private void ToggleDrawer() {
-    _drawerOpen = !_drawerOpen;
-  }
-
-  private void ToggleDrawerRight() {
-    _drawerRightOpen = !_drawerRightOpen;
-  }
-  private void ToggleHover() {
-    _openOnHover = !_openOnHover;
-  }
-  public void Dispose() {
-    DocViewLayout!.ToggleDrawerEvent -= ToggleDrawer;
-  // DocViewLayout!.ToggleDrawerRightEvent -= ToggleDrawerRight;
-  }
-}
+*@

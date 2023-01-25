@@ -1,0 +1,21 @@
+﻿.mud-popover.mud-popover-open.todo-menu{
+    left: unset;
+    right: 0;
+    padding: 0.5rem;
+}
+.todo-menu > .mud-grid .mud- {
+}
+.todo-menu.item{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    align-items: center;
+    backdrop-filter: blur(5px) contrast(0.925);
+}
+
+
+.mud-popover.mud-popover-open.settings-menu{
+    left: 0 !important;
+    padding: 0.5rem;
+}

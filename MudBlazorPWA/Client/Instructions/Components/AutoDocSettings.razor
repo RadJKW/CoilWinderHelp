@@ -1,0 +1,130 @@
+﻿@inject DocViewService DocViewSettings
+@implements IDisposable
+
+<MudMenu Icon="@Icons.Material.Outlined.SettingsApplications"
+    AnchorOrigin="Origin.TopCenter"
+    TransformOrigin="Origin.BottomCenter"
+    PopoverClass="settings-menu"
+    ListClass="pa-2 settings-menu-list">
+  <MudGrid Spacing="0">
+    <MudItem xs="8">
+      <MudText Typo="Typo.subtitle1">
+        Settings
+      </MudText>
+    </MudItem>
+    <MudItem xs="4">
+      <MudButton OnClick="() => DocViewSettings.SetAppSettings(AppSettings)"
+          Size="Size.Small"
+          StartIcon="@Icons.Material.Filled.DoneAll"
+          ButtonType="ButtonType.Submit"
+          Variant="Variant.Outlined"
+          Color="Color.Primary">
+        Save
+      </MudButton>
+    </MudItem>
+  </MudGrid>
+
+  <MudDivider Class="mb-2 mt-1 mx-n2"
+      DividerType="DividerType.FullWidth"/>
+  <MudGrid Spacing="0">
+    <MudItem xs="12">
+      <MudCheckBox @bind-Checked="@AppBarVisible" Label="AppBar">
+      </MudCheckBox>
+      <MudCheckBox @bind-Checked="@DrawerOpen"
+          Label="Drawer Open"/>
+      <MudCheckBox @bind-Checked="@DrawerOpenOnHover"
+          Label="Drawer Hover"/>
+    </MudItem>
+    <MudItem xs="12">
+
+    <MudDivider Class="mb-2 mt-1 mx-n2"
+          DividerType="DividerType.FullWidth"/>
+    </MudItem>
+    <MudItem xs="12">
+      <div class="align-center d-flex justify-center mud-width-full">
+        <MudText Typo="Typo.body2">
+          @* ReSharper disable once Asp.Entity *@
+          R&D: Jared West
+        </MudText>
+      </div>
+    </MudItem>
+  </MudGrid>
+</MudMenu>
+
+@code {
+
+  private enum Settings {
+    AppBarIsVisible,
+    DrawerOpen,
+    DrawerOpenOnHover
+  }
+
+  private bool AppBarVisible {
+    get => AppSettings.AppBarIsVisible;
+    set => OnSettingsChanged(value, Settings.AppBarIsVisible);
+  }
+
+  private bool DrawerOpen {
+    get => AppSettings.DrawerOpen;
+    set => OnSettingsChanged(value, Settings.DrawerOpen);
+  }
+
+  private bool DrawerOpenOnHover {
+    get => AppSettings.DrawerOpenOnHover;
+    set => OnSettingsChanged(value, Settings.DrawerOpenOnHover);
+  }
+
+  private AppSettings AppSettings { get; set; } = new();
+
+  protected override async Task OnInitializedAsync() {
+    AppSettings = DocViewSettings.AppSettings;
+    DocViewSettings.MajorUpdateOccured += DocViewSettingsOnMajorUpdateOccured;
+    await base.OnInitializedAsync();
+  }
+  private void DocViewSettingsOnMajorUpdateOccured(object? sender, EventArgs e) {
+    AppSettings = DocViewSettings.AppSettings;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private void OnSettingsChanged(bool args, Settings setting) {
+    switch (setting) {
+      case Settings.AppBarIsVisible:
+        AppSettings.AppBarIsVisible = args;
+        break;
+      case Settings.DrawerOpen:
+        AppSettings.DrawerOpen = args;
+        break;
+      case Settings.DrawerOpenOnHover:
+        AppSettings.DrawerOpenOnHover = args;
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(setting), setting, null);
+    }
+    DocViewSettings.SetAppSettings(AppSettings);
+  }
+
+
+
+
+  public void Dispose() {
+    if (DocViewSettings != null) {
+      DocViewSettings.MajorUpdateOccured -= DocViewSettingsOnMajorUpdateOccured;
+    }
+  }
+  private void ToggleAppSettings(Settings setting) {
+    switch (setting) {
+      case Settings.AppBarIsVisible:
+        AppSettings.AppBarIsVisible = !AppSettings.AppBarIsVisible;
+        break;
+      case Settings.DrawerOpen:
+        AppSettings.DrawerOpen = !AppSettings.DrawerOpen;
+        break;
+      case Settings.DrawerOpenOnHover:
+        AppSettings.DrawerOpenOnHover = !AppSettings.DrawerOpenOnHover;
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(setting), setting, null);
+    }
+    DocViewSettings.SetAppSettings(AppSettings);
+  }
+}
