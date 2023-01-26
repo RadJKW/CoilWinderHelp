@@ -13,9 +13,6 @@
     align-items: center;
     backdrop-filter: blur(5px) contrast(0.925);
 }
-
-
 .mud-popover.mud-popover-open.settings-menu{
     left: 0 !important;
-    padding: 0.5rem;
 }

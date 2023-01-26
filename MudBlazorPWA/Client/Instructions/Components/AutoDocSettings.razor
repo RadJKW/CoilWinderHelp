@@ -6,38 +6,28 @@
     TransformOrigin="Origin.BottomCenter"
     PopoverClass="settings-menu"
     ListClass="pa-2 settings-menu-list">
-  <MudGrid Spacing="0">
-    <MudItem xs="8">
-      <MudText Typo="Typo.subtitle1">
-        Settings
-      </MudText>
-    </MudItem>
-    <MudItem xs="4">
-      <MudButton OnClick="() => DocViewSettings.SetAppSettings(AppSettings)"
-          Size="Size.Small"
-          StartIcon="@Icons.Material.Filled.DoneAll"
-          ButtonType="ButtonType.Submit"
-          Variant="Variant.Outlined"
-          Color="Color.Primary">
-        Save
-      </MudButton>
-    </MudItem>
-  </MudGrid>
 
+  <MudText Typo="Typo.h6"
+      Class="pl-6">
+      Settings
+    </MudText>
   <MudDivider Class="mb-2 mt-1 mx-n2"
       DividerType="DividerType.FullWidth"/>
   <MudGrid Spacing="0">
     <MudItem xs="12">
-      <MudCheckBox @bind-Checked="@AppBarVisible" Label="AppBar">
+      <MudCheckBox @bind-Checked="@this[Settings.AppBarIsVisible]"
+          Label="AppBar">
       </MudCheckBox>
-      <MudCheckBox @bind-Checked="@DrawerOpen"
-          Label="Drawer Open"/>
-      <MudCheckBox @bind-Checked="@DrawerOpenOnHover"
-          Label="Drawer Hover"/>
+      <MudCheckBox @bind-Checked="@this[Settings.DrawerOpen]"
+          Label="Drawer Open">
+      </MudCheckBox>
+      <MudCheckBox @bind-Checked="@this[Settings.DrawerOpenOnHover]"
+          Label="Drawer Hover">
+      </MudCheckBox>
     </MudItem>
     <MudItem xs="12">
 
-    <MudDivider Class="mb-2 mt-1 mx-n2"
+      <MudDivider Class="mb-2 mt-1 mx-n2"
           DividerType="DividerType.FullWidth"/>
     </MudItem>
     <MudItem xs="12">
@@ -59,72 +49,51 @@
     DrawerOpenOnHover
   }
 
-  private bool AppBarVisible {
-    get => AppSettings.AppBarIsVisible;
-    set => OnSettingsChanged(value, Settings.AppBarIsVisible);
-  }
-
-  private bool DrawerOpen {
-    get => AppSettings.DrawerOpen;
-    set => OnSettingsChanged(value, Settings.DrawerOpen);
-  }
-
-  private bool DrawerOpenOnHover {
-    get => AppSettings.DrawerOpenOnHover;
-    set => OnSettingsChanged(value, Settings.DrawerOpenOnHover);
-  }
+  private Dictionary<Settings, Func<bool>> _getters = default!;
+  private Dictionary<Settings, Action<bool>> _setters = default!;
 
   private AppSettings AppSettings { get; set; } = new();
 
   protected override async Task OnInitializedAsync() {
     AppSettings = DocViewSettings.AppSettings;
     DocViewSettings.MajorUpdateOccured += DocViewSettingsOnMajorUpdateOccured;
+    _getters = new() {
+      {
+        Settings.AppBarIsVisible, () => AppSettings.AppBarIsVisible
+      }, {
+        Settings.DrawerOpen, () => AppSettings.DrawerOpen
+      }, {
+        Settings.DrawerOpenOnHover, () => AppSettings.DrawerOpenOnHover
+      }
+    };
+    _setters = new() {
+      {
+        Settings.AppBarIsVisible, value => AppSettings.AppBarIsVisible = value
+      }, {
+        Settings.DrawerOpen, value => AppSettings.DrawerOpen = value
+      }, {
+        Settings.DrawerOpenOnHover, value => AppSettings.DrawerOpenOnHover = value
+      }
+    };
     await base.OnInitializedAsync();
   }
+
   private void DocViewSettingsOnMajorUpdateOccured(object? sender, EventArgs e) {
     AppSettings = DocViewSettings.AppSettings;
     InvokeAsync(StateHasChanged);
   }
 
-  private void OnSettingsChanged(bool args, Settings setting) {
-    switch (setting) {
-      case Settings.AppBarIsVisible:
-        AppSettings.AppBarIsVisible = args;
-        break;
-      case Settings.DrawerOpen:
-        AppSettings.DrawerOpen = args;
-        break;
-      case Settings.DrawerOpenOnHover:
-        AppSettings.DrawerOpenOnHover = args;
-        break;
-      default:
-        throw new ArgumentOutOfRangeException(nameof(setting), setting, null);
+  private bool this[Settings setting] {
+    get => _getters[setting]();
+    set {
+      _setters[setting](value);
+      DocViewSettings.SetAppSettings(AppSettings);
     }
-    DocViewSettings.SetAppSettings(AppSettings);
   }
-
-
-
 
   public void Dispose() {
     if (DocViewSettings != null) {
       DocViewSettings.MajorUpdateOccured -= DocViewSettingsOnMajorUpdateOccured;
     }
-  }
-  private void ToggleAppSettings(Settings setting) {
-    switch (setting) {
-      case Settings.AppBarIsVisible:
-        AppSettings.AppBarIsVisible = !AppSettings.AppBarIsVisible;
-        break;
-      case Settings.DrawerOpen:
-        AppSettings.DrawerOpen = !AppSettings.DrawerOpen;
-        break;
-      case Settings.DrawerOpenOnHover:
-        AppSettings.DrawerOpenOnHover = !AppSettings.DrawerOpenOnHover;
-        break;
-      default:
-        throw new ArgumentOutOfRangeException(nameof(setting), setting, null);
-    }
-    DocViewSettings.SetAppSettings(AppSettings);
   }
 }
