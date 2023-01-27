@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="EfCoreDialogsState">
+    <option name="keyValueStorage">
+      <map>
+        <entry key="Common:3dc36ea3-5f6a-4827-93df-73abcfccda5e:dbContext" value="MudBlazorPWA.Shared.Data.DataContext" />
+        <entry key="Common:buildConfiguration" value="Debug" />
+        <entry key="Common:c74c81d9-e623-4da7-8136-0af0e4669528:dbContext" value="MudBlazorPWA.Shared.Data.DataContext" />
+        <entry key="Common:noBuild" value="false" />
+        <entry key="Common:outputFolder" value="Migrations" />
+        <entry key="Common:useDefaultConnection" value="true" />
+      </map>
+    </option>
+  </component>
+</project>
