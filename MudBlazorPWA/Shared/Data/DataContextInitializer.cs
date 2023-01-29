@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Runtime.InteropServices;
+using Microsoft.CSharp.RuntimeBinder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazorPWA.Shared.Models;
 using Newtonsoft.Json;
@@ -6,6 +8,11 @@ using Newtonsoft.Json;
 namespace MudBlazorPWA.Shared.Data;
 public class DataContextInitializer
 {
+    private static string ApiFolder =>
+        RuntimeInformation
+            .IsOSPlatform(OSPlatform.Windows)
+        ? @"B:/CoilWinderTraining-Edit"
+        : @"/Users/jkw/WindingPractices";
     private readonly ILogger<DataContextInitializer> _logger;
     private readonly DataContext _dbContext;
 
@@ -124,7 +131,7 @@ public class DataContextInitializer
         var json = JsonConvert.SerializeObject(windingCodes, Formatting.Indented);
         try
         {
-            await File.WriteAllTextAsync("B:/CoilWinderTraining-Edit/WindingStops.json", json);
+            await File.WriteAllTextAsync($"{ApiFolder}/WindingStops.json", json);
 
         }
         catch (Exception ex)
@@ -132,6 +139,7 @@ public class DataContextInitializer
             _logger.LogError("An error occurred while exporting the database : {Error}", ex);
             throw;
         }
+
     }
 
 

@@ -39,7 +39,8 @@ builder.Services.AddCors(options => {
 });
 
 builder.Services.AddHostServices(builder.Configuration);
-builder.Services.Configure<DirectoryServiceOptions>(options => options.RootDirectoryPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath);
+builder.Services.Configure<DirectoryServiceOptions>(options =>
+    options.RootDirectoryPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath);
 builder.Services.AddScoped<IDirectoryService, DirectoryService>();
 /*builder.Services.AddResponseCompression(opts => {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(

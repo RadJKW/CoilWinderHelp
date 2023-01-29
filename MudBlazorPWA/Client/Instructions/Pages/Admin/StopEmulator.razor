@@ -1,14 +1,26 @@
 ﻿@page "/stops"
+@using MudBlazorPWA.Shared.Models
 @layout DocViewLayout
+@inject IHttpClientFactory HttpClientFactory
 
-<div class="auto-docs container">
-  <MudCard>
+<div class="align-center d-flex justify-center mud-width-full"
+    style="height: 50%">
+  @if (Codes != null) {
 
-<MudText Typo="Typo.h1">
-  Hello World
-</MudText>
-  </MudCard>
+    foreach (var windingCode in Codes!) {
+      <MudChip>@windingCode.Code</MudChip>
+    }
+  }
 </div>
+
 @code {
 
+  private HttpClient? FileServer { get; set; }
+
+  private List<WindingCode>? Codes { get; set; }
+
+  protected override async Task OnInitializedAsync() {
+    FileServer = HttpClientFactory.CreateClient("PwaServer");
+    Codes = await FileServer.GetFromJsonAsync<List<WindingCode>>("files/WindingStops.json");
+  }
 }
