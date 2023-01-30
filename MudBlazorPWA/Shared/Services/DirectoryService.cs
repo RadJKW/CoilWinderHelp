@@ -1,11 +1,15 @@
+using System.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
 {
     Task<(string, string[], string[])> GetFolderContent(string? path = null);
     Task<string> GetRelativePath(string path);
+
+    Task ExportWindingCodesToJson(IEnumerable windingCodes);
 }
 
 public class DirectoryServiceOptions
@@ -53,6 +57,22 @@ public class DirectoryService : IDirectoryService
     {
         return
             Task.FromResult(Path.GetRelativePath(_rootDirectory, path));
+
+    }
+
+    public async Task ExportWindingCodesToJson(IEnumerable windingCodes)
+    {
+        var json = JsonConvert.SerializeObject(windingCodes, Formatting.Indented);
+        try
+        {
+            await File.WriteAllTextAsync($"{_rootDirectory}WindingStops.json", json);
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("An error occurred while exporting the database : {Error}", ex);
+            throw;
+        }
 
     }
 

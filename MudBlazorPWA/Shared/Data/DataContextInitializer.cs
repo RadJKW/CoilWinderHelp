@@ -3,6 +3,7 @@ using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazorPWA.Shared.Models;
+using MudBlazorPWA.Shared.Services;
 using Newtonsoft.Json;
 
 namespace MudBlazorPWA.Shared.Data;
@@ -11,15 +12,17 @@ public class DataContextInitializer
     private static string ApiFolder =>
         RuntimeInformation
             .IsOSPlatform(OSPlatform.Windows)
-        ? @"B:/CoilWinderTraining-Edit"
-        : @"/Users/jkw/WindingPractices";
+            ? @"B:/CoilWinderTraining-Edit"
+            : @"/Users/jkw/WindingPractices";
     private readonly ILogger<DataContextInitializer> _logger;
     private readonly DataContext _dbContext;
+    private readonly IDirectoryService _directoryService;
 
-    public DataContextInitializer(ILogger<DataContextInitializer> logger, DataContext dbContext)
+    public DataContextInitializer(ILogger<DataContextInitializer> logger, DataContext dbContext, IDirectoryService directoryService)
     {
         _logger = logger;
         _dbContext = dbContext;
+        _directoryService = directoryService;
     }
 
     public async Task InitialiseAsync()
@@ -57,7 +60,8 @@ public class DataContextInitializer
         if (!_dbContext.WindingCodes.Any())
         {
 
-            object[] windingCodes = {
+            object[] windingCodes =
+            {
                 new WindingCode
                 {
                     Code = "AD",
@@ -114,14 +118,22 @@ public class DataContextInitializer
                     Type = CodeType.Stop,
                     FolderPath = null
 
-                }
+                },
+                new WindingCode
+                {
+                    Code = "CI",
+                    Name = "Coil Information",
+                    Type = CodeType.Data,
+                    FolderPath = null
+                },
+
             };
 
             _dbContext.AddRange(windingCodes);
             await _dbContext.SaveChangesAsync();
 
+            await _directoryService.ExportWindingCodesToJson(windingCodes);
         }
-        await ExportWindingCodesToJson();
     }
 
     private async Task ExportWindingCodesToJson()
