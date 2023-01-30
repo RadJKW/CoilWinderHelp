@@ -11,7 +11,7 @@ using MudBlazorPWA.Shared.Data;
 namespace MudBlazorPWA.Shared.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230127222815_Initial")]
+    [Migration("20230130155854_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

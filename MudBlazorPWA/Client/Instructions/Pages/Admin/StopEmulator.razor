@@ -1,22 +1,136 @@
 ﻿@page "/stops"
-@using MudBlazorPWA.Shared.Models
-@using System.Text
+@using Microsoft.AspNetCore.SignalR.Client
 @layout DocViewLayout
+@inject NavigationManager NavigationManager
 @inject IHttpClientFactory HttpClientFactory
+@implements IDisposable
 
-<MudGrid Spacing="0"
-    Justify="Justify.Center"
-    Class="mx-auto pa-4">
-  @if (CodesByType.Keys.Count > 0) {
-    foreach (var codeType in CodesByType.Keys) {
-      var codes = CodesByType[codeType];
+<div class="stops-container">
 
-      <MudItem xs="12"
-          md="12"
-          lg="12"
-          xl="6"
-          xxl="4"
-          Class="pa-4">
+  <div class="stops-left-column">
+
+    <MudPaper Class="mud-background-gray">
+
+      @if (RootFolder is not null) {
+        <MudList Clickable="true"
+            @bind-SelectedItem="_selectedItem">
+          <MudListSubheader>
+            <MudText Typo="Typo.body2">@RootFolder.Name</MudText>
+          </MudListSubheader>
+          @foreach (var folder in RootFolder.SubFolders) {
+            <MudListItem Tag="folder"
+                Icon="@Icons.Material.Filled.Folder"
+                Text="@folder.Name"
+                >
+            </MudListItem>
+          }
+        </MudList>
+      }
+    </MudPaper>
+  </div>
+  <div class="stops-right-column">
+
+    <MudPaper Class="mud-background-gray">
+
+      <MudList>
+        @if (_folders is not null) {
+          foreach (var folder in _folders) {
+            <MudListItem Icon="@Icons.Material.Filled.Folder"
+                Text="@folder"/>
+          }
+        }
+
+      </MudList>
+    </MudPaper>
+  </div>
+</div>
+
+@code{
+
+  public class Folder {
+    public string? Name { get; set; }
+    public string? Path { get; set; }
+    public List<Folder> SubFolders { get; set; } = new();
+  }
+
+  private MudListItem? _selectedItem;
+  private Folder? RootFolder { get; set; }
+  private string[]? _folders;
+  private HubConnection? _directoryHub;
+  protected override async Task OnInitializedAsync() {
+    await InitializeDirectoryHub();
+  }
+
+  private async Task InitializeDirectoryHub() {
+    _directoryHub = new HubConnectionBuilder()
+      .WithUrl(NavigationManager.ToAbsoluteUri("/directoryHub"))
+      .Build();
+    _directoryHub.On<string[]>("ReceivedAllFolders", (folders) => {
+  // sort the folders into the dictionary based off of the first folders from the root directory
+      _folders = folders;
+      RootFolder = BuildDirectoryTree(_folders);
+      InvokeAsync(StateHasChanged);
+    });
+    await _directoryHub.StartAsync();
+    await _directoryHub.SendAsync("GetAllFolders", null);
+  }
+  private static Folder BuildDirectoryTree(string[] paths) {
+    var root = new Folder();
+    var splitPaths = paths.Select(path => path.Split('\\')).ToList();
+    var commonParts = int.MaxValue;
+
+    for (var i = 0; i < splitPaths[0].Length; i++) {
+      var currentPart = splitPaths[0][i];
+      var count = 1;
+      for (var j = 1; j < splitPaths.Count; j++) {
+        if (i >= splitPaths[j].Length || splitPaths[j][i] != currentPart) {
+          break;
+        }
+        count++;
+      }
+      if (count == splitPaths.Count) {
+        commonParts = i;
+      } else {
+        break;
+      }
+    }
+
+    root.Name = splitPaths[0][commonParts];
+    root.Path = string.Join("\\", splitPaths[0].Take(commonParts + 1));
+
+    foreach (var splitPath in splitPaths) {
+      var current = root;
+      for (var i = commonParts + 1; i < splitPath.Length; i++) {
+        var next = current.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+        if (next == null) {
+          next = new Folder() {
+            Name = splitPath[i],
+            Path = current.Path + "\\" + splitPath[i]
+          };
+          current.SubFolders.Add(next);
+        }
+        current = next;
+      }
+    }
+
+    return root;
+  }
+
+
+  public void Dispose() {
+    _directoryHub?.DisposeAsync();
+  }
+}
+
+@*
+<div class="stops-container">
+
+  <div class="stops-left-column">
+
+    @if (CodesByType.Keys.Count > 0) {
+      foreach (var codeType in CodesByType.Keys) {
+        var codes = CodesByType[codeType];
+
         <MudTable Class="pa-4"
             Items="@codes"
             Striped="true"
@@ -25,7 +139,7 @@
             Dense="true"
             Height="200px"
             Hover="true"
-            Breakpoint="Breakpoint.Lg">
+            Breakpoint="Breakpoint.Md">
           <ToolBarContent>
             <div class="align-center align-content-center border-b-2 border-solid d-flex justify-space-between mud-width-full px-6 py-2">
               <MudText Typo="Typo.h6">
@@ -56,14 +170,118 @@
             }
           </RowTemplate>
         </MudTable>
-
-      </MudItem>
+      }
     }
-  }
-  <MudItem xs="@_gridBreakpoint">
-
-  </MudItem>
-</MudGrid>
+  </div>
+  <div class="stops-right-column">
+    <MudDropContainer T="KanbanTaskItem"
+        @ref="_dropContainer"
+        Items="@_tasks"
+        ItemsSelector="@((item, column) => item.Status == column)"
+        ItemDropped="TaskUpdated"
+        Class="d-flex flex-column flex-wrap">
+      <ChildContent>
+        @foreach (var item in _sections) {
+          <MudPaper Elevation="0"
+              Width="224px"
+              MaxHeight="200px"
+              Class="d-flex flex-column ma-4 mud-background-gray pa-4 rounded-lg overflow-scroll">
+            <MudToolBar DisableGutters="true">
+              <MudText Typo="Typo.subtitle1">
+                <b>@item.Name</b>
+              </MudText>
+              <MudSpacer/>
+              <MudMenu Icon="@Icons.Material.Rounded.MoreHoriz"
+                  AnchorOrigin="Origin.BottomRight"
+                  TransformOrigin="Origin.TopRight"
+                  ListClass="pa-2 d-flex flex-column"
+                  PopoverClass="mud-elevation-25">
+                <MudButton Size="Size.Small"
+                    Color="Color.Error"
+                    StartIcon="@Icons.Material.Outlined.Delete"
+                    OnClick="@(() => DeleteSection(item))">
+                  Delete Section
+                </MudButton>
+                <MudButton Size="Size.Small"
+                    Color="Color.Default"
+                    StartIcon="@Icons.Material.Rounded.Edit">
+                  Rename Section
+                </MudButton>
+              </MudMenu>
+            </MudToolBar>
+            <MudDropZone T="KanbanTaskItem"
+                Identifier="@item.Name"
+                Class="mud-height-full"/>
+            @if (item.NewTaskOpen) {
+              <MudPaper Elevation="25"
+                  Class="pa-2 rounded-lg">
+                <MudTextField @bind-Value="item.NewTaskName"
+                    Placeholder="New Task"
+                    DisableUnderLine="true"
+                    Margin="Margin.Dense"
+                    Class="mt-n2 mx-2">
+                </MudTextField>
+                <MudButton OnClick="@(() => AddTask(item))"
+                    Size="Size.Small"
+                    Color="Color.Primary"
+                    FullWidth="true">
+                  Add Task
+                </MudButton>
+              </MudPaper>
+            } else {
+              <MudButton OnClick="@(() => item.NewTaskOpen = !item.NewTaskOpen)"
+                  StartIcon="@Icons.Material.Filled.Add"
+                  FullWidth="true"
+                  Class="py-2 rounded-lg">
+                Add Task
+              </MudButton>
+            }
+          </MudPaper>
+        }
+        <MudPaper Class="pa-4 ma-4"
+            Elevation="0"
+            Width="224px">
+          @if (_addSectionOpen) {
+            <MudPaper Elevation="0"
+                Width="224px"
+                Class="d-flex flex-column mud-background-gray pa-4 rounded-lg">
+              <EditForm Model="@_newSectionModel"
+                  OnValidSubmit="OnValidSectionSubmit">
+                <DataAnnotationsValidator/>
+                <MudTextField @bind-Value="_newSectionModel.Name"
+                    For="@(() => _newSectionModel.Name)"
+                    Placeholder="New Section"
+                    DisableUnderLine="true">
+                </MudTextField>
+                <MudButton ButtonType="ButtonType.Submit"
+                    Size="Size.Small"
+                    Color="Color.Primary"
+                    FullWidth="true">
+                  Add Section
+                </MudButton>
+              </EditForm>
+            </MudPaper>
+          } else {
+            <MudButton OnClick="OpenAddNewSection"
+                Variant="Variant.Outlined"
+                StartIcon="@Icons.Material.Filled.Add"
+                Color="Color.Primary"
+                Class="py-2 rounded-lg"
+                FullWidth="true">
+              Add Section
+            </MudButton>
+          }
+        </MudPaper>
+      </ChildContent>
+      <ItemRenderer>
+        <MudPaper Elevation="25"
+            Class="my-3 pa-4 rounded-lg">
+          @context.Name
+        </MudPaper>
+      </ItemRenderer>
+    </MudDropContainer>
+  </div>
+</div>
 
 @code {
 
@@ -71,21 +289,102 @@
 
   private Dictionary<CodeType, List<WindingCode>> CodesByType { get; set; } = new();
 
-  private int _gridBreakpoint = 12;
+  private MudDropContainer<KanbanTaskItem>? _dropContainer;
+
+  private bool _addSectionOpen;
+  /* handling board events */
+  private void TaskUpdated(MudItemDropInfo<KanbanTaskItem> info) {
+    info.Item.Status = info.DropzoneIdentifier;
+  }
+
+  /* Setup for board  */
+
+  private List<KanBanSections> _sections = new() {
+    new KanBanSections("To Do", false, String.Empty),
+    new KanBanSections("In Process", false, String.Empty),
+    new KanBanSections("Done", false, String.Empty),
+  };
+
+  public class KanBanSections {
+    public string Name { get; init; }
+    public bool NewTaskOpen { get; set; }
+    public string NewTaskName { get; set; }
+
+    public KanBanSections(string name, bool newTaskOpen, string newTaskName) {
+      Name = name;
+      NewTaskOpen = newTaskOpen;
+      NewTaskName = newTaskName;
+    }
+  }
+
+  public class KanbanTaskItem {
+    public string Name { get; init; }
+    public string Status { get; set; }
+
+    public KanbanTaskItem(string name, string status) {
+      Name = name;
+      Status = status;
+    }
+  }
+
+  private List<KanbanTaskItem> _tasks = new() {
+    new KanbanTaskItem("Write unit test", "To Do"),
+    new KanbanTaskItem("Some docu stuff", "To Do"),
+    new KanbanTaskItem("Walking the dog", "To Do"),
+  };
+
+  KanBanNewForm _newSectionModel = new KanBanNewForm();
+
+  public class KanBanNewForm {
+    [Required]
+    [StringLength(10, ErrorMessage = "Name length can't be more than 10.")]
+    public string? Name { get; set; }
+  }
+
+  private void OnValidSectionSubmit(EditContext context) {
+    _sections.Add(new KanBanSections(_newSectionModel.Name!, false, String.Empty));
+    _newSectionModel.Name = string.Empty;
+    _addSectionOpen = false;
+  }
+
+  private void OpenAddNewSection() {
+    _addSectionOpen = true;
+  }
+
+  private void AddTask(KanBanSections section) {
+    _tasks.Add(new KanbanTaskItem(section.NewTaskName, section.Name));
+    section.NewTaskName = string.Empty;
+    section.NewTaskOpen = false;
+    _dropContainer!.Refresh();
+  }
+
+  private void DeleteSection(KanBanSections section) {
+    if (_sections.Count == 1) {
+      _tasks.Clear();
+      _sections.Clear();
+    } else {
+      int newIndex = _sections.IndexOf(section) - 1;
+      if (newIndex < 0) {
+        newIndex = 0;
+      }
+
+      _sections.Remove(section);
+
+      var tasks = _tasks.Where(x => x.Status == section.Name);
+      foreach (var item in tasks) {
+        item.Status = _sections[newIndex].Name;
+      }
+    }
+  }
 
   protected override async Task OnInitializedAsync() {
     FileServer = HttpClientFactory.CreateClient("PwaServer");
     var codes = await FileServer.GetFromJsonAsync<List<WindingCode>>("files/WindingStops.json");
-  // organize the codes into their respective lists based on the code type
     if (codes != null) {
-  // traverse the list of codes and determine the total number of distinct code types
-  // then add a new list to the dictionary for each code type
       foreach (var codeType in codes.Select(c => c.Type).Distinct()) {
         CodesByType.Add(codeType, codes.Where(c => c.Type == codeType).ToList());
       }
     }
-
-  // set the grid breakpoint to 12 / number of keys in the dictionary
-    _gridBreakpoint = (12 / CodesByType.Keys.Count) * 2;
   }
 }
+*@

@@ -67,6 +67,11 @@ public class DirectoryHub : Hub
         var relativePath = await _directoryService.GetRelativePath(path);
         await Clients.Group(clientIp).SendAsync(message, relativePath);
     }
+
+    public async Task GetAllFolders(string? path = null){
+        var folders = await _directoryService.GetFoldersInPath(path);
+        await Clients.All.SendAsync("ReceivedAllFolders", folders);
+    }
     #endregion
 
     private static string? GetConnectionIp(HubCallerContext context)

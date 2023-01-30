@@ -12,12 +12,10 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CodeBeam.MudExtensions" Version="6.1.7" />
         <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.1" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="7.0.2" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.2" />
         <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-        <PackageReference Include="MudBlazor" Version="6.1.7" />
     </ItemGroup>
 
     <ItemGroup>
@@ -27,6 +25,6 @@
   <Target Name="CollectMudBlazorStaticAssets" DependsOnTargets="ResolveStaticWebAssetsInputs" AfterTargets="Build" Condition=" '$(Configuration)' == 'Debug' ">
     <Copy SourceFiles="%(StaticWebAsset.Identity)" DestinationFolder="wwwroot/temp" Condition="$([System.String]::Copy(%(StaticWebAsset.Identity)).Contains('mudblazor'))" />
   </Target>
-    
-    
+
+
 </Project>
