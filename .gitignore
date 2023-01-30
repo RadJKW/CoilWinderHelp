@@ -363,3 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 LoadTapChanger.API/LoadTapChanger.db-shm
 LoadTapChanger.API/LoadTapChanger.db-wal
+
+.idea/.idea.CoilWinderHelp/.idea/workspace.xml
