@@ -1,26 +1,91 @@
 ﻿@page "/stops"
 @using MudBlazorPWA.Shared.Models
+@using System.Text
 @layout DocViewLayout
 @inject IHttpClientFactory HttpClientFactory
 
-<div class="align-center d-flex justify-center mud-width-full"
-    style="height: 50%">
-  @if (Codes != null) {
+<MudGrid Spacing="0"
+    Justify="Justify.Center"
+    Class="mx-auto pa-4">
+  @if (CodesByType.Keys.Count > 0) {
+    foreach (var codeType in CodesByType.Keys) {
+      var codes = CodesByType[codeType];
 
-    foreach (var windingCode in Codes!) {
-      <MudChip>@windingCode.Code</MudChip>
+      <MudItem xs="12"
+          md="12"
+          lg="12"
+          xl="6"
+          xxl="4"
+          Class="pa-4">
+        <MudTable Class="pa-4"
+            Items="@codes"
+            Striped="true"
+            FixedHeader="true"
+            Bordered="true"
+            Dense="true"
+            Height="200px"
+            Hover="true"
+            Breakpoint="Breakpoint.Lg">
+          <ToolBarContent>
+            <div class="align-center align-content-center border-b-2 border-solid d-flex justify-space-between mud-width-full px-6 py-2">
+              <MudText Typo="Typo.h6">
+                @($"Winding {codeType}")
+              </MudText>
+              <MudButton Variant="Variant.Outlined"
+                  Color="Color.Primary"
+                  Size="Size.Small"
+                  StartIcon="@Icons.Material.Filled.Add"
+                  OnClick="() => { }">
+                Add New
+              </MudButton>
+            </div>
+          </ToolBarContent>
+          <HeaderContent>
+            @foreach (var property in typeof(WindingCode).GetProperties()) {
+              <MudTh>
+                @property.Name
+              </MudTh>
+            }
+
+          </HeaderContent>
+          <RowTemplate>
+            @foreach (var property in typeof(WindingCode).GetProperties()) {
+              <MudTd DataLabel="@property.Name">
+                @property.GetValue(context)
+              </MudTd>
+            }
+          </RowTemplate>
+        </MudTable>
+
+      </MudItem>
     }
   }
-</div>
+  <MudItem xs="@_gridBreakpoint">
+
+  </MudItem>
+</MudGrid>
 
 @code {
 
   private HttpClient? FileServer { get; set; }
 
-  private List<WindingCode>? Codes { get; set; }
+  private Dictionary<CodeType, List<WindingCode>> CodesByType { get; set; } = new();
+
+  private int _gridBreakpoint = 12;
 
   protected override async Task OnInitializedAsync() {
     FileServer = HttpClientFactory.CreateClient("PwaServer");
-    Codes = await FileServer.GetFromJsonAsync<List<WindingCode>>("files/WindingStops.json");
+    var codes = await FileServer.GetFromJsonAsync<List<WindingCode>>("files/WindingStops.json");
+  // organize the codes into their respective lists based on the code type
+    if (codes != null) {
+  // traverse the list of codes and determine the total number of distinct code types
+  // then add a new list to the dictionary for each code type
+      foreach (var codeType in codes.Select(c => c.Type).Distinct()) {
+        CodesByType.Add(codeType, codes.Where(c => c.Type == codeType).ToList());
+      }
+    }
+
+  // set the grid breakpoint to 12 / number of keys in the dictionary
+    _gridBreakpoint = (12 / CodesByType.Keys.Count) * 2;
   }
 }
