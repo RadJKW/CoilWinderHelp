@@ -1,6 +1,7 @@
 .docview.main-content{
     display: flex;
     height: 100vh;
+    max-height: 100vh;
 }
 .docview.main-container{
    padding-inline: 0;
