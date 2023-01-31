@@ -85,56 +85,95 @@
     await _directoryHub.SendAsync("GetAllFolders", null);
   }
 
-  private static Folder BuildDirectoryTree(IEnumerable<string> paths) {
-    var root = new Folder();
-  // create a var to assign the splitChar to depending on if the path contains '\\' or '/'
-    var enumerable = paths.ToList();
-    var splitChar = enumerable.First().Contains('\\') ? '\\' : '/';
-    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
-    var commonParts = int.MaxValue;
+  /// <summary>
+  /// Builds a directory tree from a collection of file paths.
+  /// </summary>
+  /// <param name="paths">The file paths to use.</param>
+  /// <returns>A directory tree.</returns>
+  public static Folder BuildDirectoryTree(IEnumerable<string> paths) {
+    // Check for empty paths
+    if (!paths.Any()) {
+      return null;
+    }
 
-    for (var i = 0; i < splitPaths[0].Length; i++) {
-      var currentPart = splitPaths[0][i];
+    // Find the common part of the paths
+    var firstPath = paths.First();
+    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
+    var splitPaths = paths.Select(path => path.Split(splitChar)).ToList();
+    var commonParts = FindCommonParts(splitPaths);
+
+    // Set the root of the tree to the common part
+    var root = new Folder() {
+      Name = splitPaths[0][commonParts],
+      Path = string.Join(splitChar, splitPaths[0].Take(commonParts + 1)),
+      IsExpanded = true,
+    };
+
+    // Add the remaining parts to the tree
+    foreach (var splitPath in splitPaths) {
+      AddRemainingParts(root, splitPath, commonParts);
+    }
+    return root;
+  }
+
+  /// <summary>
+  /// Finds the common parts of a collection of split paths.
+  /// </summary>
+  /// <param name="splitPaths">The collection of split paths.</param>
+  /// <returns>The number of common parts.</returns>
+  private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
+    var commonParts = int.MaxValue;
+    for (var i = 0; i < splitPaths.First().Length; i++) {
+      var currentPart = splitPaths.First()[i];
       var count = 1;
-      for (var j = 1; j < splitPaths.Count; j++) {
-        if (i >= splitPaths[j].Length || splitPaths[j][i] != currentPart) {
+      foreach (var splitPath in splitPaths.Skip(1)) {
+        if (i >= splitPath.Length || splitPath[i] != currentPart) {
           break;
         }
         count++;
       }
-      if (count == splitPaths.Count) {
+      if (count == splitPaths.Count()) {
         commonParts = i;
       } else {
         break;
       }
     }
+    return commonParts;
+  }
 
-    root.Name = splitPaths[0][commonParts];
-    root.Path = string.Join(splitChar, splitPaths[0].Take(commonParts + 1));
-    root.IsExpanded = true;
-
-    foreach (var splitPath in splitPaths) {
-      var current = root;
-      for (var i = commonParts + 1; i < splitPath.Length; i++) {
-        var next = current.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
-        if (next == null) {
-          next = new Folder() {
-            Name = splitPath[i],
-            Path = current.Path + splitChar + splitPath[i],
-          };
-          current.SubFolders.Add(next);
-        }
-        current = next;
+  /// <summary>
+  /// Adds the remaining parts of a split path to the directory tree.
+  /// </summary>
+  /// <param name="root">The root of the directory tree.</param>
+  /// <param name="splitPath">The split path.</param>
+  /// <param name="commonParts">The number of common parts.</param>
+  private static void AddRemainingParts(Folder root, string[] splitPath, int commonParts) {
+    var current = root;
+    for (var i = commonParts + 1; i < splitPath.Length; i++) {
+      var next = current.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+      if (next == null) {
+        next = new Folder() {
+          Name = splitPath[i],
+          Path = current.Path + splitPath[i],
+        };
+        current.SubFolders.Add(next);
       }
+      current = next;
     }
-    return root;
   }
   private async Task ToggleFolderExpanded(Folder folder) {
     folder.IsExpanded = !folder.IsExpanded;
     folder.ChildrenFolders = await ChildrenFolderBuilder(folder);
     await InvokeAsync(StateHasChanged);
   }
+  /// <summary>
+  /// Builds a list of children folders.
+  /// </summary>
+  /// <param name="baseFolder">The base folder.</param>
+  /// <returns>A task that returns a render fragment.</returns>
   private Task<RenderFragment> ChildrenFolderBuilder(Folder baseFolder) {
+    // Get a list of child folders in alphabetical order.
+    // Then, for each child folder, create a render fragment that renders a MudListItem.
     var childrenFolders = baseFolder.SubFolders.OrderBy(f => f.Name).Select(folder => (RenderFragment)(builder => {
       builder.OpenComponent<MudListItem>(0);
       builder.AddAttribute(1, "Icon", Icons.Material.Filled.Folder);
@@ -145,6 +184,7 @@
       builder.CloseComponent();
     })).ToList();
 
+    // Return a render fragment containing all the child folders.
     return Task.FromResult<RenderFragment>(builder => {
       foreach (var child in childrenFolders) {
         child(builder);
