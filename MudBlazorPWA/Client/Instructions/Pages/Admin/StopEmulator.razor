@@ -1,5 +1,4 @@
-﻿@page "/stops"
-@using Microsoft.AspNetCore.SignalR.Client
+﻿@using Microsoft.AspNetCore.SignalR.Client
 @using MudBlazor.Extensions
 @layout DocViewLayout
 @inject NavigationManager NavigationManager
@@ -19,6 +18,7 @@
           @foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
             <MudListItem Icon="@Icons.Material.Filled.Folder"
                 Text="@folder.Name"
+                @bind-Expanded="@folder.IsExpanded"
                 OnClick="@(async () => await ToggleFolderExpanded(folder))"
                 NestedList="@folder.ChildrenFolders">
             </MudListItem>
@@ -30,7 +30,7 @@
         </MudList>
       }
       <MudText>Selected Folder: </MudText>
-      <MudText>@(SelectedValue.As<Folder>().Name)</MudText>
+      <MudText>@(SelectedFolder.As<Folder>().Name)</MudText>
     </MudPaper>
 
   </div>
@@ -54,15 +54,15 @@
 @code{
 
   public class Folder {
-    public string? Name { get; set; }
-    public string? Path { get; set; }
+    public string? Name { get; init; }
+    public string? Path { get; init; }
     public bool IsExpanded { get; set; }
     public RenderFragment? ChildrenFolders { get; set; }
     public List<Folder> SubFolders { get; set; } = new();
   }
 
   //private MudListItem? _selectedItem;
-  private object SelectedValue { get; set; } = new Folder();
+  private Folder SelectedFolder { get; set; } = new();
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
   private HubConnection? _directoryHub;
@@ -74,11 +74,12 @@
     _directoryHub = new HubConnectionBuilder()
       .WithUrl(NavigationManager.ToAbsoluteUri("/directoryHub"))
       .Build();
-    _directoryHub.On<string[]>("ReceivedAllFolders", async(folders) => {
+    _directoryHub.On<string[]>("ReceivedAllFolders", async (folders) => {
   // sort the folders into the dictionary based off of the first folders from the root directory
       _folders = folders;
       RootFolder = BuildDirectoryTree(_folders);
-      RootFolder.ChildrenFolders = await ChildrenFolderBuilder(RootFolder);
+      if (RootFolder != null)
+        RootFolder.ChildrenFolders = await ChildrenFolderBuilder(RootFolder);
       await InvokeAsync(StateHasChanged);
     });
     await _directoryHub.StartAsync();
@@ -90,26 +91,27 @@
   /// </summary>
   /// <param name="paths">The file paths to use.</param>
   /// <returns>A directory tree.</returns>
-  public static Folder BuildDirectoryTree(IEnumerable<string> paths) {
-    // Check for empty paths
-    if (!paths.Any()) {
+  private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
+  // Check for empty paths
+    var enumerable = paths.ToList();
+    if (!enumerable.Any()) {
       return null;
     }
 
-    // Find the common part of the paths
-    var firstPath = paths.First();
+  // Find the common part of the paths
+    var firstPath = enumerable.First();
     var splitChar = firstPath.Contains('\\') ? '\\' : '/';
-    var splitPaths = paths.Select(path => path.Split(splitChar)).ToList();
+    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
     var commonParts = FindCommonParts(splitPaths);
 
-    // Set the root of the tree to the common part
+  // Set the root of the tree to the common part
     var root = new Folder() {
       Name = splitPaths[0][commonParts],
       Path = string.Join(splitChar, splitPaths[0].Take(commonParts + 1)),
       IsExpanded = true,
     };
 
-    // Add the remaining parts to the tree
+  // Add the remaining parts to the tree
     foreach (var splitPath in splitPaths) {
       AddRemainingParts(root, splitPath, commonParts);
     }
@@ -123,16 +125,13 @@
   /// <returns>The number of common parts.</returns>
   private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
     var commonParts = int.MaxValue;
-    for (var i = 0; i < splitPaths.First().Length; i++) {
-      var currentPart = splitPaths.First()[i];
-      var count = 1;
-      foreach (var splitPath in splitPaths.Skip(1)) {
-        if (i >= splitPath.Length || splitPath[i] != currentPart) {
-          break;
-        }
-        count++;
-      }
-      if (count == splitPaths.Count()) {
+    var stringsEnumerable = splitPaths.ToList();
+    for (var i = 0; i < stringsEnumerable.First().Length; i++) {
+      var currentPart = stringsEnumerable.First()[i];
+      var count = 1 + stringsEnumerable.Skip(1)
+        .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
+        .Count();
+      if (count == stringsEnumerable.Count()) {
         commonParts = i;
       } else {
         break;
@@ -147,16 +146,16 @@
   /// <param name="root">The root of the directory tree.</param>
   /// <param name="splitPath">The split path.</param>
   /// <param name="commonParts">The number of common parts.</param>
-  private static void AddRemainingParts(Folder root, string[] splitPath, int commonParts) {
+  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
     var current = root;
-    for (var i = commonParts + 1; i < splitPath.Length; i++) {
-      var next = current.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+    for (var i = commonParts + 1; i < splitPath.Count; i++) {
+      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
       if (next == null) {
         next = new Folder() {
           Name = splitPath[i],
-          Path = current.Path + splitPath[i],
+          Path = current?.Path + splitPath[i],
         };
-        current.SubFolders.Add(next);
+        current?.SubFolders.Add(next);
       }
       current = next;
     }
@@ -172,19 +171,27 @@
   /// <param name="baseFolder">The base folder.</param>
   /// <returns>A task that returns a render fragment.</returns>
   private Task<RenderFragment> ChildrenFolderBuilder(Folder baseFolder) {
-    // Get a list of child folders in alphabetical order.
-    // Then, for each child folder, create a render fragment that renders a MudListItem.
+  // Get a list of child folders in alphabetical order.
+  // Then, for each child folder, create a render fragment that renders a MudListItem.
+    var index = 0;
     var childrenFolders = baseFolder.SubFolders.OrderBy(f => f.Name).Select(folder => (RenderFragment)(builder => {
-      builder.OpenComponent<MudListItem>(0);
-      builder.AddAttribute(1, "Icon", Icons.Material.Filled.Folder);
-      builder.AddAttribute(2, "Text", folder.Name);
-      builder.AddAttribute(3, "Value", folder);
-      builder.AddAttribute(4, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async () => await ToggleFolderExpanded(folder)));
-      builder.AddAttribute(5, "NestedList", folder.ChildrenFolders);
+      builder.OpenComponent<MudListItem>(index++);
+      builder.AddAttribute(index++, "Icon", Icons.Material.Filled.Folder);
+      builder.AddAttribute(index++, "Text", folder.Name);
+      builder.AddAttribute(index++, "Value", folder);
+      if (folder.SubFolders.Any()) {
+        builder.AddAttribute(index++, "Inset", true);
+
+      builder.AddAttribute(index++, "ExpandLessIcon", Icons.Material.Filled.ExpandLess);
+        builder.AddAttribute(index++, "ExpandMoreIcon", Icons.Material.Filled.ExpandMore);
+
+        builder.AddAttribute(index++, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async () => await ToggleFolderExpanded(folder)));
+      builder.AddAttribute(index++, "NestedList", folder.ChildrenFolders);
+      }
       builder.CloseComponent();
     })).ToList();
 
-    // Return a render fragment containing all the child folders.
+  // Return a render fragment containing all the child folders.
     return Task.FromResult<RenderFragment>(builder => {
       foreach (var child in childrenFolders) {
         child(builder);
