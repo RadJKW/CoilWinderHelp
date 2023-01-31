@@ -19,14 +19,20 @@
           <MudListSubheader>
             <MudText Typo="Typo.body2">@RootFolder.Name</MudText>
           </MudListSubheader>
-          @foreach (var folder in RootFolder.SubFolders) {
-            <MudListItem Value="folder"
-                Icon="@Icons.Material.Filled.Folder"
-                Text="@folder.Name">
-              <NestedList>
-                @ChildrenFolderBuilder(folder)
-              </NestedList>
-            </MudListItem>
+          @foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)){
+            @if (folder.SubFolders.Count > 0) {
+              <MudListItem Value="folder"
+                  Icon="@Icons.Material.Filled.Folder"
+                  Text="@folder.Name">
+                <NestedList>
+                  @ChildrenFolderBuilder(folder)
+                </NestedList>
+              </MudListItem>
+            } else {
+              <MudListItem Value="folder"
+                  Icon="@Icons.Material.Filled.ControlPoint"
+                  Text="@folder.Name"/>
+            }
           }
         </MudList>
       }
@@ -134,16 +140,21 @@
     _directoryHub?.DisposeAsync();
   }
   private RenderFragment ChildrenFolderBuilder(Folder folder) => builder => {
-      var index = 0;
-      foreach (var subFolder in folder.SubFolders) {
-        builder.OpenComponent<MudListItem>(index++);
-        builder.AddAttribute(index++, "Icon", Icons.Material.Filled.Folder);
-        builder.AddAttribute(index++, "Text", subFolder.Name);
-        builder.AddAttribute(index++, "Value", subFolder);
+    var index = 0;
+    foreach (var subFolder in folder.SubFolders.OrderBy(f => f.Name)){
+
+      builder.OpenComponent<MudListItem>(index++);
+
+      builder.AddAttribute(index++, "Icon", Icons.Material.Filled.Folder);
+      builder.AddAttribute(index++, "Text", subFolder.Name);
+      builder.AddAttribute(index++, "Value", subFolder);
+      if (subFolder.SubFolders.Count > 0) {
         builder.AddAttribute(index++, "NestedList", ChildrenFolderBuilder(subFolder));
-        builder.CloseComponent();
       }
+      builder.CloseComponent();
+    }
     ChildrenFolder = ChildrenFolderBuilder(folder);
-    };
-  }
+  };
+}
+
 }
