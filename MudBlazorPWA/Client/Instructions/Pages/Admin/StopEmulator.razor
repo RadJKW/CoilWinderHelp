@@ -3,7 +3,6 @@
 @using MudBlazor.Extensions
 @layout DocViewLayout
 @inject NavigationManager NavigationManager
-@inject IHttpClientFactory HttpClientFactory
 @implements IDisposable
 
 <div class="stops-container">
@@ -13,27 +12,21 @@
     <MudPaper Class="left-column-paper mud-background-gray">
 
       @if (RootFolder is not null) {
-        <MudList Clickable="true"
-            @bind-SelectedItem="_selectedItem"
-            @bind-SelectedValue="SelectedValue">
+        <MudList Clickable="true">
           <MudListSubheader>
             <MudText Typo="Typo.body2">@RootFolder.Name</MudText>
           </MudListSubheader>
-          @foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)){
-            @if (folder.SubFolders.Count > 0) {
-              <MudListItem Value="folder"
-                  Icon="@Icons.Material.Filled.Folder"
-                  Text="@folder.Name">
-                <NestedList>
-                  @ChildrenFolderBuilder(folder)
-                </NestedList>
-              </MudListItem>
-            } else {
-              <MudListItem Value="folder"
-                  Icon="@Icons.Material.Filled.ControlPoint"
-                  Text="@folder.Name"/>
-            }
+          @foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
+            <MudListItem Icon="@Icons.Material.Filled.Folder"
+                Text="@folder.Name"
+                OnClick="@(async () => await ToggleFolderExpanded(folder))"
+                NestedList="@folder.ChildrenFolders">
+            </MudListItem>
           }
+
+
+
+
         </MudList>
       }
       <MudText>Selected Folder: </MudText>
@@ -63,33 +56,35 @@
   public class Folder {
     public string? Name { get; set; }
     public string? Path { get; set; }
+    public bool IsExpanded { get; set; }
+    public RenderFragment? ChildrenFolders { get; set; }
     public List<Folder> SubFolders { get; set; } = new();
   }
 
-  private RenderFragment? ChildrenFolder { get; set; } = null;
-
-  private MudListItem? _selectedItem;
+  //private MudListItem? _selectedItem;
   private object SelectedValue { get; set; } = new Folder();
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
   private HubConnection? _directoryHub;
+
   protected override async Task OnInitializedAsync() {
     await InitializeDirectoryHub();
   }
-
   private async Task InitializeDirectoryHub() {
     _directoryHub = new HubConnectionBuilder()
       .WithUrl(NavigationManager.ToAbsoluteUri("/directoryHub"))
       .Build();
-    _directoryHub.On<string[]>("ReceivedAllFolders", (folders) => {
+    _directoryHub.On<string[]>("ReceivedAllFolders", async(folders) => {
   // sort the folders into the dictionary based off of the first folders from the root directory
       _folders = folders;
       RootFolder = BuildDirectoryTree(_folders);
-      InvokeAsync(StateHasChanged);
+      RootFolder.ChildrenFolders = await ChildrenFolderBuilder(RootFolder);
+      await InvokeAsync(StateHasChanged);
     });
     await _directoryHub.StartAsync();
     await _directoryHub.SendAsync("GetAllFolders", null);
   }
+
   private static Folder BuildDirectoryTree(IEnumerable<string> paths) {
     var root = new Folder();
   // create a var to assign the splitChar to depending on if the path contains '\\' or '/'
@@ -116,6 +111,7 @@
 
     root.Name = splitPaths[0][commonParts];
     root.Path = string.Join(splitChar, splitPaths[0].Take(commonParts + 1));
+    root.IsExpanded = true;
 
     foreach (var splitPath in splitPaths) {
       var current = root;
@@ -124,37 +120,39 @@
         if (next == null) {
           next = new Folder() {
             Name = splitPath[i],
-            Path = current.Path + splitChar + splitPath[i]
+            Path = current.Path + splitChar + splitPath[i],
           };
           current.SubFolders.Add(next);
         }
         current = next;
       }
     }
-
     return root;
   }
+  private async Task ToggleFolderExpanded(Folder folder) {
+    folder.IsExpanded = !folder.IsExpanded;
+    folder.ChildrenFolders = await ChildrenFolderBuilder(folder);
+    await InvokeAsync(StateHasChanged);
+  }
+  private Task<RenderFragment> ChildrenFolderBuilder(Folder baseFolder) {
+    var childrenFolders = baseFolder.SubFolders.OrderBy(f => f.Name).Select(folder => (RenderFragment)(builder => {
+      builder.OpenComponent<MudListItem>(0);
+      builder.AddAttribute(1, "Icon", Icons.Material.Filled.Folder);
+      builder.AddAttribute(2, "Text", folder.Name);
+      builder.AddAttribute(3, "Value", folder);
+      builder.AddAttribute(4, "OnClick", EventCallback.Factory.Create<MouseEventArgs>(this, async () => await ToggleFolderExpanded(folder)));
+      builder.AddAttribute(5, "NestedList", folder.ChildrenFolders);
+      builder.CloseComponent();
+    })).ToList();
 
+    return Task.FromResult<RenderFragment>(builder => {
+      foreach (var child in childrenFolders) {
+        child(builder);
+      }
+    });
+  }
 
   public void Dispose() {
     _directoryHub?.DisposeAsync();
   }
-  private RenderFragment ChildrenFolderBuilder(Folder folder) => builder => {
-    var index = 0;
-    foreach (var subFolder in folder.SubFolders.OrderBy(f => f.Name)){
-
-      builder.OpenComponent<MudListItem>(index++);
-
-      builder.AddAttribute(index++, "Icon", Icons.Material.Filled.Folder);
-      builder.AddAttribute(index++, "Text", subFolder.Name);
-      builder.AddAttribute(index++, "Value", subFolder);
-      if (subFolder.SubFolders.Count > 0) {
-        builder.AddAttribute(index++, "NestedList", ChildrenFolderBuilder(subFolder));
-      }
-      builder.CloseComponent();
-    }
-    ChildrenFolder = ChildrenFolderBuilder(folder);
-  };
-}
-
 }
