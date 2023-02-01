@@ -11,27 +11,9 @@
 
     <MudPaper Class="left-column-paper mud-background-gray">
 
-      @if (RootFolder is not null) {
-        <MudList Clickable="true"
-            @bind-SelectedItem="_selectedItem"
-            @bind-SelectedValue="SelectedValue">
-          <MudListSubheader>
-            <MudText Typo="Typo.body2">@RootFolder.Name</MudText>
-          </MudListSubheader>
-          @foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
-            <MudListItem Text="@folder.Name"
-                Expanded="false"
-                DisableRipple="true">
-            <MudList>
-              @ChildrenFolderBuilder(folder)
-
-            </MudList>
 
 
-            </MudListItem>
-          }
-        </MudList>
-      }
+      <SidebarDirectoryTree/>
       <MudText>Selected Folder: </MudText>
       <MudText>@(SelectedValue.As<Folder>().Name)</MudText>
     </MudPaper>
