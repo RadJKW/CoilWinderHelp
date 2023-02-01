@@ -11,12 +11,15 @@
       <auth-provider>ms-sso</auth-provider>
       <schema-mapping>
         <introspection-scope>
-          <node kind="database">
-            <name qname="BookStoreApp" />
-            <name qname="CoilWinderDocs" />
-            <name qname="CoilWinderInstructions" />
-            <name qname="SchoolContext" />
-            <node kind="schema" qname="@" />
+          <node negative="1">
+            <node kind="database">
+              <name qname="CoilWinderDocs" />
+              <name qname="SchoolContext" />
+              <node kind="schema" qname="@" />
+            </node>
+            <node kind="database" qname="NoRslinxDb">
+              <node kind="schema" qname="dbo" />
+            </node>
           </node>
         </introspection-scope>
       </schema-mapping>

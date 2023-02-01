@@ -21,11 +21,60 @@ namespace MudBlazorPWA.Shared.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("MudBlazorPWA.Shared.Models.CodeType", b =>
+                {
+                    b.Property<int>("CodeTypeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("CodeType");
+
+                    b.HasKey("CodeTypeId");
+
+                    b.ToTable("CodeTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            CodeTypeId = 0,
+                            Name = "Stop"
+                        },
+                        new
+                        {
+                            CodeTypeId = 1,
+                            Name = "Almost"
+                        },
+                        new
+                        {
+                            CodeTypeId = 2,
+                            Name = "Data"
+                        },
+                        new
+                        {
+                            CodeTypeId = 3,
+                            Name = "Layer"
+                        },
+                        new
+                        {
+                            CodeTypeId = 4,
+                            Name = "Material"
+                        },
+                        new
+                        {
+                            CodeTypeId = 5,
+                            Name = "None"
+                        });
+                });
+
             modelBuilder.Entity("MudBlazorPWA.Shared.Models.WindingCode", b =>
                 {
                     b.Property<string>("Code")
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("CodeTypeId")
+                        .HasColumnType("int");
 
                     b.Property<string>("FolderPath")
                         .HasColumnType("nvarchar(max)");
@@ -34,12 +83,22 @@ namespace MudBlazorPWA.Shared.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
                     b.HasKey("Code");
 
+                    b.HasIndex("CodeTypeId");
+
                     b.ToTable("WindingCodes");
+                });
+
+            modelBuilder.Entity("MudBlazorPWA.Shared.Models.WindingCode", b =>
+                {
+                    b.HasOne("MudBlazorPWA.Shared.Models.CodeType", "CodeType")
+                        .WithMany()
+                        .HasForeignKey("CodeTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CodeType");
                 });
 #pragma warning restore 612, 618
         }

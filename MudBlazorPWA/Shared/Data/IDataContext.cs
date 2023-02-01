@@ -4,5 +4,6 @@ using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Shared.Data;
 public interface IDataContext
 {
-    public DbSet<WindingCode>? WindingCodes { get; }
+    public DbSet<WindingCode> WindingCodes { get; }
+    public DbSet<CodeType> CodeTypes { get; }
 }

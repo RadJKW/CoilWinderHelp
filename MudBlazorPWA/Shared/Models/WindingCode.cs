@@ -8,17 +8,28 @@ public class WindingCode
     [MaxLength(50)]
     [Display(Name="Stop")]
     public string? Name { get; set; }
-    [Required]
-    public CodeType Type { get; set; }
-
     public string? FolderPath { get; set; }
+
+    public CodeTypeId CodeTypeId { get; set; }
+    public CodeType? CodeType { get; set; }
 }
 
-public enum CodeType
+public class CodeType
 {
-    Stop,
-    Almost,
-    Data,
-    Layer,
-    Material,
+    [Key]
+    public CodeTypeId CodeTypeId { get; set; }
+    public string? Name { get; set; }
+
 }
+
+public enum CodeTypeId
+    {
+
+        Stop,
+        Almost,
+        Data,
+        Layer,
+        Material,
+        None,
+
+    }

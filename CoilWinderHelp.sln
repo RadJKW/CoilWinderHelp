@@ -21,6 +21,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionC
 		package-lock.json = package-lock.json
 		package.json = package.json
 		README.md = README.md
+		WindingCodeLocations.json = WindingCodeLocations.json
+		WindingCodes.json = WindingCodes.json
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoilWinderHelp.Pages", "CoilWinderHelp.Pages\CoilWinderHelp.Pages.csproj", "{C9042371-3A1D-42ED-A396-671CC2571914}"

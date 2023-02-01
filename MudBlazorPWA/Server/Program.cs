@@ -2,7 +2,6 @@ using System.Runtime.InteropServices;
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.Extensions.Configuration;
 using MudBlazor.Services;
 using MudBlazorPWA.Shared;
 using MudBlazorPWA.Shared.Data;
@@ -23,6 +22,7 @@ StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configurat
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddMudServices();
+builder.Services.AddMudExtensions();
 builder.Services.AddDirectoryBrowser();
 builder.Services.AddSignalR();
 // add logging + console logging
@@ -59,7 +59,7 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
     await dbContext.InitialiseAsync();
-    await dbContext.SeedAsync();
+    await dbContext.SeedAsync(removeRecords: true);
 }
 else
 {

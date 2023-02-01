@@ -1,7 +1,9 @@
 using System.Collections;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MudBlazorPWA.Shared.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
@@ -11,6 +13,7 @@ public interface IDirectoryService
 	Task<string[]> GetFoldersInPath(string? path = null);
 
 	Task ExportWindingCodesToJson(IEnumerable windingCodes);
+	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
 }
 
 public class DirectoryServiceOptions
@@ -20,10 +23,14 @@ public class DirectoryServiceOptions
 
 public class DirectoryService : IDirectoryService
 {
+	private string WindingCodesJsonPath { get; set; }
+
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<DirectoryService> _logger;
 	private readonly string _rootDirectory;
 
+
+	//TODO: Create an AppSettings class to hold this and other settings/data
 	private readonly string[] _allowedExtensions = {
 		".mp4", ".pdf", ".webm"
 	};
@@ -31,6 +38,7 @@ public class DirectoryService : IDirectoryService
 	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger) {
 		_logger = logger;
 		_rootDirectory = options.Value.RootDirectoryPath;
+		WindingCodesJsonPath = _rootDirectory + "WindingCodes.json";
 	}
 
 	// Used by the hub to get the contents of the root
@@ -66,11 +74,34 @@ public class DirectoryService : IDirectoryService
 	public async Task ExportWindingCodesToJson(IEnumerable windingCodes) {
 		var json = JsonConvert.SerializeObject(windingCodes, Formatting.Indented);
 		try {
-			await File.WriteAllTextAsync($"{_rootDirectory}WindingStops.json", json);
+			await File.WriteAllTextAsync(WindingCodesJsonPath, json);
 		}
 		catch (Exception ex) {
 			_logger.LogError("An error occurred while exporting the database : {Error}", ex);
 			throw;
 		}
 	}
+
+	// function to return the json file to DataContextInitializer so it can compare the json file to the database
+	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
+		try {
+			var filePath = path ?? WindingCodesJsonPath;
+			var json = await File.ReadAllTextAsync(filePath);
+			// select the object "WindingCodes : [{code...}, {code...}]" from the json file
+			// and deserialize it into a list of WindingCode objects
+
+			// the json file is an object with "WindingCodes" as the key and a list of WindingCode objects as the value
+			// so we need to select the value of the key "WindingCodes" and deserialize it into a list of WindingCode objects
+			return JsonConvert
+				.DeserializeObject<IEnumerable<WindingCode>>(JObject
+					.Parse(json)["WindingCodes"]?
+					.ToString()!)
+			       ?? Array.Empty<WindingCode>();
+		}
+		catch (Exception ex) {
+			_logger.LogError("An error occurred while getting the json file : {Error}", ex);
+			throw;
+		}
+	}
+
 }

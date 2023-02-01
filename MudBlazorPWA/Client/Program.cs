@@ -25,6 +25,7 @@ builder.Services
 		       .BaseAddress = new("https://localhost:7188/video/"));
 
 builder.Services.AddMudServices();
+builder.Services.AddMudExtensions();
 builder.Services.AddClientServices();
 
 await builder.Build().RunAsync();
