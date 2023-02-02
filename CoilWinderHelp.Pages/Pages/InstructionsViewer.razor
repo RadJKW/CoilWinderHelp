@@ -110,63 +110,7 @@
     await GoToFolder(BaseFolder);
   }
 
-  private void ViewFile(string file) {
-    // Set the current file and visibility
-    CurrentFile = file;
-    IsFileVisible = true;
 
-    var fileUrl = $"{FileServer!.BaseAddress}{CurrentFolder!.Path}/{file}";
-    fileUrl = fileUrl.Replace("//file", "/file");
-    // Create the PDF viewer
-    // get the file type of the file by extracting the file extension from the end file
-
-    var fileType = file.Split('.').Last();
-    switch (fileType) {
-      case "pdf": {
-        PdfViewer = @<iframe
-                         src="@(fileUrl)"
-                         width="100%"
-                         height="100%">
-                    </iframe>;
-        MediaPlayer = null;
-        break;
-      }
-      case "webm": {
-        PdfViewer = null;
-        MediaPlayer = @<video
-                           style="object-fit: fill;)"
-                           controls="controls"
-                           buffered="true"
-                           preload="auto"
-                           autoplay="autoplay">
-                        <source
-                            src="@fileUrl"
-                            type="video/webm; codecs='vp9'"/>
-                      </video>;
-        break;
-      }
-      case "mp4": {
-        PdfViewer = null;
-        MediaPlayer = @<video
-                           style="object-fit: fill;)"
-                           controls="controls"
-                           buffered="true"
-                           preload="auto"
-                           autoplay="autoplay">
-                        <source
-                            src="@fileUrl"
-                            type="video/mp4"/>
-                      </video>;
-        break;
-      }
-    }
-  }
-
-  private void CloseFile() {
-  // Clear the current file and visibility
-    CurrentFile = null;
-    IsFileVisible = false;
-  }
 
   private async Task GoToFolder(Folder? folder) {
   // Set the current folder
@@ -238,6 +182,64 @@
     Breadcrumb.RemoveRange(index + 1, Breadcrumb.Count - index - 1);
     CurrentFolder = folder;
   //InvokeAsync(StateHasChanged);
+  }
+
+  private void ViewFile(string file) {
+    // Set the current file and visibility
+    CurrentFile = file;
+    IsFileVisible = true;
+
+    var fileUrl = $"{FileServer!.BaseAddress}{CurrentFolder!.Path}/{file}";
+    fileUrl = fileUrl.Replace("//file", "/file");
+    // Create the PDF viewer
+    // get the file type of the file by extracting the file extension from the end file
+
+    var fileType = file.Split('.').Last();
+    switch (fileType) {
+      case "pdf": {
+        PdfViewer = @<iframe
+                         src="@(fileUrl)"
+                         width="100%"
+                         height="100%">
+                    </iframe>;
+        MediaPlayer = null;
+        break;
+      }
+      case "webm": {
+        PdfViewer = null;
+        MediaPlayer = @<video
+                           style="object-fit: fill;)"
+                           controls="controls"
+                           buffered="true"
+                           preload="auto"
+                           autoplay="autoplay">
+                        <source
+                            src="@fileUrl"
+                            type="video/webm; codecs='vp9'"/>
+                      </video>;
+        break;
+      }
+      case "mp4": {
+        PdfViewer = null;
+        MediaPlayer = @<video
+                           style="object-fit: fill;)"
+                           controls="controls"
+                           buffered="true"
+                           preload="auto"
+                           autoplay="autoplay">
+                        <source
+                            src="@fileUrl"
+                            type="video/mp4"/>
+                      </video>;
+        break;
+      }
+    }
+  }
+
+  private void CloseFile() {
+  // Clear the current file and visibility
+    CurrentFile = null;
+    IsFileVisible = false;
   }
 
   public class Folder {

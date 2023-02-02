@@ -1,0 +1,19 @@
+.docview.main-content{
+    display: flex;
+    height: 100vh;
+    max-height: 100vh;
+}
+.docview.main-container{
+   padding-inline: 0;
+    height: 100%;
+}
+
+/*Custom MudBlazor Overrides*/
+
+aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link{
+    padding-left: 4px;
+}
+
+aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) .mud-nav-link-icon.mud-nav-link-icon-default {
+    color: rgba(var(--mud-palette-primary-rgb), 0.75);
+}

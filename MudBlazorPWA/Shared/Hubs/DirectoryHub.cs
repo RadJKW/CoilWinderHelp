@@ -4,14 +4,17 @@ using Microsoft.Extensions.Logging;
 using MudBlazorPWA.Shared.Services;
 
 namespace MudBlazorPWA.Shared.Hubs;
-public class DirectoryHub : Hub
+public interface IHubClient
 {
-    private const string ReceiveFolderContentMethod = "ReceiveFolderContent";
+    Task ReceiveFolderContent(string currentPath, string[] files, string[] folders);
+    Task FileSelected(string relativePath);
 
-    // private const string UpdateDirectoryMethod = "UpdateCurrentDirectory";
-    // private const string UpdateFilesMethod = "UpdateFiles";
-    // private const string UpdateFoldersMethod = "UpdateFolders";
+    Task ReceiveAllFolders(string[] folders);
 
+
+}
+public class DirectoryHub : Hub<IHubClient>
+{
     #region Constructor
     private readonly IDirectoryService _directoryService;
     private readonly ILogger<DirectoryHub> _logger;
@@ -58,19 +61,19 @@ public class DirectoryHub : Hub
     {
         var clientIp = GetConnectionIp(Context);
         var (currentPath, files, folders) = await _directoryService.GetFolderContent(path);
-        await Clients.Group(clientIp).SendAsync(ReceiveFolderContentMethod, currentPath, files, folders);
+        await Clients.Group(clientIp).ReceiveFolderContent( currentPath, files, folders);
     }
     public async Task FileSelected(string path)
     {
-        const string message = "FileSelected";
         var clientIp = GetConnectionIp(Context);
         var relativePath = await _directoryService.GetRelativePath(path);
-        await Clients.Group(clientIp).SendAsync(message, relativePath);
+        await Clients.Group(clientIp).FileSelected(relativePath);
     }
 
     public async Task GetAllFolders(string? path = null){
+        var clientIp = GetConnectionIp(Context);
         var folders = await _directoryService.GetFoldersInPath(path);
-        await Clients.All.SendAsync("ReceivedAllFolders", folders);
+        await Clients.Group(clientIp).ReceiveAllFolders(folders);
     }
     #endregion
 

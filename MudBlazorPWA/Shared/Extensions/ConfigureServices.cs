@@ -5,12 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 using MudBlazorPWA.Shared.Data;
 
 namespace MudBlazorPWA.Shared.Extensions;
-public static class ServicesExtension
+public static class ConfigureServices
 {
     public static void AddClientServices(this IServiceCollection services)
     {
         services.AddScoped<LayoutService>();
         services.AddScoped<DocViewService>();
+        services.AddScoped<HubClientService>();
     }
     public static void AddHostServices(this IServiceCollection services, IConfiguration configuration)
     {

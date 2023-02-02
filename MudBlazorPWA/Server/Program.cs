@@ -59,7 +59,8 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
     await dbContext.InitialiseAsync();
-    await dbContext.SeedAsync(removeRecords: false);
+    //await dbContext.SeedAsync(removeRecords: true, jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
+    await dbContext.SeedAsync();
 }
 else
 {

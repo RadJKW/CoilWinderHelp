@@ -17,5 +17,5 @@ public class AppSettings
 	public string RootDirectoryPath { get; set; } = string.Empty;
 	public bool AppBarIsVisible { get; set; } = true;
 	public bool DrawerOpen { get; set; } = false;
-	public bool DrawerOpenOnHover { get; set; } = false;
+	public bool DrawerOpenOnHover { get; set; } = true;
 }

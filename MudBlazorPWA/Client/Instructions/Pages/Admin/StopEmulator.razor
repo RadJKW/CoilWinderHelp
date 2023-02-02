@@ -1,56 +1,67 @@
 ﻿@page "/StopEmulator"
-@using Microsoft.AspNetCore.SignalR.Client
-@using MudBlazor.Extensions
 @layout DocViewLayout
-@inject NavigationManager NavigationManager
+@inject HubClientService DirectoryHub
 @implements IDisposable
 
 <div class="stops-container">
 
   <div class="stops-left-column ">
 
+    <MudStack Row="true"
+        Spacing="0"
+        Justify="Justify.FlexStart">
+      @foreach (var breadcrumb in _breadcrumbs) {
+
+          <MudChip Text="@breadcrumb"
+            Icon="@Icons.Material.Outlined.Folder"
+            Size="Size.Small"
+            Label="true">
+        </MudChip>
+        <MudText Typo="Typo.h5" GutterBottom="false" Inline="false">/</MudText>
+      }
+
+    </MudStack>
     <MudPaper Class="left-column-paper mud-width-full">
 
-
-        <MudListExtended T="Folder"
-            Clickable="true"
-            MultiSelection="false"
-            DisablePadding="true"
-            @bind-SelectedItem="SelectedItem"
-            @bind-SelectedValue="SelectedValue"
-            Style="max-height:400px; overflow-y: auto;">
-          <MudListSubheaderExtended T="string"
-              Sticky="true"
-              SecondaryBackground="true">
-            @RootFolder?.Name
-          </MudListSubheaderExtended>
-          @if (RootFolder?.SubFolders != null) {
-            foreach (var folder in RootFolder.SubFolders) {
-              <MudListItemExtended T="Folder"
-                  Icon="@Icons.Material.Filled.Folder"
-                  Text="@folder.Name"
-                  Value="@folder"
-                  OnClick="@(async () => await InvokeAsync(StateHasChanged))">
-              </MudListItemExtended>
-            }
+      <MudListExtended T="Folder"
+          Clickable="true"
+          MultiSelection="false"
+          DisablePadding="true"
+          @bind-SelectedItem="SelectedItem"
+          @bind-SelectedValue="SelectedValue"
+          Style="max-height:400px; overflow-y: auto;">
+        <MudListSubheaderExtended T="string"
+            Sticky="true"
+            SecondaryBackground="true">
+          @RootFolder?.Name
+        </MudListSubheaderExtended>
+        @if (RootFolder?.SubFolders != null) {
+          foreach (var folder in RootFolder.SubFolders) {
+            <MudListItemExtended T="Folder"
+                Icon="@Icons.Material.Filled.Folder"
+                Text="@folder.Name"
+                Value="@folder"
+                OnClick="@(async () => await InvokeAsync(StateHasChanged))">
+            </MudListItemExtended>
           }
-        </MudListExtended>
-        @if (SelectedItem != null) {
-          <MudListSubheaderExtended T="string"
-                Sticky="true"
-                SecondaryBackground="true">
-              @SelectedItem.Text
-            </MudListSubheaderExtended>
-            @if (SelectedItem.Value?.SubFolders != null) {
-              foreach (var folder in SelectedItem.Value.SubFolders) {
-                <MudListItemExtended T="Folder"
-                    Icon="@Icons.Material.Filled.Folder"
-                    Text="@folder.Name"
-                    Value="@folder">
-                </MudListItemExtended>
-              }
-            }
         }
+      </MudListExtended>
+      @if (SelectedItem != null) {
+        <MudListSubheaderExtended T="string"
+            Sticky="true"
+            SecondaryBackground="true">
+          @SelectedItem.Text
+        </MudListSubheaderExtended>
+        @if (SelectedItem.Value?.SubFolders != null) {
+          foreach (var folder in SelectedItem.Value.SubFolders) {
+            <MudListItemExtended T="Folder"
+                Icon="@Icons.Material.Filled.Folder"
+                Text="@folder.Name"
+                Value="@folder">
+            </MudListItemExtended>
+          }
+        }
+      }
     </MudPaper>
 
   </div>
@@ -63,7 +74,16 @@
         <MudText>Selected Value @(SelectedValue?.Name)</MudText>
       </MudStack>
 
-    </MudPaper>
+      <MudList>
+            @if (_folders is not null) {
+              foreach (var folder in _folders.OrderBy(f => f)) {
+                <MudListItem Icon="@Icons.Material.Filled.Folder"
+                    Text="@folder"/>
+              }
+            }
+
+          </MudList>
+        </MudPaper>
 
   </div>
 </div>
@@ -71,113 +91,52 @@
 @code{
 
   public class Folder {
-    public string? Name { get; init; }
-    public string? Path { get; init; }
-    public RenderFragment? ChildrenFolders { get; set; }
-    public List<Folder> SubFolders { get; set; } = new();
-  }
+    public string Name { get; init; }
+    private string Path { get; init; }
+    public List<Folder> SubFolders { get; set; }
 
-  //private MudListItem? _selectedItem;
+    public Folder(string name, string? path = null) {
+      Name = name;
+      Path = path ?? name;
+      SubFolders = new();
+    }
+
+    public void AddSubFolder(Folder folder) {
+      SubFolders.Add(folder);
+    }
+  }
+  private List<string> _breadcrumbs = new() {
+    "B:",
+    "Docs",
+  };
+
+  #region Properties
+
+  private Folder? BaseFolder { get; set; }
+  private Folder? CurrentFolder { get; set; }
+  private List<Folder>? Breadcrumb { get; set; }
+  private List<Folder>? SelectedFolderSubFolders { get; set; }
   private MudListItemExtended<Folder?>? SelectedItem { get; set; }
   private Folder? SelectedValue { get; set; }
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
-  private HubConnection? _directoryHub;
+
+  #endregion
 
   protected override async Task OnInitializedAsync() {
-    await InitializeDirectoryHub();
-  }
-  private async Task InitializeDirectoryHub() {
-    _directoryHub = new HubConnectionBuilder()
-      .WithUrl(NavigationManager.ToAbsoluteUri("/directoryHub"))
-      .Build();
-    _directoryHub.On<string[]>("ReceivedAllFolders", async folders => {
-  // sort the folders into the dictionary based off of the first folders from the root directory
-      _folders = folders;
-      RootFolder = BuildDirectoryTree(_folders);
-      await InvokeAsync(StateHasChanged);
-    });
-    await _directoryHub.StartAsync();
-    await _directoryHub.SendAsync("GetAllFolders", null);
+    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
+    await base.OnInitializedAsync();
   }
 
-  /// <summary>
-  /// Builds a directory tree from a collection of file paths.
-  /// </summary>
-  /// <param name="paths">The file paths to use.</param>
-  /// <returns>A directory tree.</returns>
-  private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
-  // Check for empty paths
-    var enumerable = paths.ToList();
-    if (!enumerable.Any()) {
-      return null;
-    }
-
-  // Find the common part of the paths
-    var firstPath = enumerable.First();
-    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
-    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
-    var commonParts = FindCommonParts(splitPaths);
-
-  // Set the root of the tree to the common part
-    var root = new Folder() {
-      Name = splitPaths[0][commonParts],
-      Path = string.Join(splitChar, splitPaths[0].Take(commonParts + 1)),
-    };
-
-  // Add the remaining parts to the tree
-    foreach (var splitPath in splitPaths) {
-      AddRemainingParts(root, splitPath, commonParts);
-    }
-    return root;
+  private void OnReceiveAllFolders(string[] folders) {
+    _folders = folders;
+    StateHasChanged();
   }
 
-  /// <summary>
-  /// Finds the common parts of a collection of split paths.
-  /// </summary>
-  /// <param name="splitPaths">The collection of split paths.</param>
-  /// <returns>The number of common parts.</returns>
-  private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
-    var commonParts = int.MaxValue;
-    var stringsEnumerable = splitPaths.ToList();
-    for (var i = 0; i < stringsEnumerable.First().Length; i++) {
-      var currentPart = stringsEnumerable.First()[i];
-      var count = 1 + stringsEnumerable.Skip(1)
-        .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
-        .Count();
-      if (count == stringsEnumerable.Count()) {
-        commonParts = i;
-      } else {
-        break;
-      }
-    }
-    return commonParts;
-  }
-
-  /// <summary>
-  /// Adds the remaining parts of a split path to the directory tree.
-  /// </summary>
-  /// <param name="root">The root of the directory tree.</param>
-  /// <param name="splitPath">The split path.</param>
-  /// <param name="commonParts">The number of common parts.</param>
-  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
-    var current = root;
-    for (var i = commonParts + 1; i < splitPath.Count; i++) {
-      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
-      if (next == null) {
-        next = new Folder() {
-          Name = splitPath[i],
-          Path = current?.Path + splitPath[i],
-        };
-        current?.SubFolders.Add(next);
-      }
-      current = next;
-    }
-  }
 
 
 
   public void Dispose() {
-    _directoryHub?.DisposeAsync();
+    DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
   }
 }
