@@ -59,7 +59,7 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
     await dbContext.InitialiseAsync();
-    await dbContext.SeedAsync(removeRecords: true);
+    await dbContext.SeedAsync(removeRecords: false);
 }
 else
 {
