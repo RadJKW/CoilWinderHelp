@@ -1,35 +1,40 @@
 ﻿@page "/StopEmulator"
 @layout DocViewLayout
 @inject HubClientService DirectoryHub
+@using Microsoft.AspNetCore.SignalR.Client
 @implements IDisposable
 
 <div class="stops-container">
 
   <div class="stops-left-column ">
 
-    <MudStack Row="true"
-        Spacing="0"
-        Justify="Justify.FlexStart">
-      @foreach (var breadcrumb in _breadcrumbs) {
+    <div class="d-flex flex-row justify-start flex-wrap">
 
-          <MudChip Text="@breadcrumb"
+      @foreach (var breadcrumb in _breadCrumbs) {
+        <MudChip Text="@breadcrumb!.Name"
             Icon="@Icons.Material.Outlined.Folder"
             Size="Size.Small"
-            Label="true">
+            Label="true"
+            OnClick="() => SetFolderAsRoot(breadcrumb)">
         </MudChip>
-        <MudText Typo="Typo.h5" GutterBottom="false" Inline="false">/</MudText>
+        <MudText Typo="Typo.h5"
+            GutterBottom="false"
+            Inline="false">
+          /
+        </MudText>
       }
+    </div>
 
-    </MudStack>
     <MudPaper Class="left-column-paper mud-width-full">
 
       <MudListExtended T="Folder"
+          @ref="SelectedFolderList"
           Clickable="true"
           MultiSelection="false"
           DisablePadding="true"
           @bind-SelectedItem="SelectedItem"
           @bind-SelectedValue="SelectedValue"
-          Style="max-height:400px; overflow-y: auto;">
+          Style="overflow-y: auto;">
         <MudListSubheaderExtended T="string"
             Sticky="true"
             SecondaryBackground="true">
@@ -41,27 +46,28 @@
                 Icon="@Icons.Material.Filled.Folder"
                 Text="@folder.Name"
                 Value="@folder"
-                OnClick="@(async () => await InvokeAsync(StateHasChanged))">
+                OnClick="SetFolderAsRoot">
             </MudListItemExtended>
+          }
+        }
+        @if (SelectedItem != null) {
+          <MudListSubheaderExtended T="string"
+              Sticky="true"
+              SecondaryBackground="true">
+            @SelectedItem.Text
+          </MudListSubheaderExtended>
+          if (SelectedItem.Value?.SubFolders != null) {
+            foreach (var folder in SelectedItem.Value.SubFolders) {
+              <MudListItemExtended T="Folder"
+                  Icon="@Icons.Material.Filled.Folder"
+                  Text="@folder.Name"
+                  Value="@folder"
+                  OnClick="SetFolderAsRoot">
+              </MudListItemExtended>
+            }
           }
         }
       </MudListExtended>
-      @if (SelectedItem != null) {
-        <MudListSubheaderExtended T="string"
-            Sticky="true"
-            SecondaryBackground="true">
-          @SelectedItem.Text
-        </MudListSubheaderExtended>
-        @if (SelectedItem.Value?.SubFolders != null) {
-          foreach (var folder in SelectedItem.Value.SubFolders) {
-            <MudListItemExtended T="Folder"
-                Icon="@Icons.Material.Filled.Folder"
-                Text="@folder.Name"
-                Value="@folder">
-            </MudListItemExtended>
-          }
-        }
-      }
     </MudPaper>
 
   </div>
@@ -75,15 +81,15 @@
       </MudStack>
 
       <MudList>
-            @if (_folders is not null) {
-              foreach (var folder in _folders.OrderBy(f => f)) {
-                <MudListItem Icon="@Icons.Material.Filled.Folder"
-                    Text="@folder"/>
-              }
-            }
+        @if (_folders is not null) {
+          foreach (var folder in _folders.OrderBy(f => f)) {
+            <MudListItem Icon="@Icons.Material.Filled.Folder"
+                Text="@folder"/>
+          }
+        }
 
-          </MudList>
-        </MudPaper>
+      </MudList>
+    </MudPaper>
 
   </div>
 </div>
@@ -91,52 +97,143 @@
 @code{
 
   public class Folder {
-    public string Name { get; init; }
-    private string Path { get; init; }
-    public List<Folder> SubFolders { get; set; }
-
-    public Folder(string name, string? path = null) {
+    public Folder(string name, string? path) {
       Name = name;
-      Path = path ?? name;
-      SubFolders = new();
+      Path = path;
     }
-
-    public void AddSubFolder(Folder folder) {
-      SubFolders.Add(folder);
-    }
+    public string Name { get; init; }
+    public string? Path { get; init; }
+    //public RenderFragment? ChildrenFolders { get; set; }
+    public List<Folder> SubFolders { get; set; } = new();
   }
-  private List<string> _breadcrumbs = new() {
-    "B:",
-    "Docs",
-  };
+
+  private readonly List<Folder?> _breadCrumbs = new();
 
   #region Properties
-
-  private Folder? BaseFolder { get; set; }
-  private Folder? CurrentFolder { get; set; }
-  private List<Folder>? Breadcrumb { get; set; }
-  private List<Folder>? SelectedFolderSubFolders { get; set; }
+  private MudListExtended<Folder>? SelectedFolderList { get; set; }
+  // private Folder? BaseFolder { get; set; }
+  // private Folder? CurrentFolder { get; set; }
+  // private List<Folder>? Breadcrumb { get; set; }
+  // private List<Folder>? SelectedFolderSubFolders { get; set; }
   private MudListItemExtended<Folder?>? SelectedItem { get; set; }
   private Folder? SelectedValue { get; set; }
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
-
   #endregion
 
   protected override async Task OnInitializedAsync() {
     DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await base.OnInitializedAsync();
+    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", null);
   }
 
   private void OnReceiveAllFolders(string[] folders) {
     _folders = folders;
-    StateHasChanged();
+    RootFolder = BuildDirectoryTree(_folders);
+    _breadCrumbs.Add(RootFolder);
+    InvokeAsync(StateHasChanged);
   }
-
-
-
-
   public void Dispose() {
     DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
   }
+
+  private async Task SetFolderAsRoot() {
+    if (SelectedValue == null)
+      return;
+
+    if (!SelectedValue.SubFolders.Any())
+      return;
+
+    RootFolder = SelectedValue;
+    _breadCrumbs.Add(SelectedValue);
+    SelectedItem = null;
+    SelectedValue = null;
+    await InvokeAsync(StateHasChanged);
+  }
+  private async Task SetFolderAsRoot(Folder newRoot) {
+
+
+    // remove the newRoot from _breadCrumbs and all following items
+
+    //TODO: prevent the base folder from being removed
+    var index = _breadCrumbs.IndexOf(newRoot);
+    _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
+    RootFolder = newRoot;
+    SelectedItem = null;
+    SelectedValue = null;
+
+
+    await InvokeAsync(StateHasChanged);
+  }
+
+
+  /// <summary>
+  /// Builds a directory tree from a collection of file paths.
+  /// </summary>
+  /// <param name="paths">The file paths to use.</param>
+  /// <returns>A directory tree.</returns>
+  private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
+  // Check for empty paths
+    var enumerable = paths.ToList();
+    if (!enumerable.Any()) {
+      return null;
+    }
+
+  // Find the common part of the paths
+    var firstPath = enumerable.First();
+    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
+    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
+    var commonParts = FindCommonParts(splitPaths);
+
+  // Set the root of the tree to the common part
+    var root = new Folder(splitPaths[0][commonParts], string.Join(splitChar, splitPaths[0].Take(commonParts + 1)));
+
+  // Add the remaining parts to the tree
+    foreach (var splitPath in splitPaths) {
+      AddRemainingParts(root, splitPath, commonParts);
+    }
+    return root;
+  }
+
+  /// <summary>
+  /// Finds the common parts of a collection of split paths.
+  /// </summary>
+  /// <param name="splitPaths">The collection of split paths.</param>
+  /// <returns>The number of common parts.</returns>
+  private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
+    var commonParts = int.MaxValue;
+    var stringsEnumerable = splitPaths.ToList();
+    for (var i = 0; i < stringsEnumerable.First().Length; i++) {
+      var currentPart = stringsEnumerable.First()[i];
+      var count = 1 + stringsEnumerable.Skip(1)
+        .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
+        .Count();
+      if (count == stringsEnumerable.Count()) {
+        commonParts = i;
+      } else {
+        break;
+      }
+    }
+    return commonParts;
+  }
+
+  /// <summary>
+  /// Adds the remaining parts of a split path to the directory tree.
+  /// </summary>
+  /// <param name="root">The root of the directory tree.</param>
+  /// <param name="splitPath">The split path.</param>
+  /// <param name="commonParts">The number of common parts.</param>
+  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
+    var current = root;
+    for (var i = commonParts + 1; i < splitPath.Count; i++) {
+      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+      if (next == null) {
+        next = new Folder(splitPath[i], current?.Path + splitPath[i]);
+        current?.SubFolders.Add(next);
+      }
+      current = next;
+    }
+  }
+
+
+
 }
