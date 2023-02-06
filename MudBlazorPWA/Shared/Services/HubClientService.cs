@@ -21,6 +21,7 @@ public class HubClientService
 	}
 
 	private void InitializeDirectoryHub() {
+
 		Hub = new HubConnectionBuilder()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
 			.Build();
@@ -28,6 +29,8 @@ public class HubClientService
 		RegisterHubEvents(Hub);
 		Hub.StartAsync();
 	}
+
+
 
 	private void RegisterHubEvents(HubConnection hubConnection) {
 		hubConnection.On<string[]>("ReceiveAllFolders", folders => {

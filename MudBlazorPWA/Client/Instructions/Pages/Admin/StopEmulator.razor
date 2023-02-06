@@ -1,8 +1,5 @@
 ﻿@page "/StopEmulator"
 @layout DocViewLayout
-@inject HubClientService DirectoryHub
-@using Microsoft.AspNetCore.SignalR.Client
-@implements IDisposable
 
 <MudScrollbar Selector=""
     Width="6"
@@ -13,317 +10,68 @@
 
   <div class="stops-left-column ">
 
-    <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start">
-
-      @foreach (var breadcrumb in _breadCrumbs) {
-        <MudChip Text="@breadcrumb!.Name"
-            Icon="@Icons.Material.Outlined.Folder"
-            Size="Size.Small"
-            Label="true"
-            OnClick="() => SetFolderAsRoot(breadcrumb)">
-        </MudChip>
-        <MudText Typo="Typo.h5"
-            GutterBottom="false"
-            Inline="false">
-          /
-        </MudText>
-      }
-      <MudTooltip Text="Select Folder">
-
-        <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
-            AnchorOrigin="Origin.BottomCenter"
-            TransformOrigin="Origin.TopLeft">
-          @foreach (var folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
-            <MudMenuItem Icon="@Icons.Material.Filled.Folder"
-                OnClick="() => NavigateToFolder(folder)">
-              @folder.Name
-            </MudMenuItem>
-          }
-        </MudMenu>
-      </MudTooltip>
-    </div>
-
-    <MudPaper Class="left-column-paper mud-height-full">
-
-      <MudListExtended T="Folder"
-          @ref="SelectedFolderList"
-          Clickable="true"
-          MultiSelection="false"
-          DisablePadding="true"
-          @bind-SelectedItem="SelectedItem"
-          @bind-SelectedValue="SelectedValue">
-        <MudListSubheaderExtended T="Folder"
-            Class="d-flex justify-center mud-width-full py-2"
-            Sticky="true"
-            SecondaryBackground="true">
-          <MudText Typo="Typo.button">@RootFolder?.Name</MudText>
-        </MudListSubheaderExtended>
-
-        @if (RootFolder is not null) {
-          foreach (var folder in RootFolder.SubFolders) {
-            var hasSubFolders = folder.SubFolders.Any();
-
-            switch (hasSubFolders) {
-              case true:
-                <MudListItemExtended T="Folder"
-                    Icon="@Icons.Material.Filled.Folder"
-                    Text="@folder.Name"
-                    Value="@folder"
-                    OnClick="SetFolderAsRoot">
-                </MudListItemExtended>
-                break;
-              case false:
-                <div class="can-select folder list-item-container">
-                  <MudListItemExtended T="Folder"
-                      Value="folder"
-                      Disabled="@(_selectedFolders.Contains(folder))"
-                      OnClick="AppendSelectedFolders">
-                    <div class="custom-list-item grid">
-                      <MudText Typo="Typo.button"
-                          GutterBottom="false"
-                          Inline="true"
-                          Align="Align.Justify">
-                        @folder.Name
-                      </MudText>
-                      <MudDivider Vertical="true"
-                          FlexItem="false"
-                          DividerType="DividerType.FullWidth"/>
-                      <MudIcon Icon="@Icons.Material.Outlined.AddBox"
-                          Color="_selectedFolders.Contains(folder) ? Color.Inherit : Color.Primary"
-                          Size="Size.Small"/>
-                    </div>
-                  </MudListItemExtended>
-                </div>
-                break;
-            }
-          }
-        }
-      </MudListExtended>
-    </MudPaper>
-    <MudPaper Class="left-column-paper selected-items">
-
-      <MudListExtended T="Folder"
-          Clickable="true"
-          DisablePadding="true"
-          MultiSelection="true">
-        <MudListSubheaderExtended T="string"
-            Class="mud-width-full py-1"
-            Sticky="true"
-            SecondaryBackground="true">
-          <div class="custom-list-header grid">
-            <MudText Typo="Typo.button"
-                GutterBottom="false"
-                Inline="true"
-                Align="Align.Justify">
-              Selected Items
-            </MudText>
-            <div class="py-1 d-flex mx-2 mud-height-full mud-width-full justify-center ">
-
-              <MudDivider Class=""
-                  Vertical="true"
-                  FlexItem="true"
-                  DividerType="DividerType.Middle"/>
-            </div>
-            <MudButton Color="Color.Primary"
-                Variant="Variant.Text"
-                FullWidth="true"
-                Size="Size.Small">
-              <MudIcon Icon="@Icons.Material.Outlined.DeleteForever"
-                  Class="my-0 py-0"
-                  Color="Color.Inherit"
-                  Size="Size.Large"/>
-            </MudButton>
-          </div>
-        </MudListSubheaderExtended>
-        @if (_selectedFolders.Any()) {
-          foreach (var folder in _selectedFolders) {
-            <MudListItemExtended T="Folder"
-                Icon="@Icons.Material.Filled.Folder"
-                Text="@GetNameWithParent(folder!.Name)"
-                Value="@folder">
-            </MudListItemExtended>
-          }
-        }
-      </MudListExtended>
-    </MudPaper>
+    <FolderSelector OnFolderSubmitted="HandleFolderSubmitted" />
 
   </div>
   <div class="stops-right-column">
-    <MudPaper Class="mud-background-gray right-column-paper">
-      <MudStack Justify="Justify.Center"
-          AlignItems="AlignItems.Center"
-          Spacing="2">
-        <MudText>Selected Item: @(SelectedItem != null ? SelectedItem.Text : "none")</MudText>
-        <MudText>Selected Value @(SelectedValue?.Name)</MudText>
-      </MudStack>
+    <MudDropContainer T="DropItem" Items="_items" ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)" ItemDropped="ItemUpdated" Class="d-flex flex-wrap flex-grow-1">
+        <ChildContent>
+            <MudDropZone T="DropItem" Identifier="Drop Zone 1" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                <MudText Typo="Typo.h6" Class="mb-4">Drop Zone 1</MudText>
+             </MudDropZone>
+            <MudDropZone T="DropItem" Identifier="Drop Zone 2" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
+                <MudText Typo="Typo.h6" Class="mb-4">Drop Zone 2</MudText>
+            </MudDropZone>
+        </ChildContent>
+        <ItemRenderer>
+            <MudPaper Elevation="25" Class="pa-4 my-4">@context.Name</MudPaper>
+        </ItemRenderer>
+    </MudDropContainer>
 
-    </MudPaper>
+
 
   </div>
 </div>
 
 @code{
 
-  public class Folder {
-    public Folder(string name, string? path) {
-      Name = name;
-      Path = path;
-    }
-    public string Name { get; init; }
-    public string? Path { get; init; }
-  //public RenderFragment? ChildrenFolders { get; set; }
-    public List<Folder> SubFolders { get; set; } = new();
-  }
-
-  private readonly List<Folder?> _breadCrumbs = new();
-  private readonly List<Folder?> _selectedFolders = new();
-
   #region Properties
-  private MudListExtended<Folder>? SelectedFolderList { get; set; }
-  private MudListItemExtended<Folder?>? SelectedItem { get; set; }
-  private Folder? SelectedValue { get; set; }
-  private Folder? RootFolder { get; set; }
-  private string[]? _folders;
+  private List<DropItem> _items = new()
+  {
+    new DropItem(){ Name = "Drag me!", Identifier = "Drop Zone 1" },
+    new DropItem(){ Name = "Or me!", Identifier = "Drop Zone 2" },
+    new DropItem(){ Name = "Just Mud", Identifier = "Drop Zone 1" },
+  };
+
   #endregion
 
-  protected override async Task OnInitializedAsync() {
-    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", null);
+  private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
+  {
+    dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
   }
 
-  private void OnReceiveAllFolders(string[] folders) {
-    _folders = folders;
-    RootFolder = BuildDirectoryTree(_folders);
-    _breadCrumbs.Add(RootFolder);
-    InvokeAsync(StateHasChanged);
-  }
-  public void Dispose() {
-    DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
-  }
-
-  private Task SetFolderAsRoot() {
-    if (SelectedValue == null || !SelectedValue.SubFolders.Any())
-      return Task.CompletedTask;
-
-
-    RootFolder = SelectedValue;
-    _breadCrumbs.Add(SelectedValue);
-    return InvokeAsync(StateHasChanged);
-  }
-  private Task SetFolderAsRoot(Folder newRoot) {
-  // remove the newRoot from _breadCrumbs and all following items
-
-
-    var index = _breadCrumbs.IndexOf(newRoot);
-    _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
-    RootFolder = newRoot;
-    _breadCrumbs.Add(newRoot);
-
-    return InvokeAsync(StateHasChanged);
-  }
-  private Task AppendSelectedFolders() {
-  // check to see if the SelectedItem is already in the list
-    if (SelectedValue == null)
-      return Task.CompletedTask;
-
-    if (_selectedFolders.Contains(SelectedValue))
-      return Task.CompletedTask;
-
-    _selectedFolders.Add(SelectedValue);
-    SelectedValue = null;
-    return InvokeAsync(StateHasChanged);
-  }
-  private Task NavigateToFolder(Folder folder) {
-    RootFolder = folder;
-    _breadCrumbs.Add(folder);
-    return InvokeAsync(StateHasChanged);
-  }
-
-
-  /// <summary>
-  /// Builds a directory tree from a collection of file paths.
-  /// </summary>
-  /// <param name="paths">The file paths to use.</param>
-  /// <returns>A directory tree.</returns>
-  private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
-  // Check for empty paths
-    var enumerable = paths.ToList();
-    if (!enumerable.Any()) {
-      return null;
+  private async Task HandleFolderSubmitted(Folder[] folders)
+  {
+    // for each folder in the array, convert it to a DropItem with Name = Folder.Name and Drop zone 1
+    // add the new DropItem to the _items list
+    // call StateHasChanged()
+    foreach (var folder in folders)
+    {
+      _items.Add(new DropItem() { Name = folder.Name, Identifier = "Drop Zone 1" });
     }
-
-  // Find the common part of the paths
-    var firstPath = enumerable.First();
-    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
-    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
-    var commonParts = FindCommonParts(splitPaths);
-
-  // Set the root of the tree to the common part
-    var root = new Folder(splitPaths[0][commonParts], string.Join("", splitPaths[0].Take(commonParts + 1)));
-
-  // Add the remaining parts to the tree
-    foreach (var splitPath in splitPaths) {
-      AddRemainingParts(root, splitPath, commonParts);
-    }
-    return root;
+    await InvokeAsync(StateHasChanged);
   }
 
-  /// <summary>
-  /// Finds the common parts of a collection of split paths.
-  /// </summary>
-  /// <param name="splitPaths">The collection of split paths.</param>
-  /// <returns>The number of common parts.</returns>
-  private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
-    var commonParts = int.MaxValue;
-    var stringsEnumerable = splitPaths.ToList();
-    for (var i = 0; i < stringsEnumerable.First().Length; i++) {
-      var currentPart = stringsEnumerable.First()[i];
-      var count = 1 + stringsEnumerable.Skip(1)
-        .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
-        .Count();
-      if (count == stringsEnumerable.Count()) {
-        commonParts = i;
-      } else {
-        break;
-      }
-    }
-    return commonParts;
-  }
 
-  /// <summary>
-  /// Adds the remaining parts of a split path to the directory tree.
-  /// </summary>
-  /// <param name="root">The root of the directory tree.</param>
-  /// <param name="splitPath">The split path.</param>
-  /// <param name="commonParts">The number of common parts.</param>
-  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
-    var current = root;
-    for (var i = commonParts + 1; i < splitPath.Count; i++) {
-      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
-      if (next == null) {
-        next = new Folder(splitPath[i], current?.Path + splitPath[i]);
-        current?.SubFolders.Add(next);
-      }
-      current = next;
-    }
+  public class DropItem
+  {
+    public string? Name { get; init; }
+    public string? Identifier { get; set; }
   }
 
 
 
 
-  private string GetNameWithParent(string folderName) {
-  // in the _folders array, set a variable to the _folders[i] that has folderName.Name as the last item in the path
-  // example: folderName.name = "abc", _folders[] = "c:\cba\123", "c:\cba\abc", "c:\cba\abc\def"
-  // the variable would be set to "c:\cba\abc"
-  // then the returned string should be "cba\abc"
-    var path = _folders?.FirstOrDefault(f => f.EndsWith(folderName));
-    if (path == null)
-      return folderName;
 
-    var splitChar = path.Contains('\\') ? '\\' : '/';
-    var splitPath = path.Split(splitChar);
-    var parent = splitPath[^2];
-    return $"{parent}{splitChar}{folderName}";
-  }
 
 }
