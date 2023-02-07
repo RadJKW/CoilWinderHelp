@@ -7,8 +7,12 @@ public class LayoutService
 
 	public MudTheme? CurrentTheme { get; private set; }
 
+	// collection of key/value pairs where the value can be any type
+	// these values will store user preferences for the LayoutService
+	//
 	public void SetDarkMode(bool value) {
 		IsDarkMode = value;
+		OnMajorUpdateOccured();
 	}
 
 	public event EventHandler MajorUpdateOccured = null!;

@@ -17,13 +17,17 @@
     display: grid;
     grid-template-rows: min-content auto 1fr;
     grid-row-gap: 1rem;
-    height: calc(99vh - var(--mud-appbar-height));
-
-
 }
 .stops-right-column {
     grid-column: 2;
-    overflow: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
+    grid-gap: 0.4rem;
+    height: calc(99vh - var(--mud-appbar-height));
+    overflow: auto  ;
+}
+.stops-right-column > * {
 }
 .stops-container .list-item-container.folder.can-select {
 

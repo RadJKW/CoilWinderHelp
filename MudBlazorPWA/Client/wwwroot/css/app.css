@@ -3,6 +3,9 @@
 @import url('menus.css');
 @import url('page-stops.css');
 
+:root {
+    --mud-drawer-width-mini-left: 50px !important;
+}
 body {
     height: 100vh;
 }

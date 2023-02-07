@@ -15,14 +15,11 @@ builder.Services
        .AddHttpClient("PwaServer", configureClient: client =>
 	       client
 		       .BaseAddress = new(builder.HostEnvironment.BaseAddress));
+
 builder.Services
   .AddHttpClient("ApiFileServer", configureClient: client =>
     client
       .BaseAddress = webDirectory);
-builder.Services
-       .AddHttpClient("ApiVideoServer", configureClient: client =>
-	       client
-		       .BaseAddress = new("https://localhost:7188/video/"));
 
 builder.Services.AddMudServices();
 builder.Services.AddMudExtensions();

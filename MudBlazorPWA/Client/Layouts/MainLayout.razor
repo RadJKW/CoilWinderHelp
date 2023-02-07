@@ -1,5 +1,7 @@
 @inherits LayoutComponentBase
 @inject LayoutService LayoutService
+@inject ILocalStorageService LocalStorage
+@using Blazored.LocalStorage
 @implements IDisposable
 
 @*Theme="MyCustomTheme"*@
@@ -7,7 +9,7 @@
 <MudThemeProvider
     @ref="@_mudThemeProvider"
     IsDarkMode="@LayoutService.IsDarkMode"
-    IsDarkModeChanged="LayoutService.SetDarkMode"
+    IsDarkModeChanged="@(() => LayoutService.SetDarkMode(_mudThemeProvider!.IsDarkMode))"
     Theme="LayoutService.CurrentTheme"/>
 <MudDialogProvider
     CloseOnEscapeKey="true"
@@ -35,7 +37,10 @@
 
     if (firstRender) {
       LayoutService.SetBaseTheme(new());
-      LayoutService.SetDarkMode(true);
+      var themePalette = await LocalStorage.GetItemAsync<string>("theme.palette");
+      var darkMode = themePalette is "dark" or null;
+
+      LayoutService.SetDarkMode(darkMode );
     }
 
   }

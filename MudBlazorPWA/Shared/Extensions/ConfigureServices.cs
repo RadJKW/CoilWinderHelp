@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MudBlazorPWA.Shared.Services;
@@ -9,6 +10,7 @@ public static class ConfigureServices
 {
     public static void AddClientServices(this IServiceCollection services)
     {
+        services.AddBlazoredLocalStorage();
         services.AddScoped<LayoutService>();
         services.AddScoped<DocViewService>();
         services.AddScoped<HubClientService>();

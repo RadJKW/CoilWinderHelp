@@ -87,15 +87,10 @@ public class DirectoryService : IDirectoryService
 		try {
 			var filePath = path ?? WindingCodesJsonPath;
 			var json = await File.ReadAllTextAsync(filePath);
-			// select the object "WindingCodes : [{code...}, {code...}]" from the json file
-			// and deserialize it into a list of WindingCode objects
-
-			// the json file is an object with "WindingCodes" as the key and a list of WindingCode objects as the value
-			// so we need to select the value of the key "WindingCodes" and deserialize it into a list of WindingCode objects
 			return JsonConvert
-				.DeserializeObject<IEnumerable<WindingCode>>(JObject
-					.Parse(json)["WindingCodes"]?
-					.ToString()!)
+				       .DeserializeObject<IEnumerable<WindingCode>>(JObject
+					       .Parse(json)["WindingCodes"]?
+					       .ToString()!)
 			       ?? Array.Empty<WindingCode>();
 		}
 		catch (Exception ex) {
@@ -103,5 +98,4 @@ public class DirectoryService : IDirectoryService
 			throw;
 		}
 	}
-
 }

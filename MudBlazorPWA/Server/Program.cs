@@ -59,8 +59,19 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
     await dbContext.InitialiseAsync();
-    //await dbContext.SeedAsync(removeRecords: true, jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
-    await dbContext.SeedAsync();
+    // if appsettings.json has UseInMemoryDatabase set to true, then the database will be seeded with the json file
+
+    if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase")) {
+
+        await dbContext.SeedAsync(removeRecords: false, jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
+    }
+    else
+    {
+        await dbContext.SeedAsync();
+    }
+
+
+
 }
 else
 {

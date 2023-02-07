@@ -1,70 +1,123 @@
 ﻿@page "/StopEmulator"
 @layout DocViewLayout
+@inject IHttpClientFactory HttpClient
+@using Newtonsoft.Json
 
 <MudScrollbar Selector=""
     Width="6"
     BorderRadius="6"
     Color="#594ae2ff"
     Hide="false"/>
-<div class="stops-container">
+<MudDropContainer T="DropItem"
+    Items="_items"
+    ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
+    ItemDropped="ItemUpdated"
+    Class="stops-container">
+  <ChildContent>
 
-  <div class="stops-left-column ">
+    <div class="stops-left-column ">
 
-    <FolderSelector OnFolderSubmitted="HandleFolderSubmitted" />
+      <FolderSelector OnFolderSubmitted="HandleFolderSubmitted"
+          OnFoldersSubmitted="HandleFoldersSubmitted"/>
 
-  </div>
-  <div class="stops-right-column">
-    <MudDropContainer T="DropItem" Items="_items" ItemsSelector="@((item,dropzone) => item.Identifier == dropzone)" ItemDropped="ItemUpdated" Class="d-flex flex-wrap flex-grow-1">
-        <ChildContent>
-            <MudDropZone T="DropItem" Identifier="Drop Zone 1" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
-                <MudText Typo="Typo.h6" Class="mb-4">Drop Zone 1</MudText>
-             </MudDropZone>
-            <MudDropZone T="DropItem" Identifier="Drop Zone 2" Class="rounded mud-background-gray pa-6 ma-8 flex-grow-1">
-                <MudText Typo="Typo.h6" Class="mb-4">Drop Zone 2</MudText>
-            </MudDropZone>
-        </ChildContent>
-        <ItemRenderer>
-            <MudPaper Elevation="25" Class="pa-4 my-4">@context.Name</MudPaper>
-        </ItemRenderer>
-    </MudDropContainer>
+    </div>
+    <div class="stops-right-column">
+
+            @foreach (var windingCode in WindingCodes ?? Enumerable.Empty<WindingCode>()) {
 
 
 
-  </div>
-</div>
+              <div>
+
+              <MudListSubheaderExtended T="string"
+                    Class="d-flex justify-center align-center flex-row pa-2"
+                    SecondaryBackground="true"
+                    Sticky="true">
+                  <div class="mud-typography-h5">
+                    @windingCode.Name
+                  </div>
+                  <div class="mud-typography-h6">
+                     : ( @windingCode.Code )
+                  </div>
+                </MudListSubheaderExtended>
+                <MudDropZone T="DropItem"
+                    Identifier="@windingCode.Name"
+                    Class="d-flex mud-paper-outlined rounded-2 pa-2 justify-center align-center flex-column overflow-auto">
+                  @*
+                  // if no items are in the list with this identifier, show the drag here text
+                  // otherwise, show the items
+*@
+                  @if (_items is null || _items.All(x => x.Identifier != windingCode.Name)) {
+                    <MudText Typo="Typo.button"
+                        Align="Align.Center"
+                        Class="border-dashed border ">
+                      Drag Here
+                    </MudText>
+                  }
+                </MudDropZone>
+              </div>
+            }
+              </div>
+  </ChildContent>
+  <ItemRenderer>
+
+     <div Class="rounded mud-paper-outlined d-flex align-center justify-center pa-3 ma-2">
+                <MudIcon Icon="@Icons.Custom.Uncategorized.Folder" Color="Color.Inherit" Class="mr-2"/>
+                @context.Name
+            </div>
+  </ItemRenderer>
+
+</MudDropContainer>
 
 @code{
 
   #region Properties
-  private List<DropItem> _items = new()
-  {
-    new DropItem(){ Name = "Drag me!", Identifier = "Drop Zone 1" },
-    new DropItem(){ Name = "Or me!", Identifier = "Drop Zone 2" },
-    new DropItem(){ Name = "Just Mud", Identifier = "Drop Zone 1" },
-  };
-
+  private HttpClient _pwaServer = null!;
+  private readonly List<DropItem>? _items = new();
+  private List<WindingCode>? WindingCodes { get; set; }
   #endregion
 
-  private void ItemUpdated(MudItemDropInfo<DropItem> dropItem)
-  {
+  protected override async Task OnInitializedAsync() {
+    _pwaServer = HttpClient.CreateClient("PwaServer");
+    var response = await _pwaServer.GetAsync("files/WindingCodes.json");
+    if (response.IsSuccessStatusCode) {
+      var content = await response.Content.ReadAsStringAsync();
+      WindingCodes = JsonConvert.DeserializeObject<List<WindingCode>>(content);
+    }
+    await base.OnInitializedAsync();
+  }
+  private static void ItemUpdated(MudItemDropInfo<DropItem> dropItem) {
     dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
   }
 
-  private async Task HandleFolderSubmitted(Folder[] folders)
-  {
-    // for each folder in the array, convert it to a DropItem with Name = Folder.Name and Drop zone 1
-    // add the new DropItem to the _items list
-    // call StateHasChanged()
-    foreach (var folder in folders)
-    {
-      _items.Add(new DropItem() { Name = folder.Name, Identifier = "Drop Zone 1" });
-    }
+  private async Task HandleFolderSubmitted(Folder folder) {
+  // if the folder is not already in the list, add it
+    if (_items != null && _items.All(x => x.Name != folder.Name))
+      _items.Add(new DropItem() {
+        Name = folder.Name,
+        Identifier = "Drop Zone 0"
+      });
     await InvokeAsync(StateHasChanged);
   }
 
+  private Task HandleFoldersSubmitted(Folder[]? folders) {
+    if (_items is null)
+      return Task.CompletedTask;
 
-  public class DropItem
-  {
+    _items.RemoveAll(x => x.Identifier == "Drop Zone 0");
+
+    if (folders != null) {
+      _items.AddRange(folders.Where(x => _items.All(y => y.Name != x.Name))
+        .Select(x => new DropItem() {
+          Name = x.Name,
+          Identifier = "Drop Zone 0"
+        }));
+    }
+    return InvokeAsync(StateHasChanged);
+  }
+
+
+  public class DropItem {
     public string? Name { get; init; }
     public string? Identifier { get; set; }
   }

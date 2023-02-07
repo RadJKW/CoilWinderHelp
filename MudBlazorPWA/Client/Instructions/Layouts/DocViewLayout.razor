@@ -1,6 +1,5 @@
 @layout MainLayout
 @inherits LayoutComponentBase
-@inject LayoutService LayoutService
 @inject DocViewService DocViewSettings
 @implements IDisposable
 <CascadingValue Value="this">
@@ -25,7 +24,7 @@
         <AppbarButtons/>
       </MudAppBar>
     }
-    <MudDrawer Class="docview drawer-left z-100"
+    <MudDrawer Class="docview drawer-left"
         @bind-Open="@AppSettings!.DrawerOpen"
         Anchor="Anchor.Left"
         Elevation="1"
@@ -33,7 +32,7 @@
         ClipMode="DrawerClipMode.Always"
         PreserveOpenState="true"
         OpenMiniOnHover="@AppSettings!.DrawerOpenOnHover">
-      <NavMenu/>
+      <NavMenu />
       <MudDivider Class="mx-3" DividerType="DividerType.Middle"/>
       <MudSpacer/>
       <MudDivider Class="px-2 flex-grow-0"/>
@@ -65,19 +64,17 @@
   private AppSettings? AppSettings { get; set; }
 
   protected override async Task OnInitializedAsync() {
-    LayoutService.SetBaseTheme(new());
-    LayoutService.SetDarkMode(true);
     AppSettings = DocViewSettings.AppSettings;
-    DocViewSettings.MajorUpdateOccured += DocViewSettingsOnMajorUpdateOccured!;
+    DocViewSettings.MajorUpdateOccured += DocViewSettings_OnMajorUpdateOccured!;
     await base.OnInitializedAsync();
   }
-  private void DocViewSettingsOnMajorUpdateOccured(object sender, EventArgs e) {
+  private void DocViewSettings_OnMajorUpdateOccured(object sender, EventArgs e) {
     AppSettings = DocViewSettings.AppSettings;
     InvokeAsync(StateHasChanged);
   }
   public void Dispose() {
     if (DocViewSettings != null) {
-      DocViewSettings.MajorUpdateOccured -= DocViewSettingsOnMajorUpdateOccured!;
+      DocViewSettings.MajorUpdateOccured -= DocViewSettings_OnMajorUpdateOccured!;
     }
   }
 

@@ -1,5 +1,9 @@
-<MudNavMenu Margin="Margin.Dense" Bordered="true">
-  <MudPaper Class="ma-2" Elevation="4" Outlined="true">
+@using System.Windows.Input
+<MudNavMenu Margin="Margin.Dense"
+    Bordered="true">
+  <MudPaper Class="ma-2"
+      Elevation="4"
+      Outlined="true">
 
     <MudNavLink Href=""
 
@@ -7,11 +11,18 @@
         Icon="@Icons.Material.Filled.DocumentScanner">
       Index
     </MudNavLink>
-    <MudNavLink Href="stopEmulator"
-        Match="NavLinkMatch.Prefix"
-        Icon="@Icons.Material.Filled.Terminal">
-      StopsDev
-    </MudNavLink>
+    <MudNavGroup Title="StopsDev"
+        Expanded="IsExpanded"
+        Icon="@Icons.Material.Outlined.Terminal">
+      <MudNavLink Href="stopEmulator"
+          Match="NavLinkMatch.Prefix">
+        Emulator
+      </MudNavLink>
+      <MudNavLink Href="stops"
+          Match="NavLinkMatch.Prefix">
+        Editor
+      </MudNavLink>
+    </MudNavGroup>
     <MudNavLink Href="messengerHub"
         Match="NavLinkMatch.Prefix"
         Icon="@Icons.Material.Outlined.Message">
@@ -24,3 +35,12 @@
     </MudNavLink>
   </MudPaper>
 </MudNavMenu>
+
+@code{
+  private bool IsExpanded { get; set; }
+
+  private async Task ToggleExpanded() {
+    IsExpanded = !IsExpanded;
+    await InvokeAsync(StateHasChanged);
+  }
+}

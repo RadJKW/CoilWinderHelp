@@ -51,7 +51,6 @@
     @if (RootFolder is not null) {
       foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
         var hasSubFolders = folder.SubFolders.Any();
-
         switch (hasSubFolders) {
           case true:
             <MudListItemExtended T="Folder"
@@ -62,100 +61,40 @@
             </MudListItemExtended>
             break;
           case false:
-            <div class="can-select folder list-item-container">
-              <MudListItemExtended T="Folder"
-                  Value="folder"
-                  Disabled="@(_selectedFolders.Contains(folder))"
-                  OnClick="AppendSelectedFolders">
-                <div class="custom-list-item grid">
-                  <MudText Typo="Typo.button"
-                      GutterBottom="false"
-                      Inline="true">
-                    @folder.Name
-                  </MudText>
-                  <MudDivider Vertical="true"
-                      FlexItem="false"
-                      DividerType="DividerType.FullWidth"/>
-                  <MudIcon Icon="@Icons.Material.Outlined.AddBox"
-                      Color="_selectedFolders.Contains(folder) ? Color.Inherit : Color.Primary"
-                      Size="Size.Small"/>
-                </div>
-              </MudListItemExtended>
-            </div>
+            _selectedFolders.Add(folder);
             break;
         }
       }
     }
-  </MudListExtended>
-</MudPaper>
-<MudPaper Class="left-column-paper selected-items">
 
-  <MudListExtended T="Folder"
-      @ref="SelectedFoldersList"
-      Clickable="true"
-      DisablePadding="true"
-      MultiSelection="true">
-    <MudListSubheaderExtended T="string"
-        Class="mud-width-full py-1"
-        Sticky="true"
-        SecondaryBackground="true">
-      <div class="custom-list-header grid">
-        <MudText Typo="Typo.button"
-            GutterBottom="false"
-            Inline="true"
-            Align="Align.Justify">
-          Selected Items
-        </MudText>
-        <div class="d-flex justify-center mud-height-full mud-width-full mx-2 py-1">
+    @if (_displayDropZone) {
+      <MudDropZone T="StopEmulator.DropItem"
+          Identifier="Drop Zone 0"
+          Class="flex-grow-1 ma-2 mud-background-gray pa-2 rounded">
+        <ChildContent/>
 
-          <MudDivider Class=""
-              Vertical="true"
-              FlexItem="true"
-              DividerType="DividerType.Middle"/>
-        </div>
-        <MudButtonGroup OverrideStyles="false">
-
-          <MudIconButton Icon="@Icons.Material.Outlined.DeleteForever" Color="Color.Error"
-              Variant="Variant.Outlined"
-              Size="Size.Small"
-              Disabled="@(!(SelectedFoldersList?.SelectedItems?.Any() ?? false))"
-              OnClick="RemoveSelectedFolders">
-          </MudIconButton>
-          <MudIconButton Icon="@Icons.Material.Rounded.Check" Color="Color.Success"
-              Variant="Variant.Outlined"
-             Disabled="@(!(SelectedFoldersList?.SelectedItems?.Any() ?? false))"
-              Size="Size.Small"
-              OnClick="SubmitSelectedFolders">
-          </MudIconButton>
-        </MudButtonGroup>
-      </div>
-    </MudListSubheaderExtended>
-    @if (_selectedFolders.Any()) {
-      foreach (var folder in _selectedFolders.OrderBy(f => f?.Name)) {
-        <MudListItemExtended T="Folder"
-            Icon="@Icons.Material.Filled.Folder"
-            Text="@GetNameWithParent(folder!.Name)"
-            Value="@folder">
-        </MudListItemExtended>
-      }
+      </MudDropZone>
     }
+
   </MudListExtended>
 </MudPaper>
 
 @code {
   [Parameter]
-  public EventCallback<Folder[]> OnFolderSubmitted { get; set; }
-
+  public EventCallback<Folder> OnFolderSubmitted { get; set; }
+  [Parameter]
+  public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
 
   #region Properties
   private readonly List<Folder?> _breadCrumbs = new();
-  private readonly List<Folder?> _selectedFolders = new();
+  private readonly List<Folder> _selectedFolders = new();
   private MudListExtended<Folder>? SelectableFolders { get; set; }
   private MudListExtended<Folder>? SelectedFoldersList { get; set; }
   private MudListItemExtended<Folder?>? SelectedItem { get; set; }
   private Folder? SelectedValue { get; set; }
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
+  private bool _displayDropZone;
   #endregion
 
   protected override async Task OnInitializedAsync() {
@@ -178,7 +117,7 @@
 
     RootFolder = SelectedValue;
     _breadCrumbs.Add(SelectedValue);
-    return InvokeAsync(StateHasChanged);
+    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
   }
   private Task SetFolderAsRoot(Folder newRoot) {
   // remove the newRoot from _breadCrumbs and all following items
@@ -187,44 +126,24 @@
     RootFolder = newRoot;
     _breadCrumbs.Add(newRoot);
     SelectableFolders!.Clear();
-    return InvokeAsync(StateHasChanged);
-  }
-  private Task AppendSelectedFolders() {
-  // check to see if the SelectedItem is already in the list
-    if (SelectedValue == null)
-      return Task.CompletedTask;
-
-    if (_selectedFolders.Contains(SelectedValue))
-      return Task.CompletedTask;
-
-    _selectedFolders.Add(SelectedValue);
-    SelectedValue = null;
-    return InvokeAsync(StateHasChanged);
+    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
   }
   private Task NavigateToFolder(Folder folder) {
     RootFolder = folder;
     _breadCrumbs.Add(folder);
-    return InvokeAsync(StateHasChanged);
+    return SubmitSelectedFolders();
   }
-  private Task RemoveSelectedFolders() {
-  // remove the SelectedFoldersList.SelectedItems from _selectedFolders
-    foreach (var item in SelectedFoldersList!.SelectedItems) {
-      _selectedFolders.Remove(item.Value);
-    }
-    SelectableFolders!.Clear();
-    SelectedFoldersList!.Clear();
-    StateHasChanged();
-    return Task.CompletedTask;
+  private async Task SubmitSelectedFolder() {
+    SelectedValue!.IsDisabled = true;
+    await OnFolderSubmitted.InvokeAsync(SelectedValue);
   }
   private async Task SubmitSelectedFolders() {
-    var folders = Array.Empty<Folder>();
-  // disable the selectedFolders in SelectedFoldersList
-    foreach (var item in SelectedFoldersList!.SelectedItems.ToArray()) {
-      folders = folders.Append(item.Value).ToArray();
-      item.Disabled = true;
-    }
-    await OnFolderSubmitted.InvokeAsync(folders!);
+    _displayDropZone = true;
+    var folders = _selectedFolders.ToArray();
+    _selectedFolders.RemoveAll(_ => true);
+    await OnFoldersSubmitted.InvokeAsync(folders);
   }
+
 
   /// <summary>
   /// Builds a directory tree from a collection of file paths.
