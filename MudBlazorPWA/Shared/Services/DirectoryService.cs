@@ -30,7 +30,7 @@ public class DirectoryService : IDirectoryService
 	private readonly string _rootDirectory;
 
 
-	//TODO: Create an AppSettings class to hold this and other settings/data
+	//TODO: Create an Settings class to hold this and other settings/data
 	private readonly string[] _allowedExtensions = {
 		".mp4", ".pdf", ".webm"
 	};

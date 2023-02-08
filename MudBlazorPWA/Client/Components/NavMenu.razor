@@ -6,13 +6,14 @@
       Outlined="true">
 
     <MudNavLink Href=""
-
         Match="NavLinkMatch.All"
         Icon="@Icons.Material.Filled.DocumentScanner">
       Index
     </MudNavLink>
+
     <MudNavGroup Title="StopsDev"
-        Expanded="IsExpanded"
+        Expanded="DrawerOpen"
+        ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
         Icon="@Icons.Material.Outlined.Terminal">
       <MudNavLink Href="stopEmulator"
           Match="NavLinkMatch.Prefix">
@@ -37,10 +38,13 @@
 </MudNavMenu>
 
 @code{
+  // KEEP this parameter, it's needed for the NavGroup to collapse
+  // when the drawer is closed. Parameters causes a re-render
+  // when the value changes
+  [Parameter]
+  public bool DrawerOpen { get; set; }
+
+  /// Assign to MudNavGroup.Expanded to control the expanded state
   private bool IsExpanded { get; set; }
 
-  private async Task ToggleExpanded() {
-    IsExpanded = !IsExpanded;
-    await InvokeAsync(StateHasChanged);
-  }
 }

@@ -8,63 +8,56 @@
     BorderRadius="6"
     Color="#594ae2ff"
     Hide="false"/>
+
 <MudDropContainer T="DropItem"
     Items="_items"
     ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
     ItemDropped="ItemUpdated"
     Class="stops-container">
-  <ChildContent>
 
+  <ChildContent>
     <div class="stops-left-column ">
 
       <FolderSelector OnFolderSubmitted="HandleFolderSubmitted"
           OnFoldersSubmitted="HandleFoldersSubmitted"/>
-
     </div>
     <div class="stops-right-column">
-
-            @foreach (var windingCode in WindingCodes ?? Enumerable.Empty<WindingCode>()) {
-
-
-
-              <div>
-
-              <MudListSubheaderExtended T="string"
-                    Class="d-flex justify-center align-center flex-row pa-2"
-                    SecondaryBackground="true"
-                    Sticky="true">
-                  <div class="mud-typography-h5">
-                    @windingCode.Name
-                  </div>
-                  <div class="mud-typography-h6">
-                     : ( @windingCode.Code )
-                  </div>
-                </MudListSubheaderExtended>
-                <MudDropZone T="DropItem"
-                    Identifier="@windingCode.Name"
-                    Class="d-flex mud-paper-outlined rounded-2 pa-2 justify-center align-center flex-column overflow-auto">
-                  @*
-                  // if no items are in the list with this identifier, show the drag here text
-                  // otherwise, show the items
-*@
-                  @if (_items is null || _items.All(x => x.Identifier != windingCode.Name)) {
-                    <MudText Typo="Typo.button"
-                        Align="Align.Center"
-                        Class="border-dashed border ">
-                      Drag Here
-                    </MudText>
-                  }
-                </MudDropZone>
-              </div>
-            }
-              </div>
-  </ChildContent>
-  <ItemRenderer>
-
-     <div Class="rounded mud-paper-outlined d-flex align-center justify-center pa-3 ma-2">
-                <MudIcon Icon="@Icons.Custom.Uncategorized.Folder" Color="Color.Inherit" Class="mr-2"/>
-                @context.Name
+      @foreach (var windingCode in WindingCodes ?? Enumerable.Empty<WindingCode>()) {
+        <div>
+          <MudListSubheaderExtended T="string"
+              Class="align-center d-flex flex-row justify-center pa-2"
+              SecondaryBackground="true"
+              Sticky="true">
+            <div class="mud-typography-h5">
+              @windingCode.Name
             </div>
+            <div class="mud-typography-h6">
+              : ( @windingCode.Code )
+            </div>
+          </MudListSubheaderExtended>
+          <MudDropZone T="DropItem"
+              Identifier="@windingCode.Name"
+              Class="align-center d-flex flex-column justify-center mud-paper-outlined overflow-auto pa-2 rounded-2">
+            @if (_items is null || _items.All(x => x.Identifier != windingCode.Name)) {
+              <MudText Typo="Typo.button"
+                  Align="Align.Center"
+                  Class="border border-dashed">
+                Drag Here
+              </MudText>
+            }
+          </MudDropZone>
+        </div>
+      }
+    </div>
+  </ChildContent>
+
+  <ItemRenderer>
+    <div Class="align-center d-flex justify-center ma-2 mud-paper-outlined pa-3 rounded">
+      <MudIcon Icon="@Icons.Custom.Uncategorized.Folder"
+          Color="Color.Inherit"
+          Class="mr-2"/>
+      @context.Name
+    </div>
   </ItemRenderer>
 
 </MudDropContainer>
@@ -91,7 +84,6 @@
   }
 
   private async Task HandleFolderSubmitted(Folder folder) {
-  // if the folder is not already in the list, add it
     if (_items != null && _items.All(x => x.Name != folder.Name))
       _items.Add(new DropItem() {
         Name = folder.Name,
