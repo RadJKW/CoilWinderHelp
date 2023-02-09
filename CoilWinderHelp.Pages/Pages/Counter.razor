@@ -1,0 +1,18 @@
+@page "/counter"
+@layout DocViewLayout
+
+
+<PageTitle>Counter</PageTitle>
+
+
+@code {
+
+    [CascadingParameter]
+    public required DocViewLayout Layout { get; set; }
+
+
+    // protected override void OnInitialized() {
+    //     Layout.PageTitle = "Counter";
+    // }
+
+}

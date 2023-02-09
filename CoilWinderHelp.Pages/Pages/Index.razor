@@ -1,0 +1,55 @@
+﻿@page "/"
+@layout DocViewLayout
+@implements IDisposable
+
+<div
+      class="index-grid">
+    <div
+        class="video-content">
+      <MudSkeleton
+          SkeletonType="SkeletonType.Rectangle"
+          Animation="Animation.Pulse"
+          Height="100%"
+          Width="100%">
+      </MudSkeleton>
+    </div>
+    <div
+        class="py-4 px-4 video-footer">
+      <MudSkeleton
+          Animation="Animation.Wave"
+          SkeletonType="SkeletonType.Rectangle"
+          Height="100%"
+          Width="100%">
+      </MudSkeleton>
+    </div>
+  </div>
+
+
+@code{
+  private bool _drawerOpen;
+  private bool _drawerRightOpen;
+
+
+  [CascadingParameter]
+  public DocViewLayout? DocViewLayout { get; set; }
+
+
+  protected override Task OnParametersSetAsync() {
+    DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;
+    DocViewLayout!.ToggleDrawerRightEvent += ToggleDrawerRight;
+    return base.OnParametersSetAsync();
+  }
+
+  private void ToggleDrawer() {
+    _drawerOpen = !_drawerOpen;
+  }
+
+  private void ToggleDrawerRight() {
+    _drawerRightOpen = !_drawerRightOpen;
+  }
+
+  public void Dispose() {
+    DocViewLayout!.ToggleDrawerEvent -= ToggleDrawer;
+    DocViewLayout!.ToggleDrawerRightEvent -= ToggleDrawerRight;
+  }
+}

@@ -1,0 +1,86 @@
+﻿@page "/WindingPractices"
+@layout MainLayout
+<MudLayout>
+<DirAppBar
+    LeftButtonClicked="ToggleStartDrawer"
+    RightButtonClicked="ToggleRightSidebar">
+  <AppbarButtons/>
+</DirAppBar>
+<MudGrid
+    Class="grid-container"
+    Justify="Justify.Center"
+    Spacing="0">
+  @if (_leftSidebar) {
+    <MudItem
+        Class="left sidebar-column"
+        xs="12"
+        sm="1">
+      <DocViewSidebar
+          DrawerClass="sidebar-left"
+          Anchor="Anchor.Right"
+          HeaderText="User'sName">
+        <SidebarDirectoryTree/>
+      </DocViewSidebar>
+    </MudItem>
+  }
+  <MudItem
+      @ref="_contentItem"
+      Class="@ContentItemClass"
+      xs="12"
+      sm="10">
+    <DocViewMedia/>
+
+  </MudItem>
+  @if (_rightSidebar) {
+
+    <MudItem
+        Class="right sidebar-column"
+        xs="12"
+        sm="1">
+      <DocViewSidebar
+          DrawerClass="sidebar-right"
+          HeaderText="WindingLogs"
+          Anchor="Anchor.Right">
+        <NavMenu/>
+      </DocViewSidebar>
+    </MudItem>
+  }
+</MudGrid>
+</MudLayout>
+
+@code {
+
+  //bool _showAppbar = true;
+  //bool _appbarBottom;
+  bool _leftSidebar = true;
+  bool _rightSidebar = true;
+  string ContentItemClass { get; set; } = "content-item";
+  MudItem? _contentItem;
+
+  Task ToggleStartDrawer() {
+    _leftSidebar = !_leftSidebar;
+    ResizeContentItem();
+    StateHasChanged();
+    return Task.CompletedTask;
+  }
+  Task ToggleRightSidebar() {
+    _rightSidebar = !_rightSidebar;
+  // append the class "content-expand" to the MudItem
+    ResizeContentItem();
+    StateHasChanged();
+    return Task.CompletedTask;
+  }
+
+  void ResizeContentItem() {
+    ContentItemClass = (_leftSidebar, _rightSidebar) switch
+    {
+      (true, true) => "content-item",
+      (true, false) => "content-item content-expand",
+      (false, true) => "content-item content-expand",
+      (false, false) => "content-item content-full-expand"
+
+      };
+  }
+
+
+}

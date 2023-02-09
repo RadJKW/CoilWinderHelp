@@ -1,0 +1,227 @@
+@inject HubClientService DirectoryHub
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IDisposable
+
+<div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start">
+
+  @foreach (var breadcrumb in _breadCrumbs) {
+    <MudChip Text="@breadcrumb!.Name"
+        Icon="@Icons.Material.Outlined.Folder"
+        Size="Size.Small"
+        Label="true"
+        OnClick="() => SetFolderAsRoot(breadcrumb)">
+    </MudChip>
+    <MudText Typo="Typo.h5"
+        GutterBottom="false"
+        Inline="false">
+      /
+    </MudText>
+  }
+  <MudTooltip Text="Select Folder">
+
+    <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
+        AnchorOrigin="Origin.BottomCenter"
+        TransformOrigin="Origin.TopLeft">
+      @foreach (var folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
+        <MudMenuItem Icon="@Icons.Material.Filled.Folder"
+            OnClick="() => NavigateToFolder(folder)">
+          @folder.Name
+        </MudMenuItem>
+      }
+    </MudMenu>
+  </MudTooltip>
+</div>
+
+<MudPaper Class="left-column-paper mud-height-full">
+
+  <MudListExtended T="Folder"
+      @ref="SelectableFolders"
+      Clickable="true"
+      MultiSelection="false"
+      DisablePadding="true"
+      @bind-SelectedItem="SelectedItem"
+      @bind-SelectedValue="SelectedValue">
+    <MudListSubheaderExtended T="Folder"
+        Class="d-flex justify-center mud-width-full py-2"
+        Sticky="true"
+        SecondaryBackground="true">
+      <MudText Typo="Typo.button">@RootFolder?.Name</MudText>
+    </MudListSubheaderExtended>
+
+    @if (RootFolder is not null) {
+      foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
+        var hasSubFolders = folder.SubFolders.Any();
+        switch (hasSubFolders) {
+          case true:
+            <MudListItemExtended T="Folder"
+                Icon="@Icons.Material.Filled.Folder"
+                Text="@folder.Name"
+                Value="@folder"
+                OnClick="SetFolderAsRoot">
+            </MudListItemExtended>
+            break;
+          case false:
+            _selectedFolders.Add(folder);
+            break;
+        }
+      }
+    }
+
+    @if (_displayDropZone) {
+      <MudDropZone T="StopEmulator.DropItem"
+          Identifier="Drop Zone 0"
+          Class="flex-grow-1 ma-2 mud-background-gray pa-2 rounded">
+        <ChildContent/>
+
+      </MudDropZone>
+    }
+
+  </MudListExtended>
+</MudPaper>
+
+@code {
+  [Parameter]
+  public EventCallback<Folder> OnFolderSubmitted { get; set; }
+  [Parameter]
+  public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
+
+  #region Properties
+  private readonly List<Folder?> _breadCrumbs = new();
+  private readonly List<Folder> _selectedFolders = new();
+  private MudListExtended<Folder>? SelectableFolders { get; set; }
+  private MudListExtended<Folder>? SelectedFoldersList { get; set; }
+  private MudListItemExtended<Folder?>? SelectedItem { get; set; }
+  private Folder? SelectedValue { get; set; }
+  private Folder? RootFolder { get; set; }
+  private string[]? _folders;
+  private bool _displayDropZone;
+  #endregion
+
+  protected override async Task OnInitializedAsync() {
+    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
+    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", null);
+  }
+  private void OnReceiveAllFolders(string[] folders) {
+    _folders = folders;
+    RootFolder = BuildDirectoryTree(_folders);
+    _breadCrumbs.Add(RootFolder);
+    InvokeAsync(StateHasChanged);
+  }
+  public void Dispose() {
+    DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
+  }
+
+  private Task SetFolderAsRoot() {
+    if (SelectedValue == null || !SelectedValue.SubFolders.Any())
+      return Task.CompletedTask;
+
+    RootFolder = SelectedValue;
+    _breadCrumbs.Add(SelectedValue);
+    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
+  }
+  private Task SetFolderAsRoot(Folder newRoot) {
+  // remove the newRoot from _breadCrumbs and all following items
+    var index = _breadCrumbs.IndexOf(newRoot);
+    _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
+    RootFolder = newRoot;
+    _breadCrumbs.Add(newRoot);
+    SelectableFolders!.Clear();
+    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
+  }
+  private Task NavigateToFolder(Folder folder) {
+    RootFolder = folder;
+    _breadCrumbs.Add(folder);
+    return SubmitSelectedFolders();
+  }
+  private async Task SubmitSelectedFolder() {
+    SelectedValue!.IsDisabled = true;
+    await OnFolderSubmitted.InvokeAsync(SelectedValue);
+  }
+  private async Task SubmitSelectedFolders() {
+    _displayDropZone = true;
+    var folders = _selectedFolders.ToArray();
+    _selectedFolders.RemoveAll(_ => true);
+    await OnFoldersSubmitted.InvokeAsync(folders);
+  }
+
+
+  /// <summary>
+  /// Builds a directory tree from a collection of file paths.
+  /// </summary>
+  /// <param name="paths">The file paths to use.</param>
+  /// <returns>A directory tree.</returns>
+  private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
+  // Check for empty paths
+    var enumerable = paths.ToList();
+    if (!enumerable.Any()) {
+      return null;
+    }
+
+  // Find the common part of the paths
+    var firstPath = enumerable.First();
+    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
+    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
+    var commonParts = FindCommonParts(splitPaths);
+
+  // Set the root of the tree to the common part
+    var root = new Folder(splitPaths[0][commonParts], string.Join("", splitPaths[0].Take(commonParts + 1)));
+
+  // Add the remaining parts to the tree
+    foreach (var splitPath in splitPaths) {
+      AddRemainingParts(root, splitPath, commonParts);
+    }
+    return root;
+  }
+
+  /// <summary>
+  /// Finds the common parts of a collection of split paths.
+  /// </summary>
+  /// <param name="splitPaths">The collection of split paths.</param>
+  /// <returns>The number of common parts.</returns>
+  private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
+    var commonParts = int.MaxValue;
+    var stringsEnumerable = splitPaths.ToList();
+    for (var i = 0; i < stringsEnumerable.First().Length; i++) {
+      var currentPart = stringsEnumerable.First()[i];
+      var count = 1 + stringsEnumerable.Skip(1)
+        .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
+        .Count();
+      if (count == stringsEnumerable.Count()) {
+        commonParts = i;
+      } else {
+        break;
+      }
+    }
+    return commonParts;
+  }
+
+  /// <summary>
+  /// Adds the remaining parts of a split path to the directory tree.
+  /// </summary>
+  /// <param name="root">The root of the directory tree.</param>
+  /// <param name="splitPath">The split path.</param>
+  /// <param name="commonParts">The number of common parts.</param>
+  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
+    var current = root;
+    for (var i = commonParts + 1; i < splitPath.Count; i++) {
+      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+      if (next == null) {
+        next = new Folder(splitPath[i], current?.Path + splitPath[i]);
+        current?.SubFolders.Add(next);
+      }
+      current = next;
+    }
+  }
+
+  private string GetNameWithParent(string folderName) {
+    var path = _folders?.FirstOrDefault(f => f.EndsWith(folderName));
+    if (path == null)
+      return folderName;
+
+    var splitChar = path.Contains('\\') ? '\\' : '/';
+    var splitPath = path.Split(splitChar);
+    var parent = splitPath[^2];
+    return $"{parent}{splitChar}{folderName}";
+  }
+
+}

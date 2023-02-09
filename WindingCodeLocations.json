@@ -1,0 +1,66 @@
+[
+  {
+    "STOP": "AD",
+    "LOCATION": "Stop Instructions\\Annular Duct"
+  },
+  {
+    "LOCATION": "Stop Instructions\\Crepe Paper",
+    "STOP": "CX"
+  },
+  {
+    "STOP": "DE",
+    "LOCATION": "Setup\\01.Computer OPS"
+  },
+  {
+    "STOP": "DS",
+    "LOCATION": "Stop Instructions\\End Duct"
+  },
+  {
+    "STOP": "HV",
+    "LOCATION": "Overview\\High Voltage Winding"
+  },
+  {
+    "STOP": "HVA",
+    "LOCATION": "Overview\\High Voltage Winding\\Aluminum Wire"
+  },
+  {
+    "STOP": "HVC",
+    "LOCATION": "Overview\\High Voltage Winding\\Copper Wire"
+  },
+  {
+    "STOP": "LE",
+    "LOCATION": "Stop Instructions\\Layer End"
+  },
+  {
+    "STOP": "LV",
+    "LOCATION": "Overview\\Low Voltage Winding"
+  },
+  {
+    "STOP": "NC",
+    "LOCATION": "Setup"
+  },
+  {
+    "STOP": "PA",
+    "LOCATION": "Overview\\Barriers"
+  },
+  {
+    "STOP": "PX",
+    "LOCATION": "Stop Instructions\\Extension Paper"
+  },
+  {
+    "STOP": "TB",
+    "LOCATION": "Stop Instructions\\Section Break"
+  },
+  {
+    "STOP": "TS",
+    "LOCATION": "Stop Instructions\\Tap Stop"
+  },
+  {
+    "STOP": "TT",
+    "LOCATION": "Stop Instructions\\Total Turn"
+  },
+  {
+    "STOP": "XP",
+    "LOCATION": "Stop Instructions\\Extra Paper"
+  }
+]

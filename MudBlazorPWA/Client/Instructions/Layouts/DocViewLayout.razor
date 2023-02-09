@@ -1,0 +1,92 @@
+@layout MainLayout
+@inherits LayoutComponentBase
+@implements IAsyncDisposable
+@inject DocViewService DocViewSettings
+@inject IJSRuntime JS
+<CascadingValue Value="this">
+  <MudLayout>
+    @if (DocViewSettings.Settings.AppBarIsVisible) {
+
+      <MudAppBar Elevation="5"
+          Dense="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+            Color="Color.Inherit"
+            Edge="Edge.Start"
+            OnClick="@(ToggleDrawer)"/>
+        <MudSpacer/>
+        @*display the current PAGE TITLE *@
+
+        <MudText Typo="Typo.h6"
+            Style="text-wrap: none">
+          @(PageTitle)
+        </MudText>
+
+        <MudSpacer/>
+        <AppbarButtons/>
+      </MudAppBar>
+    }
+    <MudDrawer Class="docview drawer-left"
+        @bind-Open="DocViewSettings.Settings.DrawerOpen"
+        Anchor="Anchor.Left"
+        Elevation="1"
+        Variant="@DrawerVariant.Mini"
+        ClipMode="DrawerClipMode.Always"
+        PreserveOpenState="true"
+        OpenMiniOnHover="@DocViewSettings.Settings.DrawerOpenOnHover">
+      <NavMenu DrawerOpen="@DocViewSettings.Settings.DrawerOpen"/>
+      <MudDivider Class="mx-3" DividerType="DividerType.Middle"/>
+      <MudSpacer/>
+      <MudDivider Class="px-2 flex-grow-0"/>
+      <AutoDocSettings/>
+    </MudDrawer>
+    <MudMainContent Class="docview main-content">
+      <MudContainer Class="docview main-container"
+          MaxWidth="MaxWidth.ExtraExtraLarge">
+        @Body
+      </MudContainer>
+    </MudMainContent>
+
+  </MudLayout>
+</CascadingValue>
+
+@code {
+  public event Action ToggleDrawerEvent = delegate { };
+  private IJSObjectReference _module = default!;
+
+  protected override async Task OnInitializedAsync() {
+    await DocViewSettings.LoadSettingsAsync();
+    DocViewSettings.MajorUpdateOccured += DocViewSettings_OnMajorUpdateOccured;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      _module = await
+        JS.InvokeAsync<IJSObjectReference>("import",
+          "./Instructions/Layouts/DocViewLayout.razor.js");
+    }
+  }
+  protected virtual async void DocViewSettings_OnMajorUpdateOccured() {
+    // if the AppDrawer setting changed from true to false, we need to await _module.InvokeVoidAsync("removeAppBar");
+    // if the AppDrawer setting changed from false to true, we need to await _module.InvokeVoidAsync("restoreAppBar");
+
+    if (DocViewSettings.Settings.AppBarIsVisible) {
+      await _module.InvokeVoidAsync("restoreAppBar");
+    } else {
+      await _module.InvokeVoidAsync("removeAppBar");
+    }
+    await InvokeAsync(StateHasChanged);
+  }
+
+
+  private string PageTitle { get; set; } = "MudBlazorTest";
+
+  void ToggleDrawer() {
+    DocViewSettings.Settings.DrawerOpen = !DocViewSettings.Settings.DrawerOpen;
+    ToggleDrawerEvent.Invoke();
+  }
+  async ValueTask IAsyncDisposable.DisposeAsync() {
+    DocViewSettings.SaveSettingsAsync();
+    DocViewSettings.MajorUpdateOccured -= DocViewSettings_OnMajorUpdateOccured;
+    await _module.DisposeAsync();
+  }
+}

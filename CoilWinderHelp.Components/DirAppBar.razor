@@ -1,0 +1,49 @@
+﻿
+<MudAppBar
+    Class="appbar-top"
+    Bottom="false"
+    Fixed="false"
+    Elevation="5"
+    Dense="true"
+    ToolBarClass="toolbar-top">
+  <MudButton
+      OnClick="() => HandleClick(Button.Left)"
+      StartIcon="@Icons.Material.Rounded.Menu">
+  </MudButton>
+    <MudSpacer/>
+    @ChildContent
+  <MudButton
+      OnClick="() => HandleClick(Button.Right)"
+      StartIcon="@Icons.Material.Rounded.Menu">
+  </MudButton>
+</MudAppBar>
+@code {
+
+    private enum Button {
+        Left,
+        Right
+    }
+
+    [Parameter]
+    public EventCallback LeftButtonClicked { get; set; }
+
+    [Parameter]
+    public EventCallback RightButtonClicked { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private async Task HandleClick(Button button)
+    {
+        if (button == Button.Left)
+        {
+            await LeftButtonClicked.InvokeAsync();
+        }
+        else
+        {
+            await RightButtonClicked.InvokeAsync();
+        }
+    }
+
+
+}

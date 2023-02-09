@@ -1,0 +1,50 @@
+@using System.Windows.Input
+<MudNavMenu Margin="Margin.Dense"
+    Bordered="true">
+  <MudPaper Class="ma-2"
+      Elevation="4"
+      Outlined="true">
+
+    <MudNavLink Href=""
+        Match="NavLinkMatch.All"
+        Icon="@Icons.Material.Filled.DocumentScanner">
+      Index
+    </MudNavLink>
+
+    <MudNavGroup Title="StopsDev"
+        Expanded="DrawerOpen"
+        ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
+        Icon="@Icons.Material.Outlined.Terminal">
+      <MudNavLink Href="stopEmulator"
+          Match="NavLinkMatch.Prefix">
+        Emulator
+      </MudNavLink>
+      <MudNavLink Href="stops"
+          Match="NavLinkMatch.Prefix">
+        Editor
+      </MudNavLink>
+    </MudNavGroup>
+    <MudNavLink Href="messengerHub"
+        Match="NavLinkMatch.Prefix"
+        Icon="@Icons.Material.Outlined.Message">
+      Chat
+    </MudNavLink>
+    <MudNavLink Href="instructions-viewer"
+        Match="NavLinkMatch.Prefix"
+        Icon="@Icons.Material.Outlined.FolderShared">
+      Instructions
+    </MudNavLink>
+  </MudPaper>
+</MudNavMenu>
+
+@code{
+  // KEEP this parameter, it's needed for the NavGroup to collapse
+  // when the drawer is closed. Parameters causes a re-render
+  // when the value changes
+  [Parameter]
+  public bool DrawerOpen { get; set; }
+
+  /// Assign to MudNavGroup.Expanded to control the expanded state
+  private bool IsExpanded { get; set; }
+
+}

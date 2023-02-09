@@ -1,0 +1,249 @@
+<MudBadge
+    Color="Color.Info"
+    Dot="true"
+    Overlap="true"
+    Visible="true">
+  <MudMenu
+      Icon="@Icons.Material.Outlined.Checklist"
+      Color="Color.Inherit"
+      AnchorOrigin="Origin.BottomCenter"
+      TransformOrigin="Origin.TopCenter"
+      PopoverClass="todo-menu"
+      ListClass=" pa-2 docs-menu-list">
+    <MudGrid
+        Spacing="0">
+      <MudItem
+          xs="8">
+        <div
+            class="align-center d-flex justify-start ml-8">
+          <MudText
+              Typo="Typo.body1">
+            TODOs
+          </MudText>
+
+        </div>
+      </MudItem>
+      <MudItem
+          Class="mt-n2"
+          xs="4">
+        <MudText
+            Style="font-size: 0.65rem"
+            Typo="Typo.caption">
+          QTY: 21
+        </MudText>
+      </MudItem>
+    </MudGrid>
+
+    <MudSpacer/>
+
+    <MudDivider
+        Class="mb-2 mt-1 mx-n2"
+        DividerType="DividerType.FullWidth"/>
+    <div
+        class="mx-6">
+
+      @foreach (var item in _todoList!) {
+        // if this is not the first item, add a divider
+        if (item != _todoList.First()) {
+          <MudDivider
+              Class="my-2"/>
+        }
+        <div
+            class="item px-4 py-0 rounded todo-menu">
+
+          <MudCheckBox
+              T="bool"
+              Dense="true"
+              bind-Checked="item.Complete">
+          </MudCheckBox>
+          <MudDivider
+              Light="true"
+              FlexItem="true"
+              DividerType="DividerType.FullWidth"
+              Vertical="true"/>
+          <MudText
+              Typo="Typo.body2">
+            @item.Title
+          </MudText>
+        </div>
+      }
+    </div>
+  </MudMenu>
+</MudBadge>
+
+@code{
+
+  private class TodoItem {
+
+    public TodoItem(string title, string description, bool complete) {
+      Title = title;
+      Description = description;
+      Complete = complete;
+    }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public bool Complete { get; set; }
+
+  }
+
+  private List<TodoItem>? _todoList;
+
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      _todoList = GetTodoList();
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  private static List<TodoItem> GetTodoList() {
+
+    var todoList = new List<TodoItem>() {
+      new(
+        title: "AdminPage",
+        description: "Add a new page for Admin Stuff",
+        complete: false),
+      new(
+        title: " Raspberry Pi",
+        description: "Implement signalR on pi",
+        complete: false),
+    };
+
+    return todoList;
+  }
+
+
+  private void ToggleItemComplete(TodoItem item) {
+    item.Complete = !item.Complete;
+  }
+}
+
+@*
+<MudBadge
+    Color="Color.Info"
+    Dot="true"
+    Overlap="true"
+    Visible="true">
+  <MudIconButton
+      OnClick="TogglePopover"
+      Icon="@Icons.Material.Filled.List">
+  </MudIconButton>
+
+
+<MudPopover
+    Class="todo-menu"
+    Open="_popoverOpen"
+    Fixed="false"
+    Paper="true"
+    OverflowBehavior="OverflowBehavior.FlipNever"
+    Duration="250"
+    Delay="0"
+    AnchorOrigin="Origin.BottomCenter"
+    TransformOrigin="Origin.TopCenter">
+  <MudGrid
+      Spacing="0">
+    <MudItem
+        xs="8">
+      <div
+          class="align-center d-flex justify-start ml-8">
+        <MudText
+            Typo="Typo.body1">
+          TODOs
+        </MudText>
+
+      </div>
+    </MudItem>
+    <MudItem
+        Class="mt-n1"
+        xs="4">
+      <MudText
+          Style="font-size: 0.7rem"
+          Typo="Typo.caption">
+        QTY: 21
+      </MudText>
+    </MudItem>
+  </MudGrid>
+
+  <MudSpacer/>
+
+  <MudDivider
+      Class="mb-2 mt-1 mx-n2"
+      DividerType="DividerType.FullWidth"/>
+  <div
+      class="mx-6">
+
+    @foreach (var item in _todoList!) {
+      // if this is not the first item, add a divider
+      if (item != _todoList.First()) {
+        <MudDivider
+            Class="my-2"/>
+      }
+      <div
+          class="item px-4 py-0 rounded todo-menu">
+
+        <MudCheckBox
+            T="bool"
+            bind-Checked="item.Complete">
+          <MudText
+              Typo="Typo.body2">
+            @item.Title
+          </MudText>
+        </MudCheckBox>
+      </div>
+    }
+  </div>
+</MudPopover>
+</MudBadge>
+
+@code{
+  private List<TodoItem>? _todoList;
+  private bool _popoverOpen;
+
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      _todoList = GetTodoList();
+      await InvokeAsync(StateHasChanged);
+    }
+  }
+
+  private static List<TodoItem> GetTodoList() {
+
+    var todoList = new List<TodoItem>() {
+      new(
+        title: "AdminPage",
+        description: "Add a new page for Admin Stuff",
+        complete: false),
+      new(
+        title: " Raspberry Pi",
+        description: "Implement signalR on pi",
+        complete: false),
+    };
+
+    return todoList;
+  }
+
+
+  private void ToggleItemComplete(TodoItem item) {
+    item.Complete = !item.Complete;
+  }
+  private void TogglePopover() {
+    _popoverOpen = !_popoverOpen;
+  }
+
+  private class TodoItem {
+
+    public TodoItem(string title, string description, bool complete) {
+      Title = title;
+      Description = description;
+      Complete = complete;
+    }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public bool Complete { get; set; }
+
+  }
+
+}
+
+*@

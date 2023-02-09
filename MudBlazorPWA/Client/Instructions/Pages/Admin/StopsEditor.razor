@@ -1,0 +1,59 @@
+﻿@page "/stops"
+@using MudBlazor.Extensions
+@layout DocViewLayout
+@implements IDisposable
+
+@inject HubClientService DirectoryHub
+
+<div class="stops-container">
+
+  <div class="stops-left-column ">
+
+    <MudPaper Class="left-column-paper mud-background-gray">
+
+      <SidebarDirectoryTree/>
+      <MudText>Selected Folder: </MudText>
+      <MudText>@(SelectedValue.As<Folder>().Name)</MudText>
+    </MudPaper>
+
+  </div>
+  <div class="stops-right-column">
+
+    <MudPaper Class="mud-background-gray right-column-paper">
+
+      <MudList>
+        @if (_folders is not null) {
+          foreach (var folder in _folders.OrderBy(f => f)) {
+            <MudListItem Icon="@Icons.Material.Filled.Folder"
+                Text="@folder"/>
+          }
+        }
+
+      </MudList>
+    </MudPaper>
+  </div>
+</div>
+
+@code{
+
+  public class Folder {
+    public string? Name { get; set; }
+    public string? Path { get; set; }
+    public List<Folder> SubFolders { get; set; } = new();
+  }
+  private object SelectedValue { get; set; } = new Folder();
+  private string[]? _folders;
+  protected override async Task OnInitializedAsync() {
+    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
+    await DirectoryHub.InvokeAsync("GetAllFolders", null);
+  }
+
+  private void OnReceiveAllFolders(string[] folders) {
+    _folders = folders;
+    StateHasChanged();
+  }
+
+  public void Dispose() {
+    DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
+  }
+}

@@ -1,0 +1,186 @@
+@page "/messengerHub"
+@using Microsoft.AspNetCore.SignalR.Client
+@layout BaseLayout
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<MudGrid
+    Class="align-center align-stretch d-flex justify-center pa-6">
+
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="mud-height-full pa-4">
+      <MudGrid>
+        <MudItem
+            xs="12">
+          <MudText
+              Class="mud-width-full"
+              Typo="Typo.subtitle2">
+            "Directory:"
+          </MudText>
+
+        </MudItem>
+        @foreach (var message in _messages) {
+          <MudItem
+              xs="2"
+              Class="d-flex justify-end pl-2 pr-1">
+
+            <MudIcon
+                Icon="@Icons.Material.Filled.ArrowForward"/>
+            :
+
+          </MudItem>
+
+          <MudItem
+              xs="10"
+              Class="d-flex justify-start px-0">
+            <MudText
+                Class=""
+                Color="@Color.Error">
+              @message
+            </MudText>
+          </MudItem>
+        }
+        <MudDivider/>
+
+      </MudGrid>
+    </MudPaper>
+  </MudItem>
+</MudGrid>
+
+<MudGrid
+    Class="align-center align-stretch d-flex justify-center pt-6 px-6">
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="pa-4">
+      <MudList
+          Clickable="true">
+        <MudListSubheader
+            Class="align-center d-flex flex-nowrap flex-row">
+          <MudText
+              Class="flex-grow-1"
+              Typo="Typo.h6">
+            Files
+          </MudText>
+          <div
+              class="align-center d-flex gap-2 justify-end pt-4 px-4">
+            <MudButton
+                OnClick="GoBack"
+                Variant="Variant.Outlined"
+                Color="Color.Success"
+                Disabled="!IsConnected">
+              Back
+            </MudButton>
+            <MudButton
+                OnClick="GetFolderContent"
+                Variant="Variant.Outlined"
+                Color="Color.Success"
+                Disabled="!IsConnected">
+              Update Directory
+            </MudButton>
+          </div>
+        </MudListSubheader>
+        <MudDivider/>
+        @if (Files is not null) {
+          foreach (var file in Files) {
+
+            <MudListItem>
+              @file
+            </MudListItem>
+          }
+        }
+      </MudList>
+    </MudPaper>
+  </MudItem>
+  <MudItem
+      xs="6">
+    <MudPaper
+        Class="pa-4">
+
+      <MudList
+          Clickable="true">
+        <MudListSubheader>
+          <MudText
+              Typo="Typo.h6">
+            Folders
+          </MudText>
+        </MudListSubheader>
+        <MudDivider/>
+        @if (Folders is not null) {
+
+          foreach (var folder in Folders.ToList()) {
+            <MudListItem
+                OnClick="async () => await GoToDirectory(folder)">
+              @folder
+            </MudListItem>
+          }
+        }
+      </MudList>
+    </MudPaper>
+  </MudItem>
+</MudGrid>
+
+@code {
+  private HubConnection? _directoryHub;
+  private readonly List<string> _messages = new();
+  private string? CurrentDirectory { get; set; }
+  private List<string>? Folders { get; set; }
+  private List<string>? Files { get; set; }
+
+  protected override async Task OnInitializedAsync() {
+
+    await InitializeDirectoryHub();
+
+  }
+
+
+  private async Task InitializeDirectoryHub() {
+    _directoryHub = new HubConnectionBuilder()
+      .WithAutomaticReconnect()
+      .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
+      .Build();
+
+    _directoryHub.On<string, string[]?, string[]?>("ReceiveFolderContent", (_, files, folders) => {
+  //since files and folders are an array, we need to convert them to the Files and Folders lists
+      Files = files?.ToList();
+      Folders = folders?.ToList();
+      StateHasChanged();
+    });
+
+    _directoryHub.On<string>("DirectoryChanged", async (path) => {
+      CurrentDirectory = path;
+      _messages.Add($"Current Directory : {CurrentDirectory}");
+      await _directoryHub.SendAsync("GetFolderContent", CurrentDirectory);
+    });
+    await _directoryHub.StartAsync();
+
+    // await _directoryHub.SendAsync("SetCurrentDirectory", null);
+
+  }
+
+  private async Task GetFolderContent() {
+    if (_directoryHub is not null)
+      await _directoryHub.SendAsync("GetFolderContent", CurrentDirectory);
+  }
+
+  private bool IsConnected =>
+    _directoryHub?.State == HubConnectionState.Connected;
+
+  public async ValueTask DisposeAsync() {
+    if (_directoryHub is not null) {
+      await _directoryHub.DisposeAsync();
+    }
+  }
+  private async Task GoToDirectory(string folder) {
+    await _directoryHub!.SendAsync("SetCurrentDirectory", folder);
+  }
+
+  private async Task GoBack() {
+  // to get the parent directory, we need to remove the last folder from the path
+    await _directoryHub!.SendAsync("GoBack", CurrentDirectory);
+  }
+
+
+}

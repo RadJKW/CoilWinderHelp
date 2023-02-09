@@ -1,0 +1,125 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime
+@inject IHttpClientFactory ClientFactory
+@implements IAsyncDisposable
+<div
+    class="main-content">
+
+  <MudPage
+      Class="main-page"
+      FullScreen="FullScreen">
+    <div
+        class="video-player">
+      @if (CurrentFile != null && IsFileVisible) {
+        if (MediaRenderFragment is null) {
+          <MudSkeleton
+              SkeletonType="SkeletonType.Rectangle"
+              Height="100%"
+              Animation="Animation.Wave">
+          </MudSkeleton>
+        }
+        else {
+          @MediaRenderFragment
+        }
+      }
+    </div>
+
+    <div
+        class="align-center d-flex justify-center main-video-footer">
+      @* TODO: move footer to component*@
+      @* TODO: Implement DataBase Lookup Table to find current Media References  *@
+      <MudGrid
+          Class="video-footer-content"
+          Spacing="0"
+          Justify="Justify.SpaceEvenly">
+        <MudItem>
+          <div
+              style="height:100px; width: 50px">
+          </div>
+        </MudItem>
+        <MudItem>
+          <div
+              class="align-center d-flex justify-center"
+              style="height: 100px; width: 300px">
+            <MudText
+                Typo="Typo.h4">
+              REF-CONTENT
+            </MudText>
+          </div>
+        </MudItem>
+        <MudItem>
+          <div
+              style="height:100px; width: 50px">
+          </div>
+
+        </MudItem>
+      </MudGrid>
+
+    </div>
+
+  </MudPage>
+
+</div>
+
+@code {
+    private const FullScreen FullScreen = MudExtensions.Enums.FullScreen.Full;
+
+  private string? CurrentFile { get; set; }
+  private bool IsFileVisible { get; set; }
+
+  private IJSObjectReference? _moduleJs = default!;
+
+  private HttpClient? FileServer { get; set; }
+  private HubConnection? _directoryHub;
+  private RenderFragment? PdfViewer { get; set; }
+  private RenderFragment? MediaRenderFragment { get; set; }
+
+
+  protected override async Task OnInitializedAsync() {
+    FileServer = ClientFactory.CreateClient("PwaServer");
+    await InitializeDirectoryHub();
+
+  }
+
+  /*protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      _moduleJs = await JsRuntime
+        .InvokeAsync<IJSObjectReference>(
+          "import", "./_content/CoilWinderHelp.Components/DocViewMedia.razor.js");
+      if (_moduleJs != null) {
+        await _moduleJs.InvokeVoidAsync("init", "directory-tree-list");
+  /#1#/ not changing the colors
+        await _moduleJs.InvokeVoidAsync("setBackgroundColor");#1#
+      }
+    }
+  }*/
+
+  private async Task InitializeDirectoryHub() {
+    _directoryHub = new HubConnectionBuilder()
+      .WithUrl(Navigation.ToAbsoluteUri("/directoryHub"))
+      .Build();
+    _directoryHub.On<string>("FileSelected", ViewFile);
+    await _directoryHub.StartAsync();
+  }
+  private void ViewFile(string file) {
+    // Set the current file and visibility
+    CurrentFile = file;
+    IsFileVisible = true;
+
+    var fileUrl = $"{FileServer!.BaseAddress}files/{CurrentFile}";
+    MediaRenderFragment = @<MediaViewer
+                       Src="@fileUrl">
+                  </MediaViewer>;
+    InvokeAsync(StateHasChanged);
+
+  }
+
+  public async ValueTask DisposeAsync() {
+    if (_directoryHub is not null)
+      await _directoryHub.DisposeAsync();
+
+    if (_moduleJs is not null)
+      await _moduleJs.DisposeAsync();
+  }
+}

@@ -1,0 +1,77 @@
+@inherits LayoutComponentBase
+@layout MainLayout
+@inject LayoutService LayoutService
+
+<MudLayout>
+  <MudAppBar
+      Elevation="0"
+      Dense="true"
+      Fixed="false">
+    <MudIconButton
+        Color="Color.Inherit"
+        Edge="Edge.Start"
+        Icon="@Icons.Material.Filled.Menu"
+        OnClick="@(_ => DrawerToggle())" />
+    <MudSpacer />
+    @*display the current PAGE TITLE *@
+
+    <MudText
+        Style="text-wrap: none"
+        Typo="Typo.h6">
+    @PageTitle
+    </MudText>
+
+    <MudSpacer />
+    <AppbarButtons/>
+  </MudAppBar>
+
+  <MudDrawer
+      @bind-Open="_drawerOpen"
+      Elevation="6"
+      Variant="DrawerVariant.Temporary">
+    <MudDrawerHeader>
+      <MudText
+          Typo="Typo.h6">
+        MudBlazorTest
+      </MudText>
+    </MudDrawerHeader>
+    <NavMenu />
+    <MudSpacer />
+  </MudDrawer>
+  <MudMainContent>
+    <CascadingValue Value="this">
+      @Body
+    </CascadingValue>
+  </MudMainContent>
+</MudLayout>
+
+@code{
+
+  bool _drawerOpen;
+      private const string PageTitle = "MudBlazorTest";
+  private bool _drawerDisabled;
+
+  public bool DrawerDisabled {
+    get => _drawerDisabled;
+    set {
+      _drawerDisabled = value;
+      InvokeAsync(StateHasChanged);
+    }
+  }
+
+  protected override void OnInitialized() {
+    LayoutService.SetBaseTheme(new());
+  }
+
+  public void HidAppBar(bool hide) {
+    InvokeAsync(StateHasChanged);
+  }
+
+  void DrawerToggle() {
+    if (_drawerDisabled) return;
+
+    _drawerOpen = !_drawerOpen;
+  }
+
+
+}
