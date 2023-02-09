@@ -4,7 +4,8 @@
     max-height: 100vh;
 }
 .docview.main-container{
-   padding-inline: 0;
+   padding-inline: 1rem;
+    margin-inline: auto;
     height: 100%;
 }
 

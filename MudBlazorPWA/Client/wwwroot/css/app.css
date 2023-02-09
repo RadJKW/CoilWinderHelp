@@ -3,8 +3,13 @@
 @import url('menus.css');
 @import url('page-stops.css');
 
+*, ::before, ::after {
+    box-sizing: border-box;
+}
 :root {
+    background-color: rgba(44,44,48,0.85);
     --mud-drawer-width-mini-left: 50px !important;
+
 }
 body {
     height: 100vh;
@@ -66,6 +71,7 @@ body {
     text-align: center;
     font-weight: bold;
     inset: calc(20vh + 3.25rem) 0 auto 0.2rem;
+    color: white;
 }
 
 .loading-progress-text:after {

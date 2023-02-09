@@ -66,7 +66,8 @@ public class DirectoryService : IDirectoryService
 	public Task<string[]> GetFoldersInPath(string? path = null) {
 		Console.WriteLine("GettingFoldersInPath");
 		// return a list of all folders starting from the root directory
-		var folders = Directory.GetDirectories(_rootDirectory, "*", SearchOption.AllDirectories);
+		path ??= _rootDirectory;
+		var folders = Directory.GetDirectories(path, "*", SearchOption.AllDirectories);
 		Console.WriteLine(folders);
 		return Task.FromResult(folders);
 	}

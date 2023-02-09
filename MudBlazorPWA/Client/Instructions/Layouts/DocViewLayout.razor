@@ -2,11 +2,11 @@
 @inherits LayoutComponentBase
 @implements IAsyncDisposable
 @inject DocViewService DocViewSettings
+@inject NavigationManager NavigationManager
 @inject IJSRuntime JS
 <CascadingValue Value="this">
   <MudLayout>
     @if (DocViewSettings.Settings.AppBarIsVisible) {
-
       <MudAppBar Elevation="5"
           Dense="true">
         <MudIconButton Icon="@Icons.Material.Filled.Menu"
@@ -14,8 +14,6 @@
             Edge="Edge.Start"
             OnClick="@(ToggleDrawer)"/>
         <MudSpacer/>
-        @*display the current PAGE TITLE *@
-
         <MudText Typo="Typo.h6"
             Style="text-wrap: none">
           @(PageTitle)
@@ -52,10 +50,12 @@
 @code {
   public event Action ToggleDrawerEvent = delegate { };
   private IJSObjectReference _module = default!;
+  private string PageTitle { get; set; } = "MudBlazorTest";
 
   protected override async Task OnInitializedAsync() {
     await DocViewSettings.LoadSettingsAsync();
     DocViewSettings.MajorUpdateOccured += DocViewSettings_OnMajorUpdateOccured;
+    NavigationManager.LocationChanged +=  NavigationManager_OnLocationChanged;
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
@@ -65,28 +65,24 @@
           "./Instructions/Layouts/DocViewLayout.razor.js");
     }
   }
-  protected virtual async void DocViewSettings_OnMajorUpdateOccured() {
-    // if the AppDrawer setting changed from true to false, we need to await _module.InvokeVoidAsync("removeAppBar");
-    // if the AppDrawer setting changed from false to true, we need to await _module.InvokeVoidAsync("restoreAppBar");
-
-    if (DocViewSettings.Settings.AppBarIsVisible) {
-      await _module.InvokeVoidAsync("restoreAppBar");
-    } else {
-      await _module.InvokeVoidAsync("removeAppBar");
-    }
-    await InvokeAsync(StateHasChanged);
-  }
-
-
-  private string PageTitle { get; set; } = "MudBlazorTest";
-
   void ToggleDrawer() {
     DocViewSettings.Settings.DrawerOpen = !DocViewSettings.Settings.DrawerOpen;
     ToggleDrawerEvent.Invoke();
   }
+  protected virtual async void DocViewSettings_OnMajorUpdateOccured() {
+    var jsFunction = DocViewSettings.Settings.AppBarIsVisible ? "restoreAppBar" : "removeAppBar";
+    await _module.InvokeVoidAsync(jsFunction);
+    await InvokeAsync(StateHasChanged);
+  }
+  protected virtual async void NavigationManager_OnLocationChanged(object? sender, LocationChangedEventArgs e) {
+    DocViewSettings.Settings.DrawerOpen = false;
+    await InvokeAsync(StateHasChanged);
+  }
+
   async ValueTask IAsyncDisposable.DisposeAsync() {
     DocViewSettings.SaveSettingsAsync();
     DocViewSettings.MajorUpdateOccured -= DocViewSettings_OnMajorUpdateOccured;
+    NavigationManager.LocationChanged -= NavigationManager_OnLocationChanged;
     await _module.DisposeAsync();
   }
 }

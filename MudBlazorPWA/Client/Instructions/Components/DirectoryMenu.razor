@@ -1,0 +1,138 @@
+﻿@inject HubClientService DirectoryHub
+@using Microsoft.AspNetCore.SignalR.Client
+@implements IDisposable
+
+<div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start ">
+
+  @foreach (var breadcrumb in _breadCrumbs) {
+    <MudChip Text="@breadcrumb!.Name"
+        Icon="@Icons.Material.Outlined.Folder"
+        Size="Size.Large"
+        Label="true"
+        OnClick="() => SetFolderAsRoot(breadcrumb)">
+    </MudChip>
+    <MudText Typo="Typo.h4"
+        GutterBottom="false"
+        Inline="false">
+      /
+    </MudText>
+  }
+  <MudMenu Class="px-2" Icon="@Icons.Material.Outlined.ChevronRight"
+      IconColor="Color.Secondary"
+      Size="Size.Medium"
+      Variant="Variant.Outlined"
+
+      ActivationEvent="MouseEvent.LeftClick"
+      AnchorOrigin="Origin.TopRight"
+      TransformOrigin="Origin.TopLeft">
+    <MudListSubheaderExtended T="string"
+        Class="mt-n2"
+        SecondaryBackground="true">
+      Select Folder
+    </MudListSubheaderExtended>
+    <MudDivider/>
+    @foreach (var folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
+      <MudMenuItem Icon="@Icons.Material.Filled.Folder"
+          OnClick="() => NavigateToFolder(folder)">
+        @folder.Name
+      </MudMenuItem>
+    }
+  </MudMenu>
+
+</div>
+
+@code {
+  [Parameter]
+  public EventCallback<Folder>? OnFolderSubmitted { get; set; }
+  [Parameter]
+  public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
+
+  #region Properties
+  private readonly List<Folder?> _breadCrumbs = new();
+  private readonly List<Folder> _selectedFolders = new();
+  private Folder? RootFolder { get; set; }
+  private string[]? _folders;
+  #endregion
+
+  protected override async Task OnInitializedAsync() {
+    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
+    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", null);
+  }
+  private void OnReceiveAllFolders(string[] folders) {
+    _folders = folders;
+    RootFolder = BuildDirectoryTree(_folders);
+    _breadCrumbs.Add(RootFolder);
+    InvokeAsync(StateHasChanged);
+  }
+  public void Dispose() {
+    DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
+  }
+
+  private Task SetFolderAsRoot(Folder newRoot) {
+    var index = _breadCrumbs.IndexOf(newRoot);
+    _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
+    RootFolder = newRoot;
+    _breadCrumbs.Add(newRoot);
+    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
+  }
+  private Task NavigateToFolder(Folder folder) {
+    RootFolder = folder;
+    _breadCrumbs.Add(folder);
+    return SubmitSelectedFolders();
+  }
+  private async Task SubmitSelectedFolders() {
+    var folders = _selectedFolders.ToArray();
+    _selectedFolders.RemoveAll(_ => true);
+    await OnFoldersSubmitted.InvokeAsync(folders);
+  }
+
+
+  private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
+    var enumerable = paths.ToList();
+    if (!enumerable.Any()) {
+      return null;
+    }
+
+    var firstPath = enumerable.First();
+    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
+    var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
+    var commonParts = FindCommonParts(splitPaths);
+
+    var root = new Folder(splitPaths[0][commonParts], string.Join("", splitPaths[0].Take(commonParts + 1)));
+
+    foreach (var splitPath in splitPaths) {
+      AddRemainingParts(root, splitPath, commonParts);
+    }
+    return root;
+  }
+
+  private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
+    var commonParts = int.MaxValue;
+    var stringsEnumerable = splitPaths.ToList();
+    for (var i = 0; i < stringsEnumerable.First().Length; i++) {
+      var currentPart = stringsEnumerable.First()[i];
+      var count = 1 + stringsEnumerable.Skip(1)
+        .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
+        .Count();
+      if (count == stringsEnumerable.Count()) {
+        commonParts = i;
+      } else {
+        break;
+      }
+    }
+    return commonParts;
+  }
+
+  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
+    var current = root;
+    for (var i = commonParts + 1; i < splitPath.Count; i++) {
+      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+      if (next == null) {
+        next = new Folder(splitPath[i], current?.Path + splitPath[i]);
+        current?.SubFolders.Add(next);
+      }
+      current = next;
+    }
+  }
+
+}

@@ -1,0 +1,134 @@
+﻿@page "/stops"
+@layout DocViewLayout
+@inject IHttpClientFactory HttpClient
+@using Newtonsoft.Json
+
+<MudScrollbar Selector=""
+    Width="4"
+    HoverWidth="6"
+    BorderRadius="3"
+    Color="rgba(10,133,255,0.5)"
+    Hide="false"/>
+ <MudStack Class="gap-2 pt-6"
+        Justify="Justify.FlexStart"
+        AlignItems="AlignItems.Center">
+      <DirectoryMenu/>
+@switch (State) {
+  case PageState.Loading:
+    <div class="align-center d-flex justify-center mud-width-full"
+        style="height: 50%">
+      <div class="d-flex flex-column justify-center align-center">
+
+      <MudProgressCircular Color="Color.Tertiary"
+          StrokeWidth="5"
+          Size="Size.Large"
+          Indeterminate="true"/>
+
+      <MudText Typo="Typo.h3">Loading...</MudText>
+      </div>
+
+    </div>
+    break;
+  case PageState.Loaded:
+
+      <MudGrid Spacing="2"
+          Justify="Justify.Center"
+          Class="mud-background-gray"
+          Style="max-width: 100%">
+        @foreach (var group in WindingCodeGroups) {
+          <MudItem xs="@GetBreakpoint(WindingCodeGroups.Count() - 2)" Style="max-height:40vh">
+            <MudPaper Class="d-flex flex-column justify-start
+            mud-transparent mud-height-full overflow-auto border-4 border-double px-2 pb-1
+            mud-border-lines-default
+            border-solid"
+                Elevation="4">
+              <MudListSubheaderExtended T="string"
+                  Sticky="true"
+                  SecondaryBackground="true">
+                <MudText Typo="Typo.h6" Class="ml-6">
+                  <strong>@group.Key.ToString() Codes</strong>
+                </MudText>
+              </MudListSubheaderExtended>
+
+              <MudExpansionPanels MultiExpansion="true"
+                  Class="flex-grow-0 overflow-auto">
+                @foreach (var windingCode in group) {
+                  <MudExpansionPanel Dense="true" IsInitiallyExpanded="true">
+                    <TitleContent>
+                      <div class="d-flex" >
+                        <MudIcon Icon="@Icons.Material.Filled.MoreVert"
+                            Color="Color.Primary"/>
+                        <MudText Class="px-6" Style="backdrop-filter: contrast(75%) opacity(33%);">
+                          <strong> @windingCode.Code</strong>
+                        </MudText>
+                      </div>
+                    </TitleContent>
+                    <ChildContent>
+                      <MudText> @windingCode.Name</MudText>
+                    </ChildContent>
+                  </MudExpansionPanel>
+                }
+
+              </MudExpansionPanels>
+              <MudSpacer/>
+            </MudPaper>
+          </MudItem>
+        }
+      </MudGrid>
+    break;
+  case PageState.Error:
+  default:
+    <MudAlert Severity="Severity.Error"
+        Class="mud-height-full mud-width-full"
+        Text="Error loading data"/>
+    break;
+}
+    </MudStack>
+
+@code{
+
+  public enum PageState {
+    Loading,
+    Loaded,
+    Error
+  }
+
+  #region Properties
+  private HttpClient _pwaServer = null!;
+  private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; } = new List<IGrouping<CodeTypeId, WindingCode>>();
+  private PageState State { get; set; } = PageState.Loading;
+  #endregion
+
+  protected override async Task OnInitializedAsync() {
+    _pwaServer = HttpClient.CreateClient("PwaServer");
+    var response = await _pwaServer.GetAsync("files/WindingCodes.json");
+    if (response.IsSuccessStatusCode) {
+      //await Task.Delay(1000).ContinueWith(_ => ParseWindingCodes(response));
+     await ParseWindingCodes(response);
+    }
+    await base.OnInitializedAsync();
+  }
+
+
+  private async Task ParseWindingCodes(HttpResponseMessage response) {
+    var content = await response.Content.ReadAsStringAsync();
+    var windingCodes = JsonConvert.DeserializeObject<List<WindingCode>>(content);
+    if (windingCodes == null) {
+      State = PageState.Error;
+      return;
+    }
+    WindingCodeGroups = windingCodes.GroupBy(wc => wc.CodeTypeId);
+    State = PageState.Loaded;
+    await Task.Delay(1500).ContinueWith(_ => InvokeAsync(StateHasChanged));
+  }
+
+  private static int GetBreakpoint(int count) {
+    return count switch {
+      1 => 12,
+      2 => 6,
+      3 => 4,
+      4 => 3,
+      _ => 2
+      };
+  }
+}

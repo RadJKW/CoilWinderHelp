@@ -1,6 +1,7 @@
 @inherits LayoutComponentBase
 @inject LayoutService LayoutService
 @inject ILocalStorageService LocalStorage
+
 @using Blazored.LocalStorage
 @implements IDisposable
 
@@ -28,7 +29,8 @@
 
   protected override void OnInitialized()
   {
-    LayoutService.MajorUpdateOccured += LayoutServiceOnMajorUpdateOccured!;
+    LayoutService.MajorUpdateOccured += LayoutService_OnMajorUpdateOccured!;
+
     base.OnInitialized();
   }
 
@@ -46,9 +48,8 @@
   }
 
   public void Dispose() {
-    LayoutService.MajorUpdateOccured -= LayoutServiceOnMajorUpdateOccured!;
+    LayoutService.MajorUpdateOccured -= LayoutService_OnMajorUpdateOccured!;
   }
 
-  private void LayoutServiceOnMajorUpdateOccured(object sender, EventArgs e) => InvokeAsync(StateHasChanged);
-
+  private void LayoutService_OnMajorUpdateOccured(object sender, EventArgs e) => InvokeAsync(StateHasChanged);
 }
