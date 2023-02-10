@@ -8,6 +8,9 @@
     margin-inline: auto;
     height: 100%;
 }
+.docview.main-container  * {
+    transform: scale(98%);
+}
 
 /*Custom MudBlazor Overrides*/
 

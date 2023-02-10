@@ -63,7 +63,7 @@ if (app.Environment.IsDevelopment())
 
     if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase")) {
 
-        await dbContext.SeedAsync(removeRecords: false, jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
+        await dbContext.SeedAsync(removeRecords: false, jsonFilePath: RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath + "WindingCodes.json");
     }
     else
     {
