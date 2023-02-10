@@ -5,12 +5,14 @@
 <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start ">
 
   @foreach (var breadcrumb in _breadCrumbs) {
+    <MudTooltip Duration="1000" Text="@breadcrumb?.Path">
     <MudChip Text="@breadcrumb!.Name"
         Icon="@Icons.Material.Outlined.Folder"
         Size="Size.Large"
         Label="true"
         OnClick="() => SetFolderAsRoot(breadcrumb)">
     </MudChip>
+    </MudTooltip>
     <MudText Typo="Typo.h4"
         GutterBottom="false"
         Inline="false">
@@ -43,7 +45,9 @@
 
 @code {
   [Parameter]
-  public EventCallback<Folder>? OnFolderSubmitted { get; set; }
+  public EventCallback<Folder> OnRootFolderChange { get; set; }
+  [Parameter]
+  public EventCallback<string[]> OnFoldersArrayReceived { get; set; }
   [Parameter]
   public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
 
@@ -68,17 +72,22 @@
     DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
   }
 
-  private Task SetFolderAsRoot(Folder newRoot) {
+  private  Task SetFolderAsRoot(Folder newRoot) {
     var index = _breadCrumbs.IndexOf(newRoot);
     _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
     RootFolder = newRoot;
     _breadCrumbs.Add(newRoot);
-    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
+    return RootFolderChanged();
   }
   private Task NavigateToFolder(Folder folder) {
     RootFolder = folder;
     _breadCrumbs.Add(folder);
-    return SubmitSelectedFolders();
+    return RootFolderChanged();
+  }
+
+  private async Task RootFolderChanged() {
+    await OnRootFolderChange.InvokeAsync(RootFolder!);
+    StateHasChanged();
   }
   private async Task SubmitSelectedFolders() {
     var folders = _selectedFolders.ToArray();
@@ -98,10 +107,12 @@
     var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
     var commonParts = FindCommonParts(splitPaths);
 
-    var root = new Folder(splitPaths[0][commonParts], string.Join("", splitPaths[0].Take(commonParts + 1)));
+    var root = new Folder(
+      splitPaths[0][commonParts],
+      string.Join(splitChar, splitPaths[0].Take(commonParts + 1)));
 
     foreach (var splitPath in splitPaths) {
-      AddRemainingParts(root, splitPath, commonParts);
+      AddRemainingParts(root, splitPath, commonParts, splitChar);
     }
     return root;
   }
@@ -123,12 +134,13 @@
     return commonParts;
   }
 
-  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
+  private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int
+  commonParts, char splitChar) {
     var current = root;
     for (var i = commonParts + 1; i < splitPath.Count; i++) {
       var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
       if (next == null) {
-        next = new Folder(splitPath[i], current?.Path + splitPath[i]);
+        next = new(splitPath[i], $"{current?.Path}{splitChar}{splitPath[i]}");
         current?.SubFolders.Add(next);
       }
       current = next;

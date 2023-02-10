@@ -1,6 +1,8 @@
 ﻿@page "/stops"
 @layout DocViewLayout
+@inject HubClientService DirectoryHub
 @inject IHttpClientFactory HttpClient
+@implements IDisposable
 @using Newtonsoft.Json
 
 <MudScrollbar Selector=""
@@ -9,62 +11,84 @@
     BorderRadius="3"
     Color="rgba(10,133,255,0.5)"
     Hide="false"/>
- <MudStack Class="gap-2 pt-6"
-        Justify="Justify.FlexStart"
-        AlignItems="AlignItems.Center">
-      <DirectoryMenu/>
-@switch (State) {
-  case PageState.Loading:
-    <div class="align-center d-flex justify-center mud-width-full"
-        style="height: 50%">
-      <div class="d-flex flex-column justify-center align-center">
+<MudStack Class="stack-container stops-editor"
+    Spacing="1"
+    Justify="Justify.FlexStart"
+    AlignItems="AlignItems.Center">
+  <div class="py-4">
+    <DirectoryMenu OnRootFolderChange="HandleRootFolderChange"/>
+  </div>
+  @switch (State) {
+    case PageState.Loading:
+      <div class="align-center d-flex justify-center mud-width-full"
+          style="height: 50%">
+        <div class="align-center d-flex flex-column justify-center">
 
-      <MudProgressCircular Color="Color.Tertiary"
-          StrokeWidth="5"
-          Size="Size.Large"
-          Indeterminate="true"/>
+          <MudProgressCircular Color="Color.Tertiary"
+              StrokeWidth="5"
+              Size="Size.Large"
+              Indeterminate="true"/>
 
-      <MudText Typo="Typo.h3">Loading...</MudText>
+          <MudText Typo="Typo.h3">Loading...</MudText>
+        </div>
+
       </div>
-
-    </div>
-    break;
-  case PageState.Loaded:
+      break;
+    case PageState.Loaded:
 
       <MudGrid Spacing="2"
           Justify="Justify.Center"
-          Class="mud-background-gray"
-          Style="max-width: 100%">
+          Class="stops-editor-grid">
         @foreach (var group in WindingCodeGroups) {
-          <MudItem xs="@GetBreakpoint(WindingCodeGroups.Count() - 2)" Style="max-height:40vh">
-            <MudPaper Class="d-flex flex-column justify-start
-            mud-transparent mud-height-full overflow-auto border-4 border-double px-2 pb-1
-            mud-border-lines-default
-            border-solid"
+          <MudItem xs="@(GetBreakpoint(WindingCodeGroups.Count()))"
+              Class="stops-grid-item">
+            <MudPaper Class="stops-editor-paper"
                 Elevation="4">
               <MudListSubheaderExtended T="string"
+                  Class="mud-elevation-4"
                   Sticky="true"
                   SecondaryBackground="true">
-                <MudText Typo="Typo.h6" Class="ml-6">
+                <MudText Typo="Typo.h6"
+                    Class="ml-6">
                   <strong>@group.Key.ToString() Codes</strong>
                 </MudText>
               </MudListSubheaderExtended>
 
               <MudExpansionPanels MultiExpansion="true"
-                  Class="flex-grow-0 overflow-auto">
+                  Class="flex-grow-0 overflow-auto stops-expansion-panel"
+                  Elevation="2">
                 @foreach (var windingCode in group) {
-                  <MudExpansionPanel Dense="true" IsInitiallyExpanded="true">
+                  <MudExpansionPanel Class="stops-expansion-item"
+                      IsInitiallyExpanded="false">
                     <TitleContent>
-                      <div class="d-flex" >
+                      <div class="d-flex gap-10">
                         <MudIcon Icon="@Icons.Material.Filled.MoreVert"
                             Color="Color.Primary"/>
-                        <MudText Class="px-6" Style="backdrop-filter: contrast(75%) opacity(33%);">
+                        <MudText Align="Align.Center"
+                            Style="width: 20%;backdrop-filter: contrast(75%) opacity(33%); ">
                           <strong> @windingCode.Code</strong>
                         </MudText>
+                        <div class="d-flex justify-start mud-width-full mx-auto">
+
+                          <MudText Typo="Typo.button"
+                              Color="Color.Tertiary"
+                              Align="Align.Center">
+                            @windingCode.Name
+                          </MudText>
+                        </div>
                       </div>
                     </TitleContent>
                     <ChildContent>
-                      <MudText> @windingCode.Name</MudText>
+                      <MudSelectExtended Label="Assigned Folder"
+                          ItemCollection="_folders"
+                          Placeholder="@windingCode.FolderPath">
+                        <ItemTemplate>
+                          <MudText>@context.Value</MudText>
+                        </ItemTemplate>
+                        <ItemSelectedTemplate>
+                          <MudText>@context.Value</MudText>
+                        </ItemSelectedTemplate>
+                      </MudSelectExtended>
                     </ChildContent>
                   </MudExpansionPanel>
                 }
@@ -75,15 +99,15 @@
           </MudItem>
         }
       </MudGrid>
-    break;
-  case PageState.Error:
-  default:
-    <MudAlert Severity="Severity.Error"
-        Class="mud-height-full mud-width-full"
-        Text="Error loading data"/>
-    break;
-}
-    </MudStack>
+      break;
+    case PageState.Error:
+    default:
+      <MudAlert Severity="Severity.Error"
+          Class="mud-height-full mud-width-full"
+          Text="Error loading data"/>
+      break;
+  }
+</MudStack>
 
 @code{
 
@@ -97,14 +121,16 @@
   private HttpClient _pwaServer = null!;
   private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; } = new List<IGrouping<CodeTypeId, WindingCode>>();
   private PageState State { get; set; } = PageState.Loading;
+  private string[] _folders = Array.Empty<string>();
   #endregion
 
   protected override async Task OnInitializedAsync() {
+    DirectoryHub.ReceiveAllFolders += DirectoryHub_ReceiveAllFolders;
     _pwaServer = HttpClient.CreateClient("PwaServer");
     var response = await _pwaServer.GetAsync("files/WindingCodes.json");
     if (response.IsSuccessStatusCode) {
-      //await Task.Delay(1000).ContinueWith(_ => ParseWindingCodes(response));
-     await ParseWindingCodes(response);
+  //await Task.Delay(1000).ContinueWith(_ => ParseWindingCodes(response));
+      await ParseWindingCodes(response);
     }
     await base.OnInitializedAsync();
   }
@@ -119,16 +145,33 @@
     }
     WindingCodeGroups = windingCodes.GroupBy(wc => wc.CodeTypeId);
     State = PageState.Loaded;
-    await Task.Delay(1500).ContinueWith(_ => InvokeAsync(StateHasChanged));
+  //await Task.Delay(1500).ContinueWith(_ => InvokeAsync(StateHasChanged));
+    await InvokeAsync(StateHasChanged);
   }
 
   private static int GetBreakpoint(int count) {
     return count switch {
       1 => 12,
       2 => 6,
-      3 => 4,
-      4 => 3,
-      _ => 2
+      _ => 6
       };
+  }
+  private void DirectoryHub_ReceiveAllFolders(string[] folders) {
+    _folders = folders;
+    InvokeAsync(StateHasChanged);
+  }
+
+  private Task HandleRootFolderChange(Folder folder) {
+  // when the root folder changes, remove all items from _folder that do no contain the new root folders path
+    if (folder.Path == null) {
+      return Task.CompletedTask;
+    }
+    _folders = _folders.Where(f => f.Contains(folder.Path)).ToArray();
+
+    return InvokeAsync(StateHasChanged);
+  }
+  public void Dispose() {
+    _pwaServer.Dispose();
+    DirectoryHub.ReceiveAllFolders -= DirectoryHub_ReceiveAllFolders;
   }
 }

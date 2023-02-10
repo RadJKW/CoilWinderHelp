@@ -37,7 +37,7 @@ public class DataContextInitializer
 	/// <param name="jsonFilePath">
 	/// Full (string) path to 'File.Json' for seeding the database.
 	/// </param>
-	public async Task SeedAsync(bool removeRecords = false, string? jsonFilePath = null) {
+	public async Task SeedDataAsync(bool removeRecords = false, string? jsonFilePath = null) {
 		try {
 			await TrySeedAsync(removeRecords, jsonFilePath);
 		}

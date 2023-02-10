@@ -61,16 +61,21 @@ if (app.Environment.IsDevelopment())
     await dbContext.InitialiseAsync();
     // if appsettings.json has UseInMemoryDatabase set to true, then the database will be seeded with the json file
 
-    if (builder.Configuration.GetValue<bool>("UseInMemoryDatabase")) {
-
-        await dbContext.SeedAsync(removeRecords: false, jsonFilePath: RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath + "WindingCodes.json");
-    }
-    else
+    var useInMemoryDatabase = builder.Configuration.GetValue<bool>("UseInMemoryDatabase");
+    var runtimeIsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    // switch statement that has a case for useInMemoryDatabase = true and false. THe true case will also have a when clause that checks if the runtime is windows or mac
+    switch (useInMemoryDatabase)
     {
-        await dbContext.SeedAsync();
+        case true when runtimeIsWindows:
+            await dbContext.SeedDataAsync(removeRecords: false, jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
+            break;
+        case true when !runtimeIsWindows:
+            await dbContext.SeedDataAsync(removeRecords: false, jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
+            break;
+        case false:
+            await dbContext.SeedDataAsync();
+            break;
     }
-
-
 
 }
 else

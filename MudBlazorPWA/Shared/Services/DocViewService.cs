@@ -8,11 +8,7 @@ public class DocViewService
 	private void OnMajorUpdateOccured() => MajorUpdateOccured.Invoke();
 
 
-	public AppSettings Settings { get; private set; } = new AppSettings(
-	drawerOpen: true,
-	appBarIsVisible: true,
-	drawerOpenOnHover: true
-	);
+	public AppSettings Settings { get; private set; } = new();
 
 	public void SetAppSettings(AppSettings appSettings) {
 		Settings = appSettings;
@@ -53,6 +49,13 @@ public class DocViewService
 
 	public async Task LoadSettingsAsync() {
 		foreach (var property in Settings.GetType().GetProperties()) {
+			if ( await LocalStorageService.ContainKeyAsync(property.Name) == false) {
+				// set the property to its default value
+				property.SetValue(Settings, property.GetValue(Settings));
+				// save the property to local storage
+				await LocalStorageService.SetItemAsync(property.Name, property.GetValue(Settings));
+				continue;
+			}
 			var value = await LocalStorageService.GetItemAsync<bool>(property.Name);
 			property.SetValue(Settings, value);
 		}

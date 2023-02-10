@@ -1,0 +1,31 @@
+.stops-editor.stack-container{
+    height: 100%;
+}
+.stops-editor .stops-editor-grid{
+    background-color: var(--mud-palette-background-grey);
+    box-shadow: var(--mud-elevation-4);
+    padding: 4px;
+}
+.stops-editor .stops-editor-grid .stops-grid-item {
+display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+.stops-editor .stops-editor-paper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    background-color: transparent;
+    overflow: auto;
+    border: 4px double rgb(120, 120, 120);
+    height: 40vh;
+
+}
+.stops-editor .stops-expansion-panel {
+    padding: 8px;
+}
+
+.stops-editor .stops-expansion-item .mud-expand-panel-content {
+    padding: 8px 16px;
+    background-color: rgba(155, 155, 155, 0.1);
+}

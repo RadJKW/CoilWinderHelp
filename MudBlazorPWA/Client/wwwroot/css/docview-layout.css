@@ -6,10 +6,10 @@
 .docview.main-container{
    padding-inline: 1rem;
     margin-inline: auto;
-    height: 100%;
+    height: calc(100vh - var(--mud-appbar-height));
 }
-.docview.main-container  * {
-    transform: scale(98%);
+.docview.main-container :not(div) {
+    /*transform: scale(98%);*/
 }
 
 /*Custom MudBlazor Overrides*/
