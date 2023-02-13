@@ -80,8 +80,9 @@
                     </TitleContent>
                     <ChildContent>
                       <MudSelectExtended Label="Assigned Folder"
-                          ItemCollection="_folders"
-                          Placeholder="@windingCode.FolderPath">
+                          ItemCollection="_folderPaths"
+                          Placeholder="@windingCode.FolderPath"
+                          >
                         <ItemTemplate>
                           <MudText>@context.Value</MudText>
                         </ItemTemplate>
@@ -122,6 +123,7 @@
   private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; } = new List<IGrouping<CodeTypeId, WindingCode>>();
   private PageState State { get; set; } = PageState.Loading;
   private string[] _folders = Array.Empty<string>();
+  private string[] _folderPaths = Array.Empty<string>();
   #endregion
 
   protected override async Task OnInitializedAsync() {
@@ -166,7 +168,14 @@
     if (folder.Path == null) {
       return Task.CompletedTask;
     }
-    _folders = _folders.Where(f => f.Contains(folder.Path)).ToArray();
+    _folderPaths = Array.Empty<string>();
+    _folderPaths = _folders.Where(f => f.Contains(folder.Path+"/")).ToArray();
+  // replace the folder.path string in each item with '.." to make the path relative to the root folder
+    // use regex to ensure that the path is matched as the whole word so that it does not replace a substring of another path
+
+    for (var i = 0; i < _folderPaths.Length; i++) {
+      _folderPaths[i] = _folderPaths[i].Replace(folder.Path + "/", @"../");
+    }
 
     return InvokeAsync(StateHasChanged);
   }
