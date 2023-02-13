@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Logging;
+using MudBlazorPWA.Shared.Models;
 using MudBlazorPWA.Shared.Services;
 
 namespace MudBlazorPWA.Shared.Hubs;
@@ -10,8 +11,7 @@ public interface IHubClient
     Task FileSelected(string relativePath);
 
     Task ReceiveAllFolders(string[] folders);
-
-
+    Task WindingCodesDbUpdated();
 }
 public class DirectoryHub : Hub<IHubClient>
 {
@@ -74,6 +74,13 @@ public class DirectoryHub : Hub<IHubClient>
         var clientIp = GetConnectionIp(Context);
         var folders = await _directoryService.GetFoldersInPath(path);
         await Clients.Group(clientIp).ReceiveAllFolders(folders);
+    }
+
+    public async Task SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase)
+    {
+        var clientIp = GetConnectionIp(Context);
+        await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
+        await Clients.Group(clientIp).WindingCodesDbUpdated();
     }
     #endregion
 

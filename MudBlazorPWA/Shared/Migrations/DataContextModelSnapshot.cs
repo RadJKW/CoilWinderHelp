@@ -32,7 +32,7 @@ namespace MudBlazorPWA.Shared.Migrations
 
                     b.HasKey("CodeTypeId");
 
-                    b.ToTable("CodeTypes");
+                    b.ToTable("CodeType");
 
                     b.HasData(
                         new

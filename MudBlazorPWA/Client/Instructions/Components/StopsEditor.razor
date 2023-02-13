@@ -1,9 +1,10 @@
-﻿@page "/stops"
-@layout DocViewLayout
-@inject IHttpClientFactory HttpClient
+﻿@inject IHttpClientFactory HttpClient
 @implements IDisposable
+@inject ISnackbar Snackbar
+@inject HubClientService DirectoryHub
 @using Newtonsoft.Json
 @using System.Text.RegularExpressions
+@using Microsoft.AspNetCore.SignalR.Client
 
 <MudScrollbar Selector=""
     Width="4"
@@ -81,28 +82,10 @@
                     <ChildContent>
                       <MudSelectExtended T="string"
                           Label="Assigned Folder"
-                          @bind-Value="_selectedValue"
+                          ItemCollection="_folderPaths"
                           Placeholder="@windingCode.FolderPath"
-                          PopoverClass="folder-select-popover">
-                        @foreach (var folderItemGroup in _folderItemGroups) {
-                          if (folderItemGroup.Item2 != null) {
-                            <MudSelectItemGroupExtended T="string"
-                                Text="@folderItemGroup.Item1"
-                                Nested="true"
-                                Class="folder-item-group">
-                              @foreach (var folderItem in folderItemGroup.Item2) {
-                                <MudSelectItemExtended T="string"
-                                    Class="folder-item"
-                                    Value="@folderItem"
-                                    Text="@folderItem"/>
-                              }
-                            </MudSelectItemGroupExtended>
-                          } else {
-                            <MudSelectItemExtended T="string"
-                                Value="@folderItemGroup.Item1"
-                                Text="@folderItemGroup.Item1"/>
-                          }
-                        }
+                          PopoverClass="folder-select-popover"
+                          SearchBox="true">
                       </MudSelectExtended>
                     </ChildContent>
                   </MudExpansionPanel>
@@ -122,6 +105,14 @@
           Text="Error loading data"/>
       break;
   }
+  <MudIconButton Color="Color.Primary"
+      Variant="Variant.Outlined"
+      Class="mud-elevation-4"
+      Icon="@Icons.Material.Filled.Save"
+      OnClick="ConvertStopsToJson"
+      Title="Save Changes">
+    Save Changes
+  </MudIconButton>
 </MudStack>
 
 @code{
@@ -138,10 +129,11 @@
   private PageState State { get; set; } = PageState.Loading;
   private List<string> _folderPaths = new List<string>();
   private readonly List<(string, List<string>?)> _folderItemGroups = new();
-  private string _selectedValue = string.Empty;
+  private Folder? RootFolder { get; set; }
   #endregion
 
   protected override async Task OnInitializedAsync() {
+    DirectoryHub.WindingCodesDbUpdated += DirectHub_OnWindingCodesDbUpdated;
     _pwaServer = HttpClient.CreateClient("PwaServer");
     var response = await _pwaServer.GetAsync("files/WindingCodes.json");
     if (response.IsSuccessStatusCode) {
@@ -172,6 +164,7 @@
   }
 
   private async Task HandleRootFolderChange(DirectoryMenu.FolderCallbackArgs folderArgs) {
+    RootFolder = folderArgs.Folder;
     _folderPaths.Clear();
     if (folderArgs.SubFolders == null)
       return;
@@ -196,13 +189,6 @@
       };
       folderItems.AddRange(_folderPaths.Where(f => matchFolderRegex.IsMatch(f) || f == folderGroup).OrderBy(f => f).ToList());
       _folderItemGroups.Add(folderItems.Count > 0 ? (folderGroup, folderItems) : (folderGroup, null));
-      _folderPaths.RemoveAll(f => matchFolderRegex.IsMatch(f) || f == $"..{splitChar}{folderGroup}");
-    }
-
-    if (_folderPaths.Any()) {
-      foreach (var folderPath in _folderPaths) {
-      _folderItemGroups.Add((folderPath, null));
-    }
     }
 
     _folderItemGroups.Sort((x, y) => {
@@ -215,8 +201,28 @@
     StateHasChanged();
     return Task.CompletedTask;
   }
+  private void DirectHub_OnWindingCodesDbUpdated() {
+    Snackbar.Add("Winding Codes Database Updated", Severity.Success, config => {
+      config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
+      config.ShowCloseIcon = true;
+      config.ShowCloseIcon = true;
+      config.CloseAfterNavigation = true;
+      });
+  }
 
   public void Dispose() {
     _pwaServer.Dispose();
+  }
+  private async Task ConvertStopsToJson() {
+    //TODO: Values are not being updated in DataBase.
+   //iterate through all the expansion panels and get the selected folder path for each winding code and then
+    // convert the codes to IEnumerable<WindingCode> and then invoke DirectoryHub.SaveWindingCodesDb with the IEnumerable, true
+
+    var windingCodesJson = WindingCodeGroups.SelectMany(group => group).ToList();
+    // iterate over each winding code in the list and prepend the root folder path to the folder path
+    foreach (var windingCode in windingCodesJson.Where(windingCode => windingCode.FolderPath != null)) {
+      windingCode.FolderPath = windingCode.FolderPath!.Replace("..", RootFolder?.Path);
+    }
+    await DirectoryHub.Hub!.InvokeAsync("SaveWindingCodesDb", windingCodesJson, true);
   }
 }

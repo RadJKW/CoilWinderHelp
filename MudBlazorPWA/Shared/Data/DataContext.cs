@@ -9,7 +9,7 @@ public class DataContext : DbContext, IDataContext
 	}
 
 	public DbSet<WindingCode> WindingCodes => Set<WindingCode>();
-	public DbSet<CodeType> CodeTypes => Set<CodeType>();
+	public IEnumerable<CodeType> CodeTypes => Set<CodeType>();
 
 	protected override void OnModelCreating(ModelBuilder modelBuilder) {
 		modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());

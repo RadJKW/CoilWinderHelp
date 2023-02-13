@@ -78,7 +78,7 @@ public class DataContextInitializer
 		// log the result
 		_logger.LogInformation("Seeded the database with {Count} records", recordCount);
 
-		await _directoryService.ExportWindingCodesToJson( enumerable);
+		await _directoryService.ExportWindingCodesToJson( enumerable, false);
 
 		_logger.LogInformation( "Exported the database to JSON");
 

@@ -10,6 +10,16 @@
         Icon="@Icons.Material.Filled.DocumentScanner">
       Index
     </MudNavLink>
+    <MudNavGroup Title="Admin"
+            Expanded="DrawerOpen"
+            ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
+            Icon="@Icons.Material.Outlined.AdminPanelSettings">
+      <MudNavLink Href="AdminDashboard"
+          Match="NavLinkMatch.Prefix"
+          Class="ml-4">
+            Dashboard
+          </MudNavLink>
+        </MudNavGroup>
 
     <MudNavGroup Title="StopsDev"
         Expanded="DrawerOpen"
@@ -18,10 +28,6 @@
       <MudNavLink Href="stopEmulator"
           Match="NavLinkMatch.Prefix">
         Emulator
-      </MudNavLink>
-      <MudNavLink Href="stops"
-          Match="NavLinkMatch.Prefix">
-        Editor
       </MudNavLink>
     </MudNavGroup>
     <MudNavLink Href="messengerHub"

@@ -1,6 +1,7 @@
-using System.Collections;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MudBlazorPWA.Shared.Data;
 using MudBlazorPWA.Shared.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,8 +13,9 @@ public interface IDirectoryService
 	Task<string> GetRelativePath(string path);
 	Task<string[]> GetFoldersInPath(string? path = null);
 
-	Task ExportWindingCodesToJson(IEnumerable windingCodes);
+	Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase);
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
+
 }
 
 public class DirectoryServiceOptions
@@ -27,6 +29,9 @@ public class DirectoryService : IDirectoryService
 
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<DirectoryService> _logger;
+
+	// add the IDataContext to the constructor
+	private readonly DataContext _dataContext;
 	private readonly string _rootDirectory;
 
 
@@ -35,8 +40,9 @@ public class DirectoryService : IDirectoryService
 		".mp4", ".pdf", ".webm"
 	};
 
-	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger) {
+	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger, DataContext dataContext) {
 		_logger = logger;
+		_dataContext = dataContext;
 		_rootDirectory = options.Value.RootDirectoryPath;
 		WindingCodesJsonPath = _rootDirectory + "WindingCodes.json";
 	}
@@ -72,7 +78,7 @@ public class DirectoryService : IDirectoryService
 		return Task.FromResult(folders);
 	}
 
-	public async Task ExportWindingCodesToJson(IEnumerable windingCodes) {
+	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var json = JsonConvert.SerializeObject(windingCodes, Formatting.Indented);
 		try {
 			await File.WriteAllTextAsync(WindingCodesJsonPath, json);
@@ -80,6 +86,9 @@ public class DirectoryService : IDirectoryService
 		catch (Exception ex) {
 			_logger.LogError("An error occurred while exporting the database : {Error}", ex);
 			throw;
+		}
+		if (syncDatabase) {
+			await UpdateDatabaseWindingCodes(windingCodes);
 		}
 	}
 
@@ -99,4 +108,40 @@ public class DirectoryService : IDirectoryService
 			throw;
 		}
 	}
+
+	private async Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes) {
+		var dbWindingCodes = await _dataContext.WindingCodes.ToListAsync();
+
+		var jsonWindingCodes = windingCodes.ToList();
+		foreach (var jsonWindingCode in jsonWindingCodes) {
+			// if the code is not in the database, add it
+			if (dbWindingCodes.All(dbWindingCode => dbWindingCode.Code != jsonWindingCode.Code)) {
+				_dataContext.WindingCodes.Add(jsonWindingCode);
+			}
+			else {
+				// if the code is in the database, update it
+				var dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
+				dbWindingCode.Code = jsonWindingCode.Code;
+				dbWindingCode.Name = jsonWindingCode.Name;
+				dbWindingCode.CodeType = jsonWindingCode.CodeType;
+				dbWindingCode.CodeTypeId = jsonWindingCode.CodeTypeId;
+				_dataContext.WindingCodes.Update(dbWindingCode);
+			}
+
+		}
+
+		// if the code is in the database but not in the json file, delete it
+		foreach (var dbWindingCode in dbWindingCodes.Where(dbWindingCode => jsonWindingCodes.All(jsonWindingCode => jsonWindingCode.Code != dbWindingCode.Code))) {
+			_dataContext.WindingCodes.Remove(dbWindingCode);
+		}
+
+		await _dataContext.SaveChangesAsync();
+
+
+
+
+
+
+	}
+
 }

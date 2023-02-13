@@ -42,6 +42,7 @@ builder.Services.AddHostServices(builder.Configuration);
 builder.Services.Configure<DirectoryServiceOptions>(options =>
     options.RootDirectoryPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath);
 builder.Services.AddScoped<IDirectoryService, DirectoryService>();
+
 /*builder.Services.AddResponseCompression(opts => {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
     new[]
@@ -49,7 +50,6 @@ builder.Services.AddScoped<IDirectoryService, DirectoryService>();
         "application/octet-stream"
     });
 });*/
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -72,8 +72,8 @@ if (app.Environment.IsDevelopment())
         case true when !runtimeIsWindows:
             await dbContext.SeedDataAsync(removeRecords: false, jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
             break;
-        case false:
-            await dbContext.SeedDataAsync();
+        case false when runtimeIsWindows:
+            await dbContext.SeedDataAsync(jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
             break;
     }
 

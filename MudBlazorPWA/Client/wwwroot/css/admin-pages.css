@@ -18,7 +18,7 @@ display: flex;
     background-color: transparent;
     overflow: auto;
     border: 4px double rgb(120, 120, 120);
-    height: 40vh;
+    height: 35vh;
 
 }
 .stops-editor .stops-expansion-panel {
