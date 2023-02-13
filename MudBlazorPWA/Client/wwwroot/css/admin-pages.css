@@ -29,3 +29,12 @@ display: flex;
     padding: 8px 16px;
     background-color: rgba(155, 155, 155, 0.1);
 }
+
+.folder-select-popover .mud-list-item-extended:not(.folder-item){
+    background: var(--mud-palette-background-grey);
+    box-shadow: var(--mud-elevation-10);
+    margin-block: 0.4rem;
+}
+.folder-select-popover .mud-list-extended.mud-list-padding-extended{
+    padding-inline: 4px;
+}

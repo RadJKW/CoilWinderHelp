@@ -5,13 +5,14 @@
 <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start ">
 
   @foreach (var breadcrumb in _breadCrumbs) {
-    <MudTooltip Duration="1000" Text="@breadcrumb?.Path">
-    <MudChip Text="@breadcrumb!.Name"
-        Icon="@Icons.Material.Outlined.Folder"
-        Size="Size.Large"
-        Label="true"
-        OnClick="() => SetFolderAsRoot(breadcrumb)">
-    </MudChip>
+    <MudTooltip Duration="1000"
+        Text="@breadcrumb?.Path">
+      <MudChip Text="@breadcrumb!.Name"
+          Icon="@Icons.Material.Outlined.Folder"
+          Size="Size.Large"
+          Label="true"
+          OnClick="() => SetFolderAsRoot(breadcrumb)">
+      </MudChip>
     </MudTooltip>
     <MudText Typo="Typo.h4"
         GutterBottom="false"
@@ -19,7 +20,8 @@
       /
     </MudText>
   }
-  <MudMenu Class="px-2" Icon="@Icons.Material.Outlined.ChevronRight"
+  <MudMenu Class="px-2"
+      Icon="@Icons.Material.Outlined.ChevronRight"
       IconColor="Color.Secondary"
       Size="Size.Medium"
       Variant="Variant.Outlined"
@@ -45,11 +47,16 @@
 
 @code {
   [Parameter]
-  public EventCallback<Folder> OnRootFolderChange { get; set; }
+  public EventCallback<FolderCallbackArgs> OnRootFolderChange { get; set; }
   [Parameter]
   public EventCallback<string[]> OnFoldersArrayReceived { get; set; }
   [Parameter]
   public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
+
+  public class FolderCallbackArgs {
+    public Folder? Folder { get; set; }
+    public List<string>? SubFolders { get; set; }
+  }
 
   #region Properties
   private readonly List<Folder?> _breadCrumbs = new();
@@ -65,14 +72,14 @@
   private void OnReceiveAllFolders(string[] folders) {
     _folders = folders;
     RootFolder = BuildDirectoryTree(_folders);
-    _breadCrumbs.Add(RootFolder);
-    InvokeAsync(StateHasChanged);
+    NavigateToFolder(RootFolder!);
+    StateHasChanged();
   }
   public void Dispose() {
     DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
   }
 
-  private  Task SetFolderAsRoot(Folder newRoot) {
+  private Task SetFolderAsRoot(Folder newRoot) {
     var index = _breadCrumbs.IndexOf(newRoot);
     _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
     RootFolder = newRoot;
@@ -86,15 +93,22 @@
   }
 
   private async Task RootFolderChanged() {
-    await OnRootFolderChange.InvokeAsync(RootFolder!);
-    StateHasChanged();
+  // filter out the folder paths that are not in the current root folder
+  // after the filter, replace the root folder path with "../" or "..\" depending on the OS
+    var splitChar = RootFolder!.Path!.Contains('\\') ? @"\" : @"/";
+    var subFolders = _folders!.Where(f => f.StartsWith(RootFolder!.Path! + splitChar)).ToList();
+    subFolders = subFolders.Select(f => f.Replace(RootFolder!.Path!, $"..")).ToList();
+    await OnRootFolderChange.InvokeAsync(new() {
+      Folder = RootFolder,
+      SubFolders = subFolders
+    });
+    await InvokeAsync(StateHasChanged);
   }
   private async Task SubmitSelectedFolders() {
     var folders = _selectedFolders.ToArray();
     _selectedFolders.RemoveAll(_ => true);
     await OnFoldersSubmitted.InvokeAsync(folders);
   }
-
 
   private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
     var enumerable = paths.ToList();
@@ -116,7 +130,6 @@
     }
     return root;
   }
-
   private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
     var commonParts = int.MaxValue;
     var stringsEnumerable = splitPaths.ToList();
@@ -133,9 +146,8 @@
     }
     return commonParts;
   }
-
   private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int
-  commonParts, char splitChar) {
+    commonParts, char splitChar) {
     var current = root;
     for (var i = commonParts + 1; i < splitPath.Count; i++) {
       var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
@@ -146,5 +158,4 @@
       current = next;
     }
   }
-
 }
