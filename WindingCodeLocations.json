@@ -1,66 +1,167 @@
-[
-  {
-    "STOP": "AD",
-    "LOCATION": "Stop Instructions\\Annular Duct"
+{
+  "RootDirectory": {
+    "WindowsPath": "B:\\CoilWinderTraining-Edit",
+    "MacPath": "/Users/jkw/WindingPractices",
+    "WebPath": "http://localhost:5126/files/D1 Pole/RPI"
   },
-  {
-    "LOCATION": "Stop Instructions\\Crepe Paper",
-    "STOP": "CX"
-  },
-  {
-    "STOP": "DE",
-    "LOCATION": "Setup\\01.Computer OPS"
-  },
-  {
-    "STOP": "DS",
-    "LOCATION": "Stop Instructions\\End Duct"
-  },
-  {
-    "STOP": "HV",
-    "LOCATION": "Overview\\High Voltage Winding"
-  },
-  {
-    "STOP": "HVA",
-    "LOCATION": "Overview\\High Voltage Winding\\Aluminum Wire"
-  },
-  {
-    "STOP": "HVC",
-    "LOCATION": "Overview\\High Voltage Winding\\Copper Wire"
-  },
-  {
-    "STOP": "LE",
-    "LOCATION": "Stop Instructions\\Layer End"
-  },
-  {
-    "STOP": "LV",
-    "LOCATION": "Overview\\Low Voltage Winding"
-  },
-  {
-    "STOP": "NC",
-    "LOCATION": "Setup"
-  },
-  {
-    "STOP": "PA",
-    "LOCATION": "Overview\\Barriers"
-  },
-  {
-    "STOP": "PX",
-    "LOCATION": "Stop Instructions\\Extension Paper"
-  },
-  {
-    "STOP": "TB",
-    "LOCATION": "Stop Instructions\\Section Break"
-  },
-  {
-    "STOP": "TS",
-    "LOCATION": "Stop Instructions\\Tap Stop"
-  },
-  {
-    "STOP": "TT",
-    "LOCATION": "Stop Instructions\\Total Turn"
-  },
-  {
-    "STOP": "XP",
-    "LOCATION": "Stop Instructions\\Extra Paper"
-  }
-]
+  "WindingCodes": [
+    {
+      "Code": "AD",
+      "Name": "Annular Duct",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Annular Duct"
+    },
+    {
+      "Code": "CX",
+      "Name": "Crepe Paper",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Crepe Paper"
+    },
+    {
+      "Code": "DS",
+      "Name": "Duct Stop",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/End Duct"
+    },
+    {
+      "Code": "LE",
+      "Name": "Layer End",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Layer End"
+    },
+    {
+      "Code": "PX",
+      "Name": "Paper Stop",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Extension Paper"
+    },
+    {
+      "Code": "TB",
+      "Name": "Section Break",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Section Break"
+    },
+    {
+      "Code": "TS",
+      "Name": "Tap Stop",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Tap Stop"
+    },
+    {
+      "Code": "XP",
+      "Name": "Extra Paper",
+      "CodeTypeId": 0,
+      "FolderPath": "./Stop Instructions/Extra Paper"
+    },
+    {
+      "Code": "CI",
+      "Name": "Coil Information",
+      "CodeTypeId": 2,
+      "FolderPath": null
+    },
+    {
+      "Code": "NC",
+      "Name": "New Coil",
+      "CodeTypeId": 2,
+      "FolderPath": "./Setup"
+    },
+    {
+      "Code": "NW",
+      "Name": "New Winding",
+      "CodeTypeId": 2,
+      "FolderPath": null
+    },
+    {
+      "Code": "RS",
+      "Name": "Run Screen",
+      "CodeTypeId": 2,
+      "FolderPath": null
+    },
+    {
+      "Code": "DE",
+      "Name": "Data Entry",
+      "CodeTypeId": 2,
+      "FolderPath": "./Setup/01.Computer OPS"
+    },
+    {
+      "Code": "FC",
+      "Name": "Finish Coil",
+      "CodeTypeId": 2,
+      "FolderPath": null
+    },
+    {
+      "Code": "PA",
+      "Name": "Paper",
+      "CodeTypeId": 3,
+      "FolderPath": "./Overview/Barriers"
+    },
+    {
+      "Code": "LV",
+      "Name": "Low Voltage",
+      "CodeTypeId": 3,
+      "FolderPath": "./Overview/Low Voltage Winding"
+    },
+    {
+      "Code": "HV",
+      "Name": "High Voltage",
+      "CodeTypeId": 3,
+      "FolderPath": "./Overview/High Voltage Winding"
+    },
+    {
+      "Code": "HVA",
+      "Name": "High Voltage Aluminum",
+      "CodeTypeId": 3,
+      "FolderPath": "./Overview/High Voltage Winding/Aluminum Wire"
+    },
+    {
+      "Code": "HVC",
+      "Name": "High Voltage Copper",
+      "CodeTypeId": 3,
+      "FolderPath": "./Overview/High Voltage Winding/Copper Wire"
+    },
+    {
+      "Code": "PM",
+      "Name": "Paper Material",
+      "CodeTypeId": 4,
+      "FolderPath": null
+    },
+    {
+      "Code": "WC",
+      "Name": "Wire Conductor",
+      "CodeTypeId": 4,
+      "FolderPath": null
+    },
+    {
+      "Code": "SC",
+      "Name": "Sheet Conductor",
+      "CodeTypeId": 4,
+      "FolderPath": null
+    }
+  ],
+  "CodeTypeIds": [
+    {
+      "CodeTypeId": 0,
+      "Name": "Stop"
+    },
+    {
+      "CodeTypeId": 1,
+      "Name": "Almost"
+    },
+    {
+      "CodeTypeId": 2,
+      "Name": "Data"
+    },
+    {
+      "CodeTypeId": 3,
+      "Name": "Layer"
+    },
+    {
+      "CodeTypeId": 4,
+      "Name": "Material"
+    },
+    {
+      "CodeTypeId": 5,
+      "Name": "None"
+    }
+  ]
+}

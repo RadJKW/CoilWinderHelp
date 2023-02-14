@@ -39,8 +39,11 @@ builder.Services.AddCors(options => {
 });
 
 builder.Services.AddHostServices(builder.Configuration);
-builder.Services.Configure<DirectoryServiceOptions>(options =>
-    options.RootDirectoryPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath);
+builder.Services.Configure<DirectoryServiceOptions>(options => {
+
+    options.RootDirectoryPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? windowsPath : macPath;
+    // options.WindingCodesJsonPath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json" : @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json";
+});
 builder.Services.AddScoped<IDirectoryService, DirectoryService>();
 
 /*builder.Services.AddResponseCompression(opts => {

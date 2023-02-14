@@ -46,12 +46,21 @@
 </div>
 
 @code {
+
+  public enum StartupFolder  {
+    Division1,
+    Division2,
+    Division3,
+    Default
+  }
   [Parameter]
   public EventCallback<FolderCallbackArgs> OnRootFolderChange { get; set; }
   [Parameter]
   public EventCallback<string[]> OnFoldersArrayReceived { get; set; }
   [Parameter]
   public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
+  [Parameter, EditorRequired]
+  public StartupFolder Folder { get; set; }
 
   public class FolderCallbackArgs {
     public Folder? Folder { get; set; }
@@ -63,12 +72,24 @@
   private readonly List<Folder> _selectedFolders = new();
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
+  private string? StartFolderPath {
+    get {
+      return Folder switch {
+        StartupFolder.Division1 => @"B:\CoilWinderTraining-Edit\D1 Pole",
+        StartupFolder.Division2 => @"B:\CoilWinderTraining-Edit\D2 Pad",
+        StartupFolder.Division3 => @"B:\CoilWinderTraining-Edit\D3 3PH",
+        _ => null
+      };
+    }
+  }
   #endregion
 
   protected override async Task OnInitializedAsync() {
     DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", null);
+    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", StartFolderPath);
   }
+
+  // after the parameters have been set,
   private void OnReceiveAllFolders(string[] folders) {
     _folders = folders;
     RootFolder = BuildDirectoryTree(_folders);

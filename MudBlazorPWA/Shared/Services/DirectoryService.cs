@@ -15,12 +15,12 @@ public interface IDirectoryService
 
 	Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase);
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
-
 }
 
 public class DirectoryServiceOptions
 {
 	public string RootDirectoryPath { get; set; } = string.Empty;
+	public string? WindingCodesJsonPath { get; set; }
 }
 
 public class DirectoryService : IDirectoryService
@@ -31,7 +31,7 @@ public class DirectoryService : IDirectoryService
 	private readonly ILogger<DirectoryService> _logger;
 
 	// add the IDataContext to the constructor
-	private readonly DataContext _dataContext;
+	private readonly IDataContext _dataContext;
 	private readonly string _rootDirectory;
 
 
@@ -40,11 +40,11 @@ public class DirectoryService : IDirectoryService
 		".mp4", ".pdf", ".webm"
 	};
 
-	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger, DataContext dataContext) {
+	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger, IDataContext dataContext) {
 		_logger = logger;
 		_dataContext = dataContext;
 		_rootDirectory = options.Value.RootDirectoryPath;
-		WindingCodesJsonPath = _rootDirectory + "WindingCodes.json";
+		WindingCodesJsonPath = options.Value.WindingCodesJsonPath ?? _rootDirectory + "WindingCodes.json";
 	}
 
 	// Used by the hub to get the contents of the root
@@ -80,6 +80,7 @@ public class DirectoryService : IDirectoryService
 
 	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var json = JsonConvert.SerializeObject(windingCodes, Formatting.Indented);
+		Console.WriteLine("WindingCodesJsonPath: " + WindingCodesJsonPath);
 		try {
 			await File.WriteAllTextAsync(WindingCodesJsonPath, json);
 		}
@@ -91,6 +92,51 @@ public class DirectoryService : IDirectoryService
 			await UpdateDatabaseWindingCodes(windingCodes);
 		}
 	}
+
+	/*public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
+		var windingCodesList = windingCodes.ToList();
+		Console.WriteLine("WindingCodesJsonPath: " + WindingCodesJsonPath);
+		var fs = new FileStream(WindingCodesJsonPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.Asynchronous);
+		try {
+			using var sr = new StreamReader(fs);
+			var json = await sr.ReadToEndAsync();
+			// in the json file, there is an object called WindingCodes which contains an array of WindingCodes
+			// get the WindingCodes array from the json file and convert it to an IEnumerable<WindingCode>
+			var jsonWindingCodes = JsonConvert.DeserializeObject<WindingCode[]>(JObject.Parse(json)["WindingCodes"]?.ToString()!);
+
+			// compare jsonWindingCodes to windingCodes that were passed in
+			// if there are any differences, set json WindingCodes to the new values
+			// if there are no differences, do nothing
+			if (jsonWindingCodes != null) {
+				if (jsonWindingCodes.SequenceEqual(windingCodesList)) return;
+
+				var newWindingCodes = jsonWindingCodes.Select(windingCode => jsonWindingCodes.FirstOrDefault(jsonWindingCode => jsonWindingCode.Code == windingCode.Code) ?? windingCode).ToList();
+				var jsonWindingCodesObject = JObject.Parse(json);
+				// replace the WindingCodes array in the json file with the new array
+				jsonWindingCodesObject["WindingCodes"] = JToken.FromObject(newWindingCodes);
+				json = jsonWindingCodesObject.ToString();
+			}
+			// if the file exists in the directory but there is no WindingCodes array, create a new WindingCodes array
+			else {
+				var jsonWindingCodesObject = JObject.Parse(json);
+				jsonWindingCodesObject.Add("WindingCodes", JToken.FromObject(windingCodesList));
+				json = jsonWindingCodesObject.ToString();
+			}
+			// write the new json file to the directory, overwriting the old one if it exists
+			await using var sw = new StreamWriter(fs);
+			await sw.WriteAsync(json);
+
+			// close the stream reader and writer
+			sw.Close();
+			sr.Close();
+
+		}
+		catch (Exception ex) {
+			_logger.LogError("An error occurred while exporting the database : {Error}", ex);
+			throw;
+		}
+		if (syncDatabase) await UpdateDatabaseWindingCodes(windingCodesList);
+	}*/
 
 	// function to return the json file to DataContextInitializer so it can compare the json file to the database
 	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
@@ -123,11 +169,12 @@ public class DirectoryService : IDirectoryService
 				var dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
 				dbWindingCode.Code = jsonWindingCode.Code;
 				dbWindingCode.Name = jsonWindingCode.Name;
+				dbWindingCode.FolderPath = jsonWindingCode.FolderPath;
 				dbWindingCode.CodeType = jsonWindingCode.CodeType;
 				dbWindingCode.CodeTypeId = jsonWindingCode.CodeTypeId;
+
 				_dataContext.WindingCodes.Update(dbWindingCode);
 			}
-
 		}
 
 		// if the code is in the database but not in the json file, delete it
@@ -136,12 +183,5 @@ public class DirectoryService : IDirectoryService
 		}
 
 		await _dataContext.SaveChangesAsync();
-
-
-
-
-
-
 	}
-
 }

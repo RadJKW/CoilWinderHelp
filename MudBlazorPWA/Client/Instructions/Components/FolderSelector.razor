@@ -85,7 +85,8 @@
   public EventCallback<Folder> OnFolderSubmitted { get; set; }
   [Parameter]
   public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
-
+  [Parameter]
+  public string? DirectoryPath { get; set; }
   #region Properties
   private readonly List<Folder?> _breadCrumbs = new();
   private readonly List<Folder> _selectedFolders = new();
@@ -100,7 +101,8 @@
 
   protected override async Task OnInitializedAsync() {
     DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", null);
+    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", DirectoryPath ?? null);
+    await base.OnInitializedAsync();
   }
   private void OnReceiveAllFolders(string[] folders) {
     _folders = folders;

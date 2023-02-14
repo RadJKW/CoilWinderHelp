@@ -8,134 +8,344 @@
     {
       "Code": "AD",
       "Name": "Annular Duct",
+      "FolderPath": "./Stop Instructions/Annular Duct",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Annular Duct"
+      "CodeType": null
     },
     {
       "Code": "CX",
       "Name": "Crepe Paper",
+      "FolderPath": "./Stop Instructions/Crepe Paper",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Crepe Paper"
+      "CodeType": null
     },
     {
       "Code": "DS",
       "Name": "Duct Stop",
+      "FolderPath": "./Stop Instructions/End Duct",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/End Duct"
+      "CodeType": null
     },
     {
       "Code": "LE",
       "Name": "Layer End",
+      "FolderPath": "./Stop Instructions/Layer End",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Layer End"
+      "CodeType": null
     },
     {
       "Code": "PX",
       "Name": "Paper Stop",
+      "FolderPath": "./Stop Instructions/Extension Paper",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Extension Paper"
+      "CodeType": null
     },
     {
       "Code": "TB",
       "Name": "Section Break",
+      "FolderPath": "./Stop Instructions/Section Break",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Section Break"
+      "CodeType": null
     },
     {
       "Code": "TS",
       "Name": "Tap Stop",
+      "FolderPath": "./Stop Instructions/Tap Stop",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Tap Stop"
+      "CodeType": null
     },
     {
       "Code": "XP",
       "Name": "Extra Paper",
+      "FolderPath": "./Stop Instructions/Extra Paper",
       "CodeTypeId": 0,
-      "FolderPath": "./Stop Instructions/Extra Paper"
+      "CodeType": null
     },
     {
       "Code": "CI",
       "Name": "Coil Information",
+      "FolderPath": null,
       "CodeTypeId": 2,
-      "FolderPath": null
+      "CodeType": null
     },
     {
       "Code": "NC",
       "Name": "New Coil",
+      "FolderPath": "./Setup",
       "CodeTypeId": 2,
-      "FolderPath": "./Setup"
+      "CodeType": null
     },
     {
       "Code": "NW",
       "Name": "New Winding",
+      "FolderPath": null,
       "CodeTypeId": 2,
-      "FolderPath": null
+      "CodeType": null
     },
     {
       "Code": "RS",
       "Name": "Run Screen",
+      "FolderPath": null,
       "CodeTypeId": 2,
-      "FolderPath": null
+      "CodeType": null
     },
     {
       "Code": "DE",
       "Name": "Data Entry",
+      "FolderPath": "./Setup/01.Computer OPS",
       "CodeTypeId": 2,
-      "FolderPath": "./Setup/01.Computer OPS"
+      "CodeType": null
     },
     {
       "Code": "FC",
       "Name": "Finish Coil",
+      "FolderPath": null,
       "CodeTypeId": 2,
-      "FolderPath": null
+      "CodeType": null
     },
     {
       "Code": "PA",
       "Name": "Paper",
+      "FolderPath": "./Overview/Barriers",
       "CodeTypeId": 3,
-      "FolderPath": "./Overview/Barriers"
+      "CodeType": null
     },
     {
       "Code": "LV",
       "Name": "Low Voltage",
+      "FolderPath": "./Overview/Low Voltage Winding",
       "CodeTypeId": 3,
-      "FolderPath": "./Overview/Low Voltage Winding"
+      "CodeType": null
     },
     {
       "Code": "HV",
       "Name": "High Voltage",
+      "FolderPath": "./Overview/High Voltage Winding",
       "CodeTypeId": 3,
-      "FolderPath": "./Overview/High Voltage Winding"
+      "CodeType": null
     },
     {
       "Code": "HVA",
       "Name": "High Voltage Aluminum",
+      "FolderPath": "./Overview/High Voltage Winding/Aluminum Wire",
       "CodeTypeId": 3,
-      "FolderPath": "./Overview/High Voltage Winding/Aluminum Wire"
+      "CodeType": null
     },
     {
       "Code": "HVC",
       "Name": "High Voltage Copper",
+      "FolderPath": "./Overview/High Voltage Winding/Copper Wire",
       "CodeTypeId": 3,
-      "FolderPath": "./Overview/High Voltage Winding/Copper Wire"
+      "CodeType": null
     },
     {
       "Code": "PM",
       "Name": "Paper Material",
+      "FolderPath": null,
       "CodeTypeId": 4,
-      "FolderPath": null
+      "CodeType": null
     },
     {
       "Code": "WC",
       "Name": "Wire Conductor",
+      "FolderPath": null,
       "CodeTypeId": 4,
-      "FolderPath": null
+      "CodeType": null
     },
     {
       "Code": "SC",
       "Name": "Sheet Conductor",
+      "FolderPath": null,
       "CodeTypeId": 4,
-      "FolderPath": null
+      "CodeType": null
+    }
+  ],
+  "CodeTypeIds": [
+    {
+      "CodeTypeId": 0,
+      "Name": "Stop"
+    },
+    {
+      "CodeTypeId": 1,
+      "Name": "Almost"
+    },
+    {
+      "CodeTypeId": 2,
+      "Name": "Data"
+    },
+    {
+      "CodeTypeId": 3,
+      "Name": "Layer"
+    },
+    {
+      "CodeTypeId": 4,
+      "Name": "Material"
+    },
+    {
+      "CodeTypeId": 5,
+      "Name": "None"
+    }
+  ]
+}{
+  "RootDirectory": {
+    "WindowsPath": "B:\\CoilWinderTraining-Edit",
+    "MacPath": "/Users/jkw/WindingPractices",
+    "WebPath": "http://localhost:5126/files/D1 Pole/RPI"
+  },
+  "WindingCodes": [
+    {
+      "Code": "AD",
+      "Name": "Annular Duct",
+      "FolderPath": "./Stop Instructions/Annular Duct",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "CX",
+      "Name": "Crepe Paper",
+      "FolderPath": "./Stop Instructions/Crepe Paper",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "DS",
+      "Name": "Duct Stop",
+      "FolderPath": "./Stop Instructions/End Duct",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "LE",
+      "Name": "Layer End",
+      "FolderPath": "./Stop Instructions/Layer End",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "PX",
+      "Name": "Paper Stop",
+      "FolderPath": "./Stop Instructions/Extension Paper",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "TB",
+      "Name": "Section Break",
+      "FolderPath": "./Stop Instructions/Section Break",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "TS",
+      "Name": "Tap Stop",
+      "FolderPath": "./Stop Instructions/Tap Stop",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "XP",
+      "Name": "Extra Paper",
+      "FolderPath": "./Stop Instructions/Extra Paper",
+      "CodeTypeId": 0,
+      "CodeType": null
+    },
+    {
+      "Code": "CI",
+      "Name": "Coil Information",
+      "FolderPath": null,
+      "CodeTypeId": 2,
+      "CodeType": null
+    },
+    {
+      "Code": "NC",
+      "Name": "New Coil",
+      "FolderPath": "./Setup",
+      "CodeTypeId": 2,
+      "CodeType": null
+    },
+    {
+      "Code": "NW",
+      "Name": "New Winding",
+      "FolderPath": null,
+      "CodeTypeId": 2,
+      "CodeType": null
+    },
+    {
+      "Code": "RS",
+      "Name": "Run Screen",
+      "FolderPath": null,
+      "CodeTypeId": 2,
+      "CodeType": null
+    },
+    {
+      "Code": "DE",
+      "Name": "Data Entry",
+      "FolderPath": "./Setup/01.Computer OPS",
+      "CodeTypeId": 2,
+      "CodeType": null
+    },
+    {
+      "Code": "FC",
+      "Name": "Finish Coil",
+      "FolderPath": null,
+      "CodeTypeId": 2,
+      "CodeType": null
+    },
+    {
+      "Code": "PA",
+      "Name": "Paper",
+      "FolderPath": "./Overview/Barriers",
+      "CodeTypeId": 3,
+      "CodeType": null
+    },
+    {
+      "Code": "LV",
+      "Name": "Low Voltage",
+      "FolderPath": "./Overview/Low Voltage Winding",
+      "CodeTypeId": 3,
+      "CodeType": null
+    },
+    {
+      "Code": "HV",
+      "Name": "High Voltage",
+      "FolderPath": "./Overview/High Voltage Winding",
+      "CodeTypeId": 3,
+      "CodeType": null
+    },
+    {
+      "Code": "HVA",
+      "Name": "High Voltage Aluminum",
+      "FolderPath": "./Overview/High Voltage Winding/Aluminum Wire",
+      "CodeTypeId": 3,
+      "CodeType": null
+    },
+    {
+      "Code": "HVC",
+      "Name": "High Voltage Copper",
+      "FolderPath": "./Overview/High Voltage Winding/Copper Wire",
+      "CodeTypeId": 3,
+      "CodeType": null
+    },
+    {
+      "Code": "PM",
+      "Name": "Paper Material",
+      "FolderPath": null,
+      "CodeTypeId": 4,
+      "CodeType": null
+    },
+    {
+      "Code": "WC",
+      "Name": "Wire Conductor",
+      "FolderPath": null,
+      "CodeTypeId": 4,
+      "CodeType": null
+    },
+    {
+      "Code": "SC",
+      "Name": "Sheet Conductor",
+      "FolderPath": null,
+      "CodeTypeId": 4,
+      "CodeType": null
     }
   ],
   "CodeTypeIds": [
