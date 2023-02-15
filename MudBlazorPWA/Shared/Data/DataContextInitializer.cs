@@ -57,30 +57,29 @@ public class DataContextInitializer
 			// if the database has data and we don't want to removeRecords it, then do nothing
 			case true when !removeRecords:
 				_logger.LogInformation("Seeding the database was skipped because it already has data");
+				await ExportDataToJson();
 				return;
 			// if the database has data and we do want to removeRecords it, then delete all the data
 			case true when removeRecords:
 				_dbContext.WindingCodes.RemoveRange(_dbContext.WindingCodes);
 				await _dbContext.SaveChangesAsync();
 				_logger.LogInformation("Removed all records from the database");
-				break;
+				await ImportDataFromJson(jsonFilePath);
+				return;
 		}
+	}
 
-		// get the data from the json file
+	private async Task ExportDataToJson() {
+		var windingCodes = await _dbContext.WindingCodes.ToListAsync();
+		await _directoryService.ExportWindingCodesToJson(windingCodes, false);
+	}
+
+	private async Task ImportDataFromJson(string? jsonFilePath = null) {
 		var windingCodes = await _directoryService.GetWindingCodesJson(jsonFilePath);
-
-		// add the data to the database
 		var enumerable = windingCodes.ToList();
 		var recordCount = enumerable.Count;
 		await _dbContext.WindingCodes.AddRangeAsync(enumerable);
 		await _dbContext.SaveChangesAsync();
-
-		// log the result
-		_logger.LogInformation("Seeded the database with {Count} records", recordCount);
-
-		await _directoryService.ExportWindingCodesToJson( enumerable, false);
-
-		_logger.LogInformation( "Exported the database to JSON");
-
+		_logger.LogInformation("Imported {Count} records to the database from JSON", recordCount);
 	}
 }
