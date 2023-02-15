@@ -2,9 +2,10 @@
 @implements IDisposable
 @inject ISnackbar Snackbar
 @inject HubClientService DirectoryHub
-@using Newtonsoft.Json
+@inject ILogger<StopsEditor> Logger
 @using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.SignalR.Client
+@using System.Text.Json
 
 <MudScrollbar Selector=""
     Width="4"
@@ -122,7 +123,7 @@
                                 Size="Size.Small"
                                 Class="mud-elevation-4"
                                 OnClick="@(() => {_showFullPaths = !_showFullPaths; InvokeAsync(StateHasChanged); })"
-                              Style="backdrop-filter: contrast(0.5) saturate(0.7)"/>
+                                Style="backdrop-filter: contrast(0.5) saturate(0.7)"/>
 
                           </MudTooltip>
                           <MudIconButton Variant="Variant.Text"
@@ -146,7 +147,8 @@
                             PopoverClass="folder-select-popover"
                             SearchBox="true"
                             AutoFocus="true"
-                            DisablePopoverPadding="true">
+                            DisablePopoverPadding="true"
+                            Adorn>
                           <ItemTemplate>
                             <MudText> @context.Value</MudText>
                           </ItemTemplate>
@@ -171,7 +173,7 @@
           Text="Error loading data"/>
       break;
   }
-
+  <MudText>@_fromHub</MudText>
 </MudStack>
 
 @code{
@@ -191,23 +193,39 @@
   private Folder? RootFolder { get; set; }
   private string _rawJson = string.Empty;
   private bool _showFullPaths = false;
+  private string _fromHub = "Default";
   #endregion
 
-  protected override async Task OnInitializedAsync() {
-    DirectoryHub.WindingCodesDbUpdated += DirectHub_OnWindingCodesDbUpdated;
+  /*protected override async Task OnInitializedAsync() {
+    DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
     _pwaServer = HttpClient.CreateClient("PwaServer");
     var response = await _pwaServer.GetAsync("files/WindingCodes.json");
     if (response.IsSuccessStatusCode) {
       await ParseWindingCodes(response);
     }
     await base.OnInitializedAsync();
+  }*/
+  protected override async Task OnInitializedAsync() {
+    DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
+    await FetchCodesFromHub();
+    await base.OnInitializedAsync();
   }
 
+  private async Task FetchCodesFromHub() {
+    var windingCodes = await DirectoryHub.Hub!.InvokeAsync<List<WindingCode>?>("GetWindingCodes");
+    if (windingCodes == null) {
+      State = PageState.Error;
+      return;
+    }
+    WindingCodeGroups = windingCodes.GroupBy(wc => wc.CodeTypeId);
+    State = PageState.Loaded;
+    await InvokeAsync(StateHasChanged);
+  }
 
   private async Task ParseWindingCodes(HttpResponseMessage response) {
     var content = await response.Content.ReadAsStringAsync();
     _rawJson = content;
-    var windingCodes = JsonConvert.DeserializeObject<List<WindingCode>>(content);
+    var windingCodes = JsonSerializer.Deserialize<List<WindingCode>>(content);
     if (windingCodes == null) {
       State = PageState.Error;
       return;
@@ -263,7 +281,7 @@
     StateHasChanged();
     return Task.CompletedTask;
   }
-  private void DirectHub_OnWindingCodesDbUpdated() {
+  private void DirectoryHub_OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success, config => {
       config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
       config.ShowCloseIcon = true;
@@ -276,22 +294,20 @@
     _pwaServer.Dispose();
   }
   private async Task ConvertStopsToJson() {
-  //TODO: Values are not being updated in DataBase.
-  //iterate through all the expansion panels and get the selected folder path for each winding code and then
-  // convert the codes to IEnumerable<WindingCode> and then invoke DirectoryHub.SaveWindingCodesDb with the IEnumerable, true
-
     var windingCodesJson = WindingCodeGroups.SelectMany(group => group).ToList();
-  // iterate over each winding code in the list and prepend the root folder path to the folder path
     foreach (var windingCode in windingCodesJson.Where(windingCode => windingCode.FolderPath != null)) {
       windingCode.FolderPath = windingCode.FolderPath!.Replace("..", RootFolder?.Path);
     }
-    await DirectoryHub.Hub!.InvokeAsync("SaveWindingCodesDb", windingCodesJson, true);
+    // used to test results from hub
+   _fromHub = await DirectoryHub.Hub!.InvokeAsync<string>("SaveWindingCodesDb", windingCodesJson, true);
+    await InvokeAsync(StateHasChanged);
   }
   private string FormatWindingCode(WindingCode windingCode) {
     if (RootFolder?.Path == null)
       return windingCode.FolderPath ?? string.Empty;
     if (_showFullPaths)
       return windingCode.FolderPath!;
+
     return windingCode.FolderPath?.Replace(RootFolder.Path, "..") ?? string.Empty;
   }
 }

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace MudBlazorPWA.Shared.Models;
 public class WindingCode
@@ -9,8 +10,9 @@ public class WindingCode
     [Display(Name="Stop")]
     public string? Name { get; set; }
     public string? FolderPath { get; set; }
-
     public CodeTypeId CodeTypeId { get; set; }
+
+    [JsonIgnore]
     public CodeType? CodeType { get; set; }
 }
 

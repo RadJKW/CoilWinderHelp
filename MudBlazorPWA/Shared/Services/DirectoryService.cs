@@ -3,8 +3,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MudBlazorPWA.Shared.Data;
 using MudBlazorPWA.Shared.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
@@ -79,9 +79,20 @@ public class DirectoryService : IDirectoryService
 	}
 
 	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
-		var json = JsonConvert.SerializeObject(windingCodes, Formatting.Indented);
+		var windingCodesList = windingCodes.ToList();
+		var json = JsonSerializer.Serialize(windingCodesList, new JsonSerializerOptions {
+			WriteIndented = true,
+
+			Converters = {
+				new JsonStringEnumConverter()
+			}
+		});
 		Console.WriteLine("WindingCodesJsonPath: " + WindingCodesJsonPath);
 		try {
+			// if the file exists, delete it
+			if (File.Exists(WindingCodesJsonPath)) {
+				File.Delete(WindingCodesJsonPath);
+			}
 			await File.WriteAllTextAsync(WindingCodesJsonPath, json);
 		}
 		catch (Exception ex) {
@@ -89,67 +100,21 @@ public class DirectoryService : IDirectoryService
 			throw;
 		}
 		if (syncDatabase) {
-			await UpdateDatabaseWindingCodes(windingCodes);
+			await UpdateDatabaseWindingCodes(windingCodesList);
 		}
 	}
 
-	/*public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
-		var windingCodesList = windingCodes.ToList();
-		Console.WriteLine("WindingCodesJsonPath: " + WindingCodesJsonPath);
-		var fs = new FileStream(WindingCodesJsonPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 4096, FileOptions.Asynchronous);
-		try {
-			using var sr = new StreamReader(fs);
-			var json = await sr.ReadToEndAsync();
-			// in the json file, there is an object called WindingCodes which contains an array of WindingCodes
-			// get the WindingCodes array from the json file and convert it to an IEnumerable<WindingCode>
-			var jsonWindingCodes = JsonConvert.DeserializeObject<WindingCode[]>(JObject.Parse(json)["WindingCodes"]?.ToString()!);
-
-			// compare jsonWindingCodes to windingCodes that were passed in
-			// if there are any differences, set json WindingCodes to the new values
-			// if there are no differences, do nothing
-			if (jsonWindingCodes != null) {
-				if (jsonWindingCodes.SequenceEqual(windingCodesList)) return;
-
-				var newWindingCodes = jsonWindingCodes.Select(windingCode => jsonWindingCodes.FirstOrDefault(jsonWindingCode => jsonWindingCode.Code == windingCode.Code) ?? windingCode).ToList();
-				var jsonWindingCodesObject = JObject.Parse(json);
-				// replace the WindingCodes array in the json file with the new array
-				jsonWindingCodesObject["WindingCodes"] = JToken.FromObject(newWindingCodes);
-				json = jsonWindingCodesObject.ToString();
-			}
-			// if the file exists in the directory but there is no WindingCodes array, create a new WindingCodes array
-			else {
-				var jsonWindingCodesObject = JObject.Parse(json);
-				jsonWindingCodesObject.Add("WindingCodes", JToken.FromObject(windingCodesList));
-				json = jsonWindingCodesObject.ToString();
-			}
-			// write the new json file to the directory, overwriting the old one if it exists
-			await using var sw = new StreamWriter(fs);
-			await sw.WriteAsync(json);
-
-			// close the stream reader and writer
-			sw.Close();
-			sr.Close();
-
-		}
-		catch (Exception ex) {
-			_logger.LogError("An error occurred while exporting the database : {Error}", ex);
-			throw;
-		}
-		if (syncDatabase) await UpdateDatabaseWindingCodes(windingCodesList);
-	}*/
-
 	// function to return the json file to DataContextInitializer so it can compare the json file to the database
 	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
-		try {
+		try
+		{
 			var filePath = path ?? WindingCodesJsonPath;
 			var json = await File.ReadAllTextAsync(filePath);
-			return JsonConvert
-				       .DeserializeObject<IEnumerable<WindingCode>>(JObject
-					       .Parse(json)["WindingCodes"]?
-					       .ToString()!)
-			       ?? Array.Empty<WindingCode>();
+			var jObject = JsonDocument.Parse(json).RootElement.GetProperty("WindingCodes");
+			return JsonSerializer.Deserialize<IEnumerable<WindingCode>>( jObject.GetRawText()) ?? Array.Empty<WindingCode>();
 		}
-		catch (Exception ex) {
+		catch (Exception ex)
+		{
 			_logger.LogError("An error occurred while getting the json file : {Error}", ex);
 			throw;
 		}
