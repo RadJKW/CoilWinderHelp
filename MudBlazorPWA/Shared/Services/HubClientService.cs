@@ -38,7 +38,9 @@ public class HubClientService
 		hubConnection.On<string[]>("ReceiveAllFolders", folders => {
 			ReceiveAllFolders?.Invoke(folders);
 		});
-		hubConnection.On<string, string[]?, string[]?>("ReceiveFolderContent", (path, files, folders) => {
+		hubConnection.On<string, string[]?, string[]?>(
+		"ReceiveFolderContent",
+		(path, files, folders) => {
 			ReceiveFolderContent?.Invoke(path, files, folders);
 		});
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });

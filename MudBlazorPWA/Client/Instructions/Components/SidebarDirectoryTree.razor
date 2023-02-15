@@ -1,6 +1,4 @@
-﻿@using MudBlazorPWA.Shared.Extensions
-@using MudBlazorPWA.Shared.Models
-@using Microsoft.AspNetCore.SignalR.Client
+﻿@using Microsoft.AspNetCore.SignalR.Client
 @inject HubClientService DirectoryHub
 @implements IDisposable
 <div
@@ -39,7 +37,6 @@
 @code{
   protected virtual HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
   private TreeItemData? SelectedNode { get; set; }
-  private TreeItemData? CurrentNode { get; set; }
 
 
   protected override async Task OnInitializedAsync() {
@@ -60,16 +57,15 @@
     }
 
     ConvertToTreeItems(
-      files: files,
       folders: folders,
       SelectedNode
       );
     StateHasChanged();
   }
 
-  private Task ConvertToTreeItems(string[]? files, string[]? folders, TreeItemData? selectedNode = null) {
+  private void ConvertToTreeItems(string[]? folders, TreeItemData? selectedNode = null) {
     if (folders == null)
-      return Task.CompletedTask;
+      return;
 
     foreach (var folder in folders) {
       var folderTitle = GetLastIndexOf(folder);
@@ -88,10 +84,9 @@
         selectedNode.TreeItems.Add(newNode);
       }
     }
-    return Task.CompletedTask;
   }
 
-  private string GetLastIndexOf(string path) {
+  private static string GetLastIndexOf(string path) {
     return path.Contains("\\") ?
       path
         [(path.LastIndexOf("\\", StringComparison.Ordinal) + 1)..]
@@ -110,7 +105,7 @@
     }
   }
 
-  private bool IsFolder(TreeItemData node) {
+  private static bool IsFolder(TreeItemData node) {
     return node.Type != TreeItemData.ItemType.File;
   }
 

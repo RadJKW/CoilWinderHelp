@@ -70,13 +70,17 @@ if (app.Environment.IsDevelopment())
     switch (useInMemoryDatabase)
     {
         case true when runtimeIsWindows:
-            await dbContext.SeedDataAsync(removeRecords: false, jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
+            await dbContext.SeedDataAsync(
+                removeRecords: false,
+                jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
             break;
         case true when !runtimeIsWindows:
-            await dbContext.SeedDataAsync(removeRecords: false, jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
+            await dbContext.SeedDataAsync(
+                removeRecords: false,
+                jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
             break;
         case false when runtimeIsWindows:
-            await dbContext.SeedDataAsync(jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
+            await dbContext.SeedDataAsync();
             break;
     }
 
@@ -106,7 +110,6 @@ app.UseFileServer(new FileServerOptions
 
 app.UseRouting();
 app.UseHttpLogging();
-
 app.MapRazorPages();
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
