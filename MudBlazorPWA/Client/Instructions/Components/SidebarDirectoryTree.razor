@@ -46,7 +46,7 @@
 
   private async Task InitializeDirectoryHub() {
     DirectoryHub.ReceiveFolderContent += OnReceiveFolderContent;
-    await DirectoryHub.Hub!.InvokeAsync("GetFolderContent", null);
+    await DirectoryHub.Hub.InvokeAsync("GetFolderContent", null);
 
   }
   private void OnReceiveFolderContent(string path, string[]? files, string[]? folders ) {
@@ -97,7 +97,7 @@
   private async Task NotifyFileSelected(TreeItemData node) {
     switch (node.CanExpand) {
       case false when DirectoryHub != null:
-        await DirectoryHub.Hub!.InvokeAsync("FileSelected", node.Path);
+        await DirectoryHub.Hub.InvokeAsync("FileSelected", node.Path);
         break;
       case true:
         SelectedNode = node;
@@ -111,7 +111,7 @@
 
   protected virtual async Task<HashSet<TreeItemData>> LoadServerData(TreeItemData parentNode) {
     var currentPath = parentNode.Path;
-    await DirectoryHub.Hub!.InvokeAsync("GetFolderContent", currentPath);
+    await DirectoryHub.Hub.InvokeAsync("GetFolderContent", currentPath);
     SelectedNode = parentNode;
   // find the parent node in _mudTreeView and set Activated to true
     return parentNode.TreeItems;

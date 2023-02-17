@@ -1,90 +1,101 @@
 @page "/"
 @layout DocViewLayout
-@inject IHttpClientFactory HttpClientFactory
-@implements IDisposable
+@inject HubClientService DirectoryHub
+@inherits ComponentBase
+@implements IAsyncDisposable
 
-<div
-class="auto-docs container">
-<MudSplitter
-    Class="auto-docs splitter"
-    @bind-Dimension="@_startWidth"
-    StyleBar="width: 6px !important;"
-    OnDoubleClicked="HandleDoubleClicked"
-    EnableSlide="true"
-    EnableMargin="false"
-    Sensitivity="0.1d">
-  <StartContent>
-    <PrimaryContent
-        Src="@PdfUrl">
-    </PrimaryContent>
-    @if (_startWidth <= 50) {
-      <div
-          class="d-flex justify-center">
-        <MudIconButton
+@switch (_currentWindingStop is not null) {
+  case true: {
+    <div class="auto-docs container">
+      <MudSplitter Class="auto-docs splitter"
+          @bind-Dimension="@_startWidth"
+          StyleBar="width: 6px !important;"
+          OnDoubleClicked="HandleDoubleClicked"
+          EnableSlide="true"
+          EnableMargin="false"
+          Sensitivity="0.1d">
+        <StartContent>
+
+          <PrimaryContent Src="@PdfUrl"/>
+
+          @if (_startWidth <= 50) {
+            <div class="d-flex justify-center">
+              <MudIconButton Size="Size.Large"
+                  Variant="Variant.Filled"
+                  Class="align-center justify-center"
+                  Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
+                  OnClick="StartContentClicked">
+              </MudIconButton>
+            </div>
+          }
+        </StartContent>
+        <EndContent>
+          @if (_startWidth > 50) {
+            <div class="d-flex justify-center">
+              <MudIconButton Size="Size.Large"
+                  Variant="Variant.Filled"
+                  Class="align-center justify-center"
+                  Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
+                  OnClick="EndContentClicked">
+              </MudIconButton>
+            </div>
+          }
+          @*//TODO: Figure Out why Secondary Content is not re-rendering on WindingStopUpdate*@
+          <SecondaryContent VideoUrl="@VideoUrl"
+              RefsFolder="@RefsFolder"/>
+        </EndContent>
+      </MudSplitter>
+    </div>
+    break;
+  }
+  case false: {
+    <div class="align-center d-flex justify-center mud-width-full"
+        style="height: 50%">
+      <div class="align-center d-flex flex-column justify-center">
+
+        <MudProgressCircular Color="Color.Tertiary"
+            StrokeWidth="5"
             Size="Size.Large"
-            Variant="Variant.Filled"
-            Class="justify-center align-center"
-            Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
-            OnClick="StartContentClicked">
-        </MudIconButton>
+            Indeterminate="true"/>
+
+        <MudText Typo="Typo.h3">Loading...</MudText>
       </div>
-    }
-  </StartContent>
-  <EndContent>
-    @if (_startWidth > 50) {
-      <div
-          class="d-flex justify-center">
-        <MudIconButton
-            Size="Size.Large"
-            Variant="Variant.Filled"
-            Class="justify-center align-center"
-            Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
-            OnClick="EndContentClicked">
-        </MudIconButton>
-      </div>
-    }
-    <SecondaryContent/>
-  </EndContent>
-</MudSplitter>
-</div>
+
+    </div>
+    break;
+  }
+}
+
 
 @code{
+    private const string FileServer = "http://localhost:5126/files/";
 
-    private const string RelativePath = "files";
-    private const string RelativePdfUrl = "D1 Pole/01.Setup/Computer OPS/computerOps.pdf";
-
-  private bool _drawerOpen;
+  private WindingCode? _currentWindingStop;
   private double _startWidth = 65;
-
-  [CascadingParameter]
-  public DocViewLayout? DocViewLayout { get; set; }
-
-  private HttpClient? FileServer { get; set; }
-
   private string? PdfUrl { get; set; }
+  private string? VideoUrl { get; set; }
+  private string? RefsFolder { get; set; }
+
+
+
 
   protected override async Task OnInitializedAsync() {
+    _currentWindingStop = await DirectoryHub.GetCurrentCoilWinderStop();
+    DirectoryHub.CurrentWindingStopUpdated += async (_, code) => await DirectoryHub_OnCurrentWindingStopUpdated(code);
+
     await base.OnInitializedAsync();
-    FileServer = HttpClientFactory.CreateClient("PwaServer");
-    PdfUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativePdfUrl}";
-
   }
 
 
-  protected override Task OnParametersSetAsync() {
-    DocViewLayout!.ToggleDrawerEvent += ToggleDrawer;
-  // DocViewLayout!.ToggleDrawerRightEvent += ToggleDrawerRight;
-    return base.OnParametersSetAsync();
+  private async Task DirectoryHub_OnCurrentWindingStopUpdated( WindingCode windingCode) {
+    PdfUrl = windingCode.Media.Pdf is not null ? FileServer + windingCode.Media.Pdf : null;
+    VideoUrl = windingCode.Media.Video is not null ? FileServer + windingCode.Media.Video : null;
+    RefsFolder = windingCode.Media.ReferenceFolder is not null ? FileServer + windingCode.Media.ReferenceFolder : null;
+    StateHasChanged();
+    _currentWindingStop = windingCode;
+    await InvokeAsync(StateHasChanged);
   }
 
-  private void ToggleDrawer() {
-    _drawerOpen = !_drawerOpen;
-  }
-
-  public void Dispose() {
-    DocViewLayout!.ToggleDrawerEvent -= ToggleDrawer;
-  // DocViewLayout!.ToggleDrawerRightEvent -= ToggleDrawerRight;
-  }
   private void HandleDoubleClicked() {
     _startWidth = _startWidth <= 50 ? 70 : 30;
   }
@@ -93,5 +104,8 @@ class="auto-docs container">
   }
   private void EndContentClicked() {
     _startWidth = 40;
+  }
+  public ValueTask DisposeAsync() {
+    return ValueTask.CompletedTask;
   }
 }

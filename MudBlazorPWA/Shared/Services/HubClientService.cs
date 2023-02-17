@@ -1,26 +1,23 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
+using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Shared.Services;
 
 public class HubClientService
 {
-	public HubConnection? Hub;
-	private readonly NavigationManager _navigationManager;
-
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
-
 	public event Action? WindingCodesDbUpdated;
 
+	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
 
 	public HubClientService(NavigationManager navigationManager) {
 		_navigationManager = navigationManager;
-		// establish the connection to the hub on the server
-
 		InitializeDirectoryHub();
-
 	}
+	public HubConnection Hub { get; private set; } = null!;
+	private readonly NavigationManager _navigationManager;
 
 	private void InitializeDirectoryHub() {
 
@@ -31,9 +28,6 @@ public class HubClientService
 		RegisterHubEvents(Hub);
 		Hub.StartAsync();
 	}
-
-
-
 	private void RegisterHubEvents(HubConnection hubConnection) {
 		hubConnection.On<string[]>("ReceiveAllFolders", folders => {
 			ReceiveAllFolders?.Invoke(folders);
@@ -44,13 +38,21 @@ public class HubClientService
 			ReceiveFolderContent?.Invoke(path, files, folders);
 		});
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
+		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", code => {
+			CurrentWindingStopUpdated?.Invoke(this ,code);
+		});
+
+	}
+	public async void SetCurrentCoilWinderStop(WindingCode code) {
+		await Hub.InvokeAsync("UpdateCurrentWindingStop", code);
+
 	}
 
-	public async Task InvokeAsync(string methodName, params object[]? args) {
-		if (Hub is null) {
-			InitializeDirectoryHub();
-		}
-		if (Hub != null)
-			await Hub.InvokeAsync(methodName, args);
+	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
+	 return await Hub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
+	}
+
+	public HubConnection GetHubConnection() {
+		return Hub;
 	}
 }

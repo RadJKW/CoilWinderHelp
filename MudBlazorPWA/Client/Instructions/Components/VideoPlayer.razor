@@ -1,6 +1,6 @@
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
-@inject IHttpClientFactory HttpClientFactory
+
 
 
 @if (VideoUrl != null) {
@@ -22,19 +22,19 @@
   [Parameter]
   public string Id { get; set; } = "video-player";
 
+  [Parameter]
+  [EditorRequired]
+  public required string? VideoUrl { get; set; }
+
 
   private IJSObjectReference? _videoJs;
 
     private const string RelativePath = "files";
     private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
 
-  private HttpClient? FileServer { get; set; }
-  private string? VideoUrl { get; set; }
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-    FileServer = HttpClientFactory.CreateClient("PwaServer");
-    VideoUrl = $"{FileServer.BaseAddress}{RelativePath}/{RelativeVideoUrl}";
   }
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender) {
@@ -43,7 +43,6 @@
           "import", "./Instructions/Components/VideoPlayer.razor.js");
     }
   }
-
 
   private async Task JsSetVideoPlayer() {
     if (_videoJs != null)

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
 
 namespace MudBlazorPWA.Shared.Models;
 public class WindingCode
@@ -12,8 +13,17 @@ public class WindingCode
     public string? FolderPath { get; set; }
     public CodeTypeId CodeTypeId { get; set; }
 
+    public Media Media { get; set; } = new();
+
     [JsonIgnore]
     public CodeType? CodeType { get; set; }
+}
+[Owned]
+public class Media
+{
+    public string? Video { get; set; }
+    public string? Pdf { get; set; }
+    public string? ReferenceFolder { get; set; }
 }
 
 public class CodeType

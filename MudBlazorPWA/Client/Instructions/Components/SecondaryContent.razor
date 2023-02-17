@@ -1,13 +1,11 @@
-﻿<div
+﻿
+@if (VideoUrl != null) {
+
+<div
     class="video-grid">
   <div
       class="video-content">
-    <VideoPlayer/>
-    @*<video
-        controls
-        autoplay>
-      <source src="http://localhost:5126/files/TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4" type="video/mp4"/>
-    </video>*@
+    <VideoPlayer VideoUrl="@VideoUrl"/>
   </div>
 
   <div
@@ -20,7 +18,22 @@
     </MudSkeleton>
   </div>
 </div>
+} else {
+  <MudSkeleton
+      SkeletonType="SkeletonType.Rectangle"
+      Animation="Animation.Pulse"
+      Height="100%"
+      Width="100%">
+  </MudSkeleton>
+}
+
 
 @code {
+  [Parameter]
+  [EditorRequired]
+  public string? VideoUrl { get; set; }
+
+  [Parameter]
+  public string? RefsFolder { get; set; }
 
 }

@@ -10,22 +10,26 @@ namespace MudBlazorPWA.Shared.Services;
 public interface IDirectoryService
 {
 	Task<(string, string[], string[])> GetFolderContent(string? path = null);
-	Task<string> GetRelativePath(string path);
 	Task<string[]> GetFoldersInPath(string? path = null);
 
 	Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase);
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
+
+	Task<WindingCode> GetWindingCodeDocuments(WindingCode code);
+
+	public string GetRelativePath(string fullPath);
 }
 
 public class DirectoryServiceOptions
 {
 	public string RootDirectoryPath { get; set; } = string.Empty;
-	public string? WindingCodesJsonPath { get; set; }
+	public string? WindingCodesJsonPath { get; set; } = null;
 }
 
 public class DirectoryService : IDirectoryService
 {
-	private string WindingCodesJsonPath { get; set; }
+
+	private readonly string _windingCodesJsonPath;
 
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<DirectoryService> _logger;
@@ -44,7 +48,7 @@ public class DirectoryService : IDirectoryService
 		_logger = logger;
 		_dataContext = dataContext;
 		_rootDirectory = options.Value.RootDirectoryPath;
-		WindingCodesJsonPath = options.Value.WindingCodesJsonPath ?? _rootDirectory + "WindingCodes.json";
+		_windingCodesJsonPath = options.Value.WindingCodesJsonPath ?? _rootDirectory + "WindingCodes.json";
 	}
 
 	// Used by the hub to get the contents of the root
@@ -64,9 +68,78 @@ public class DirectoryService : IDirectoryService
 		return Task.FromResult((directory, files, folders));
 	}
 
-	public Task<string> GetRelativePath(string path) {
-		return
-			Task.FromResult(Path.GetRelativePath(_rootDirectory, path));
+	public string GetRelativePath(string path) {
+
+		var relativePath = Path.GetRelativePath(_rootDirectory, path);
+		Console.WriteLine($"Root: {_rootDirectory} \n Path: {path} \n Relative: {relativePath}");
+		return relativePath;
+
+	}
+
+	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
+		if (code.FolderPath == null) {
+			return code;
+		}
+		var documents = code.Media;
+
+		// get the pdf path
+		var pdfPath = await GetPdfPath(code.FolderPath, false);
+		if (pdfPath != null) {
+			documents.Pdf = GetRelativePath(pdfPath);
+		}
+
+		// get the video path
+		var videoPath = await GetVideoPath(code.FolderPath);
+		if (videoPath != null) {
+			documents.Video = GetRelativePath(videoPath);
+		}
+
+		// get the refMedia path
+		var refMediaPath = await GetRefMediaPath(code.FolderPath);
+		if (refMediaPath != null) {
+			documents.ReferenceFolder = GetRelativePath(refMediaPath);
+		}
+		return code;
+	}
+
+	private Task<string?> GetPdfPath(string folder, bool relative) {
+		var pdfPath = Directory.EnumerateFiles(folder)
+			.FirstOrDefault(f => f.EndsWith(".pdf"));
+		if (relative && pdfPath != null) {
+			pdfPath = Path.GetRelativePath(_rootDirectory, pdfPath);
+		}
+		return Task.FromResult(pdfPath);
+	}
+
+	private static Task<string?> GetVideoPath(string? folder) {
+
+		if (folder == null) {
+			return Task.FromResult<string?>(null);
+		}
+
+		const string tempVideoFolder = @"B:\CoilWinderTraining-Edit\TrainingVideos\Unsorted";
+
+		var videos = Directory.EnumerateFiles(tempVideoFolder)
+			.Where(f => f.EndsWith(".mp4"))
+			.ToArray();
+
+		var random = new Random();
+		for (var i = videos.Length - 1; i > 0; i--) {
+			var j = random.Next(i + 1);
+			(videos[i], videos[j]) = (videos[j], videos[i]);
+		}
+
+		var randomNumber = random.Next(videos.Length);
+		var videoPath = videos[randomNumber];
+
+		return Task.FromResult(videoPath)!;
+	}
+
+
+	private static Task<string?> GetRefMediaPath(string folder) {
+		var refMediaPath = Directory.EnumerateDirectories(folder)
+			.FirstOrDefault(f => f.Contains("Ref", StringComparison.OrdinalIgnoreCase));
+		return Task.FromResult(refMediaPath);
 	}
 
 	public Task<string[]> GetFoldersInPath(string? path = null) {
@@ -87,13 +160,13 @@ public class DirectoryService : IDirectoryService
 				new JsonStringEnumConverter()
 			}
 		});
-		Console.WriteLine("WindingCodesJsonPath: " + WindingCodesJsonPath);
+		Console.WriteLine("_windingCodesJsonPath: " + _windingCodesJsonPath);
 		try {
 			// if the file exists, delete it
-			if (File.Exists(WindingCodesJsonPath)) {
-				File.Delete(WindingCodesJsonPath);
+			if (File.Exists(_windingCodesJsonPath)) {
+				File.Delete(_windingCodesJsonPath);
 			}
-			await File.WriteAllTextAsync(WindingCodesJsonPath, json);
+			await File.WriteAllTextAsync(_windingCodesJsonPath, json);
 		}
 		catch (Exception ex) {
 			_logger.LogError("An error occurred while exporting the database : {Error}", ex);
@@ -106,15 +179,13 @@ public class DirectoryService : IDirectoryService
 
 	// function to return the json file to DataContextInitializer so it can compare the json file to the database
 	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
-		try
-		{
-			var filePath = path ?? WindingCodesJsonPath;
+		try {
+			var filePath = path ?? _windingCodesJsonPath;
 			var json = await File.ReadAllTextAsync(filePath);
 			var jObject = JsonDocument.Parse(json).RootElement.GetProperty("WindingCodes");
-			return JsonSerializer.Deserialize<IEnumerable<WindingCode>>( jObject.GetRawText()) ?? Array.Empty<WindingCode>();
+			return JsonSerializer.Deserialize<IEnumerable<WindingCode>>(jObject.GetRawText()) ?? Array.Empty<WindingCode>();
 		}
-		catch (Exception ex)
-		{
+		catch (Exception ex) {
 			_logger.LogError("An error occurred while getting the json file : {Error}", ex);
 			throw;
 		}

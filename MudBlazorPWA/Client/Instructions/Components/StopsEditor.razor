@@ -6,6 +6,7 @@
 @using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Text.Json
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
 
 <MudScrollbar Selector=""
     Width="4"
@@ -34,6 +35,7 @@
       </MudButton>
     </div>
   </div>
+
   @switch (State) {
     case PageState.Loading:
       <div class="align-center d-flex justify-center mud-width-full"
@@ -110,6 +112,7 @@
                                 Icon="@Icons.Material.Outlined.Bolt"
                                 Size="Size.Small"
                                 Class="mud-elevation-4"
+                                OnClick="@(() => SetUpdatedStop(windingCode.Code))"
                                 Style="backdrop-filter: contrast(0.5) saturate(0.7)"/>
                           </MudTooltip>
                           <MudTooltip Arrow="true"
@@ -165,6 +168,9 @@
           </MudItem>
         }
       </MudGrid>
+      <MudPaper Class="mud-background-gray mud-width-full my-6 py-1">
+        <MudText Align="Align.Center">@_fromHub</MudText>
+      </MudPaper>
       break;
     case PageState.Error:
     default:
@@ -173,7 +179,7 @@
           Text="Error loading data"/>
       break;
   }
-  <MudText>@_fromHub</MudText>
+
 </MudStack>
 
 @code{
@@ -185,8 +191,9 @@
   }
 
   #region Properties
-  private HttpClient _pwaServer = null!;
-  private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; } = new List<IGrouping<CodeTypeId, WindingCode>>();
+  private HttpClient? _pwaServer = null!;
+  private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; }
+    = new List<IGrouping<CodeTypeId, WindingCode>>();
   private PageState State { get; set; } = PageState.Loading;
   private List<string> _folderPaths = new List<string>();
   private readonly List<(string, List<string>?)> _folderItemGroups = new();
@@ -196,32 +203,32 @@
   private string _fromHub = "Default";
   #endregion
 
-  /*protected override async Task OnInitializedAsync() {
-    DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
-    _pwaServer = HttpClient.CreateClient("PwaServer");
-    var response = await _pwaServer.GetAsync("files/WindingCodes.json");
-    if (response.IsSuccessStatusCode) {
-      await ParseWindingCodes(response);
-    }
-    await base.OnInitializedAsync();
-  }*/
   protected override async Task OnInitializedAsync() {
     DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
-    await FetchCodesFromHub();
+
+    DirectoryHub.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
     await base.OnInitializedAsync();
   }
 
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      await FetchCodesFromHub();
+      await InvokeAsync(StateHasChanged);
+    }
+    await base.OnAfterRenderAsync(firstRender);
+  }
+
+  #region Startup Methods
   private async Task FetchCodesFromHub() {
-    var windingCodes = await DirectoryHub.Hub!.InvokeAsync<List<WindingCode>?>("GetWindingCodes");
+    var windingCodes = await DirectoryHub.Hub.InvokeAsync<List<WindingCode>?>("GetWindingCodes");
     if (windingCodes == null) {
       State = PageState.Error;
       return;
     }
     WindingCodeGroups = windingCodes.GroupBy(wc => wc.CodeTypeId);
+    await Task.Delay(1000);
     State = PageState.Loaded;
-    await InvokeAsync(StateHasChanged);
   }
-
   private async Task ParseWindingCodes(HttpResponseMessage response) {
     var content = await response.Content.ReadAsStringAsync();
     _rawJson = content;
@@ -234,7 +241,6 @@
     State = PageState.Loaded;
     await InvokeAsync(StateHasChanged);
   }
-
   private static int GetBreakpoint(int count) {
     return count switch {
       1 => 12,
@@ -242,7 +248,6 @@
       _ => 6
       };
   }
-
   private async Task HandleRootFolderChange(DirectoryMenu.FolderCallbackArgs folderArgs) {
     RootFolder = folderArgs.Folder;
     _folderPaths.Clear();
@@ -252,7 +257,6 @@
     _folderPaths = folderArgs.SubFolders.OrderBy(f => f).ToList();
     await PopulateFolderItemGroups();
   }
-
   private Task PopulateFolderItemGroups() {
     _folderItemGroups.Clear();
     var splitChar = _folderPaths.First().Contains('/') ? '/' : '\\';
@@ -281,25 +285,41 @@
     StateHasChanged();
     return Task.CompletedTask;
   }
+  #endregion
+
+  private async Task SetUpdatedStop(string? code) {
+  // get the updated code information from the hub
+    var updatedWindingCode = await DirectoryHub.Hub.InvokeAsync<WindingCode?>("GetWindingCode", code);
+    if (updatedWindingCode == null)
+      return;
+    DirectoryHub.SetCurrentCoilWinderStop(updatedWindingCode);
+  }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success, config => {
       config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
       config.ShowCloseIcon = true;
-      config.ShowCloseIcon = true;
       config.CloseAfterNavigation = true;
     });
   }
-
-  public void Dispose() {
-    _pwaServer.Dispose();
+  private void OnCurrentWindingStopUpdated(object? obj, WindingCode code) {
+    var media = code.Media;
+    Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.ReferenceFolder}",
+      Severity.Info,
+      config => {
+      config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
+        config.ShowCloseIcon = true;
+        config.RequireInteraction = true;
+        config.CloseAfterNavigation = true;
+    });
   }
+
   private async Task ConvertStopsToJson() {
     var windingCodesJson = WindingCodeGroups.SelectMany(group => group).ToList();
     foreach (var windingCode in windingCodesJson.Where(windingCode => windingCode.FolderPath != null)) {
       windingCode.FolderPath = windingCode.FolderPath!.Replace("..", RootFolder?.Path);
     }
-    // used to test results from hub
-   _fromHub = await DirectoryHub.Hub!.InvokeAsync<string>("SaveWindingCodesDb", windingCodesJson, true);
+  // used to test results from hub
+    _fromHub = await DirectoryHub.Hub.InvokeAsync<string>("SaveWindingCodesDb", windingCodesJson, true);
     await InvokeAsync(StateHasChanged);
   }
   private string FormatWindingCode(WindingCode windingCode) {
@@ -309,5 +329,10 @@
       return windingCode.FolderPath!;
 
     return windingCode.FolderPath?.Replace(RootFolder.Path, "..") ?? string.Empty;
+  }
+  public void Dispose() {
+    _pwaServer?.Dispose();
+    DirectoryHub.WindingCodesDbUpdated -= DirectoryHub_OnWindingCodesDbUpdated;
+    DirectoryHub.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
   }
 }

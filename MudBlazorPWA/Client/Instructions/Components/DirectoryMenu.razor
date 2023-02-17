@@ -63,8 +63,8 @@
   public StartupFolder Folder { get; set; }
 
   public class FolderCallbackArgs {
-    public Folder? Folder { get; set; }
-    public List<string>? SubFolders { get; set; }
+    public Folder? Folder { get; init; }
+    public List<string>? SubFolders { get; init; }
   }
 
   #region Properties
@@ -86,7 +86,7 @@
 
   protected override async Task OnInitializedAsync() {
     DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.Hub!.InvokeAsync("GetAllFolders", StartFolderPath);
+    await DirectoryHub.Hub.InvokeAsync("GetAllFolders", StartFolderPath);
   }
 
   // after the parameters have been set,

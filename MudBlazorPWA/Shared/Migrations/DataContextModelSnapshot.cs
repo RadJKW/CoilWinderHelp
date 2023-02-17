@@ -98,7 +98,32 @@ namespace MudBlazorPWA.Shared.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("MudBlazorPWA.Shared.Models.Media", "Media", b1 =>
+                        {
+                            b1.Property<string>("WindingCodeCode")
+                                .HasColumnType("nvarchar(10)");
+
+                            b1.Property<string>("Pdf")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("ReferenceFolder")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.Property<string>("Video")
+                                .HasColumnType("nvarchar(max)");
+
+                            b1.HasKey("WindingCodeCode");
+
+                            b1.ToTable("WindingCodes");
+
+                            b1.WithOwner()
+                                .HasForeignKey("WindingCodeCode");
+                        });
+
                     b.Navigation("CodeType");
+
+                    b.Navigation("Media")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
