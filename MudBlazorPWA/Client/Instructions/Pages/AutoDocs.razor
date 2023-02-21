@@ -16,31 +16,20 @@
           Sensitivity="0.1d">
         <StartContent>
 
+          <div class="d-flex justify-center relative">
+            <MudIconButton Size="Size.Medium"
+                Variant="Variant.Text"
+                Class="align-center justify-center splitter-size-toggle"
+                Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
+                OnClick="ToggleContentSize">
+            </MudIconButton>
+          </div>
           <PrimaryContent Src="@PdfUrl"/>
 
-          @if (_startWidth <= 50) {
-            <div class="d-flex justify-center">
-              <MudIconButton Size="Size.Large"
-                  Variant="Variant.Filled"
-                  Class="align-center justify-center"
-                  Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
-                  OnClick="StartContentClicked">
-              </MudIconButton>
-            </div>
-          }
         </StartContent>
         <EndContent>
-          @if (_startWidth > 50) {
-            <div class="d-flex justify-center">
-              <MudIconButton Size="Size.Large"
-                  Variant="Variant.Filled"
-                  Class="align-center justify-center"
-                  Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
-                  OnClick="EndContentClicked">
-              </MudIconButton>
-            </div>
-          }
           @*//TODO: Figure Out why Secondary Content is not re-rendering on WindingStopUpdate*@
+
           <SecondaryContent VideoUrl="@VideoUrl"
               RefsFolder="@RefsFolder"/>
         </EndContent>
@@ -87,11 +76,10 @@
   }
 
 
-  private async Task DirectoryHub_OnCurrentWindingStopUpdated( WindingCode windingCode) {
+  private async Task DirectoryHub_OnCurrentWindingStopUpdated(WindingCode windingCode) {
     PdfUrl = windingCode.Media.Pdf is not null ? FileServer + windingCode.Media.Pdf : null;
     VideoUrl = windingCode.Media.Video is not null ? FileServer + windingCode.Media.Video : null;
     RefsFolder = windingCode.Media.ReferenceFolder is not null ? FileServer + windingCode.Media.ReferenceFolder : null;
-    StateHasChanged();
     _currentWindingStop = windingCode;
     await InvokeAsync(StateHasChanged);
   }
@@ -99,11 +87,8 @@
   private void HandleDoubleClicked() {
     _startWidth = _startWidth <= 50 ? 70 : 30;
   }
-  private void StartContentClicked() {
-    _startWidth = 70;
-  }
-  private void EndContentClicked() {
-    _startWidth = 40;
+  private void ToggleContentSize() {
+    _startWidth = _startWidth >= 50 ? 40 : 70;
   }
   public ValueTask DisposeAsync() {
     return ValueTask.CompletedTask;

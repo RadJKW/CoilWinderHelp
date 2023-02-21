@@ -1,17 +1,16 @@
+@using Microsoft.EntityFrameworkCore.ChangeTracking.Internal
 @implements IAsyncDisposable
 @inject IJSRuntime JsRuntime
+@inject HubClientService DirectoryHub
 
 
 
 @if (VideoUrl != null) {
-
-  <video
-      id="@Id"
+  <video id="@Id"
       onloadedmetadata="@JsSetVideoPlayer"
       controls
       style="width: 100%; height: 100%">
-    <source
-        src="@VideoUrl"
+    <source src="@VideoUrl"
         type="video/mp4"/>
 
   </video>
@@ -24,16 +23,16 @@
 
   [Parameter]
   [EditorRequired]
-  public required string? VideoUrl { get; set; }
+  public string? VideoUrl { get; set; }
 
 
   private IJSObjectReference? _videoJs;
 
-    private const string RelativePath = "files";
-    private const string RelativeVideoUrl = "TrainingVideos/Unsorted/WINDING%20SPEC%20DOWNLOAD%20Z80.mp4";
+    private const string FileServer = "http://localhost:5126/files/";
 
 
   protected override async Task OnInitializedAsync() {
+    DirectoryHub.CurrentWindingStopUpdated +=  (_, code) => DirectoryHub_OnCurrentWindingStopUpdated(code);
     await base.OnInitializedAsync();
   }
   protected override async Task OnAfterRenderAsync(bool firstRender) {
@@ -42,6 +41,13 @@
         .InvokeAsync<IJSObjectReference>(
           "import", "./Instructions/Components/VideoPlayer.razor.js");
     }
+  }
+
+  private async void DirectoryHub_OnCurrentWindingStopUpdated(WindingCode windingCode) {
+    VideoUrl = null;
+    await InvokeAsync(StateHasChanged);
+    VideoUrl = windingCode.Media.Video is not null ? FileServer + windingCode.Media.Video : null;
+    StateHasChanged();
   }
 
   private async Task JsSetVideoPlayer() {
@@ -54,5 +60,6 @@
     if (_videoJs != null) {
       await _videoJs.DisposeAsync();
     }
+
   }
 }

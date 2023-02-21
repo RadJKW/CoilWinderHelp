@@ -8,6 +8,15 @@
 .auto-docs.splitter{
 
 }
+.auto-docs button.splitter-size-toggle{
+    position: absolute;
+    z-index: 2;
+    left: 0.8rem;
+    top: 1rem;
+    height: auto;
+    color: #27272f;
+    background: rgb(56 56 67 / 26%);
+}
 .pdf-grid {
     display: grid;
     grid-template-rows: 1fr;
