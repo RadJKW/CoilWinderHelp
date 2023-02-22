@@ -1,163 +1,246 @@
 {
-  "RootDirectory": {
-    "WindowsPath": "B:\\CoilWinderTraining-Edit",
-    "MacPath": "/Users/jkw/WindingPractices",
-    "WebPath": "http://localhost:5126/files/D1 Pole/RPI"
-  },
   "WindingCodes": [
     {
       "Code": "AD",
       "Name": "Annular Duct",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Annular Duct",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Annular Duct",
+      "D2FolderPath": "D2 Pole/RPI/Stop Instructions/Annular Duct",
+      "D3FolderPath": "D3 Pole/RPI/Stop Instructions/Annular Duct",
       "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "CX",
-      "Name": "Crepe Paper",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Crepe Paper",
-      "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "DS",
-      "Name": "Duct Stop",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/End Duct",
-      "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "LE",
-      "Name": "Layer End",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Layer End",
-      "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "PX",
-      "Name": "Paper Stop",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Extension Paper",
-      "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "TB",
-      "Name": "Section Break",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Section Break",
-      "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "TS",
-      "Name": "Tap Stop",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Tap Stop",
-      "CodeTypeId": 0,
-      "CodeType": null
-    },
-    {
-      "Code": "XP",
-      "Name": "Extra Paper",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Stop Instructions/Extra Paper",
-      "CodeTypeId": 0,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "CI",
       "Name": "Coil Information",
-      "FolderPath": null,
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 2,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
-      "Code": "NC",
-      "Name": "New Coil",
-      "FolderPath": "./Setup",
-      "CodeTypeId": 2,
-      "CodeType": null
-    },
-    {
-      "Code": "NW",
-      "Name": "New Winding",
-      "FolderPath": null,
-      "CodeTypeId": 2,
-      "CodeType": null
-    },
-    {
-      "Code": "RS",
-      "Name": "Run Screen",
-      "FolderPath": null,
-      "CodeTypeId": 2,
-      "CodeType": null
+      "Code": "CX",
+      "Name": "Crepe Paper",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Crepe Paper",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "DE",
       "Name": "Data Entry",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Setup/01.Computer OPS",
+      "D1FolderPath": "D1 Pole/RPI/Setup/01.Computer OPS",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 2,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "DS",
+      "Name": "Duct Stop",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/End Duct",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "FC",
       "Name": "Finish Coil",
-      "FolderPath": null,
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 2,
-      "CodeType": null
-    },
-    {
-      "Code": "PA",
-      "Name": "Paper",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Overview/Barriers",
-      "CodeTypeId": 3,
-      "CodeType": null
-    },
-    {
-      "Code": "LV",
-      "Name": "Low Voltage",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Overview/Low Voltage Winding",
-      "CodeTypeId": 3,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "HV",
       "Name": "High Voltage",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Overview/High Voltage Winding",
+      "D1FolderPath": "D1 Pole/RPI/Overview/High Voltage Winding",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 3,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "HVA",
       "Name": "High Voltage Aluminum",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Overview/High Voltage Winding/Aluminum Wire",
+      "D1FolderPath": "D1 Pole/RPI/Overview/High Voltage Winding/Aluminum Wire",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 3,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "HVC",
       "Name": "High Voltage Copper",
-      "FolderPath": "/Users/jkw/WindingPractices/D1 Pole/RPI/Overview/High Voltage Winding/Copper Wire",
+      "D1FolderPath": "D1 Pole/RPI/Overview/High Voltage Winding/Copper Wire",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 3,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "LE",
+      "Name": "Layer End",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Layer End",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "LV",
+      "Name": "Low Voltage",
+      "D1FolderPath": "D1 Pole/RPI/Overview/Low Voltage Winding",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 3,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "NC",
+      "Name": "New Coil",
+      "D1FolderPath": "D1 Pole/RPI/Setup",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 2,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "NW",
+      "Name": "New Winding",
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 2,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "PA",
+      "Name": "Paper",
+      "D1FolderPath": "D1 Pole/RPI/Overview/Barriers",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 3,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "PM",
       "Name": "Paper Material",
-      "FolderPath": null,
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 4,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
-      "Code": "WC",
-      "Name": "Wire Conductor",
-      "FolderPath": null,
-      "CodeTypeId": 4,
-      "CodeType": null
+      "Code": "PX",
+      "Name": "Paper Stop",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Extension Paper",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "RS",
+      "Name": "Run Screen",
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 2,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     },
     {
       "Code": "SC",
       "Name": "Sheet Conductor",
-      "FolderPath": null,
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
       "CodeTypeId": 4,
-      "CodeType": null
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "TB",
+      "Name": "Section Break",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Section Break",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "TS",
+      "Name": "Tap Stop",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Tap Stop",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "WC",
+      "Name": "Wire Conductor",
+      "D1FolderPath": null,
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 4,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
+    },
+    {
+      "Code": "XP",
+      "Name": "Extra Paper",
+      "D1FolderPath": "D1 Pole/RPI/Stop Instructions/Extra Paper",
+      "D2FolderPath": null,
+      "D3FolderPath": null,
+      "CodeTypeId": 0,
+      "Media_Video": null,
+      "Media_Pdf": null,
+      "Media_ReferenceFolder": null
     }
   ],
   "CodeTypeIds": [

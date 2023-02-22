@@ -6,6 +6,8 @@ using MudBlazorPWA.Shared.Data;
 using MudBlazorPWA.Shared.Models;
 using MudBlazorPWA.Shared.Services;
 
+// ReSharper disable UnusedMember.Global
+
 namespace MudBlazorPWA.Shared.Hubs;
 public interface IHubClient
 {
@@ -76,13 +78,14 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 	public async Task<string> SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var clientIp = GetConnectionIp(Context);
-		 // await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
-		 if (syncDatabase)
-			 await _directoryService.UpdateDatabaseWindingCodes(windingCodes);
+		// await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
+		if (syncDatabase)
+			await _directoryService.UpdateDatabaseWindingCodes(windingCodes);
 
 		await Clients.Group(clientIp).WindingCodesDbUpdated();
 		return "From server: WindingCodes.json saved.";
 	}
+	public virtual Task<string> GetServerWindingDocsFolder() => Task.FromResult(AppConfig.BasePath);
 	#endregion
 
 	#region DataBase CRUD
@@ -137,13 +140,17 @@ public class DirectoryHub : Hub<IHubClient>
 	#endregion
 
 	#region WindingStop Tracking
-
 	public async void UpdateCurrentWindingStop(WindingCode code) {
 		var clientIp = GetConnectionIp(Context);
-		var windingCode = await _directoryService.GetWindingCodeDocuments(code);
-		_currentWindingStop = windingCode;
-		await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
+		try {
+			var windingCode = await _directoryService.GetWindingCodeDocuments(code);
+			_currentWindingStop = windingCode;
+			await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
+		}
+		catch (Exception e) {
+			_logger.LogError("Error updating current winding stop => {Exception}", e.Message);
 
+		}
 	}
 	public Task<WindingCode?> GetCurrentWindingStop() {
 		return Task.FromResult(_currentWindingStop);

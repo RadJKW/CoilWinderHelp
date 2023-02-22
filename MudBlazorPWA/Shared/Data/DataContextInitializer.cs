@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MudBlazorPWA.Shared.Models;
 using MudBlazorPWA.Shared.Services;
 
 namespace MudBlazorPWA.Shared.Data;
@@ -57,32 +59,49 @@ public class DataContextInitializer
 			// if the database has data and we don't want to removeRecords it, then do nothing
 			case true when !removeRecords:
 				_logger.LogInformation("Seeding the database was skipped because it already has data");
-				await ExportDataToJson();
 				return;
 			// if the database has data and we do want to removeRecords it, then delete all the data
 			case true when removeRecords:
 				_dbContext.WindingCodes.RemoveRange(_dbContext.WindingCodes);
 				await _dbContext.SaveChangesAsync();
 				_logger.LogInformation("Removed all records from the database");
-				await ImportDataFromJson(jsonFilePath);
-				return;
-			case false: // if the database has no data, then seed it
-				await ImportDataFromJson(jsonFilePath);
-				return;
+				break;
 		}
+
+		await ImportDataFromJson(jsonFilePath);
 	}
 
-	private async Task ExportDataToJson() {
+	/*private async Task ExportDataToJson() {
 		var windingCodes = await _dbContext.WindingCodes.ToListAsync();
 		await _directoryService.ExportWindingCodesToJson(windingCodes, false);
-	}
+	}*/
 
 	private async Task ImportDataFromJson(string? jsonFilePath = null) {
-		var windingCodes = await _directoryService.GetWindingCodesJson(jsonFilePath);
-		var enumerable = windingCodes.ToList();
-		var recordCount = enumerable.Count;
-		await _dbContext.WindingCodes.AddRangeAsync(enumerable);
-		await _dbContext.SaveChangesAsync();
-		_logger.LogInformation("Imported {Count} records to the database from JSON", recordCount);
+		if (string.IsNullOrWhiteSpace(jsonFilePath)) {
+			jsonFilePath = AppConfig.JsonDataSeedFile;
+		}
+
+		if (!File.Exists(jsonFilePath)) {
+			_logger.LogError("Could not find JSON file at {Path}", jsonFilePath);
+			return;
+		}
+
+		var json = await File.ReadAllTextAsync(jsonFilePath);
+		var rootElement = JsonDocument.Parse(json).RootElement;
+		var options = new JsonSerializerOptions {
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+		};
+
+		if (rootElement.TryGetProperty("WindingCodes", out var d1WindingCodesElement)) {
+			var d1WindingCodes = JsonSerializer.Deserialize<List<WindingCode>>(d1WindingCodesElement.GetRawText());
+			if (d1WindingCodes != null) {
+				foreach (var windingCode in d1WindingCodes) {
+					Console.WriteLine("WindingCode" + windingCode.Name);
+				}
+				await _dbContext.WindingCodes.AddRangeAsync(d1WindingCodes);
+				await _dbContext.SaveChangesAsync();
+				_logger.LogInformation("Added {Count} D1 winding codes to the database", d1WindingCodes.Count);
+			}
+		}
 	}
 }

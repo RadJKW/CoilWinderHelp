@@ -9,6 +9,7 @@ public class DataContext : DbContext, IDataContext
     }
 
     public DbSet<WindingCode> WindingCodes => Set<WindingCode>();
+
     public IEnumerable<CodeType> CodeTypes => Set<CodeType>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -34,12 +35,11 @@ public class DataContext : DbContext, IDataContext
             .HasData(Enum.GetValues(typeof(CodeTypeId))
                 .Cast<CodeTypeId>()
                 .Select(e =>
-                    new CodeType
-                    {
+                    new CodeType {
                         CodeTypeId = e,
                         Name = e.ToString()
-                    })
+                    }
+                )
             );
-
     }
 }

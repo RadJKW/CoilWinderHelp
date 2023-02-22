@@ -1,4 +1,3 @@
-// #define OS_WINDOWS
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -79,25 +78,25 @@ public class DirectoryService : IDirectoryService
 	}
 
 	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
-		if (code.FolderPath == null) {
+		if (code.D1FolderPath == null) {
 			return code;
 		}
 		var documents = code.Media;
 
 		// get the pdf path
-		var pdfPath = await GetPdfPath(code.FolderPath, false);
+		var pdfPath = await GetPdfPath(code.D1FolderPath, false);
 		if (pdfPath != null) {
 			documents.Pdf = GetRelativePath(pdfPath);
 		}
 
 		// get the video path
-		var videoPath = await GetVideoPath(code.FolderPath);
+		var videoPath = await GetVideoPath(code.D1FolderPath);
 		if (videoPath != null) {
 			documents.Video = GetRelativePath(videoPath);
 		}
 
 		// get the refMedia path
-		var refMediaPath = await GetRefMediaPath(code.FolderPath);
+		var refMediaPath = await GetRefMediaPath(code.D1FolderPath);
 		if (refMediaPath != null) {
 			documents.ReferenceFolder = GetRelativePath(refMediaPath);
 		}
@@ -118,12 +117,10 @@ public class DirectoryService : IDirectoryService
 		if (folder == null) {
 			return Task.FromResult<string?>(null);
 		}
-#if OS_WINDOWS
-		const string tempVideoFolder = @"B:\CoilWinderTraining-Edit\TrainingVideos\Unsorted";
-#else
-		const string tempVideoFolder = @"/Users/jkw/WindingPractices/TrainingVideos/Unsorted";
-#endif
-		var videos = Directory.EnumerateFiles(tempVideoFolder)
+
+		var platformVideoFolder = Path.Combine(AppConfig.BasePath, "TrainingVideos", "Unsorted");
+
+		var videos = Directory.EnumerateFiles(platformVideoFolder)
 			.Where(f => f.EndsWith(".mp4"))
 			.ToArray();
 
@@ -150,9 +147,12 @@ public class DirectoryService : IDirectoryService
 		Console.WriteLine("GettingFoldersInPath");
 		// return a list of all folders starting from the root directory
 		path ??= _rootDirectory;
-		var folders = Directory.GetDirectories(path, "*", SearchOption.AllDirectories);
-		Console.WriteLine(folders);
-		return Task.FromResult(folders);
+		var folders = Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories);
+		// foreach folder in the list, if the folder uses "\\" as a separator, replace it with "/"
+		folders = folders.Select(f => f.Replace("\\", "/")).OrderBy(f => f);
+
+		// _logger.LogInformation("Folders: {Folders}", folders);
+		return Task.FromResult(folders.ToArray());
 	}
 
 	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
@@ -209,7 +209,7 @@ public class DirectoryService : IDirectoryService
 				var dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
 				dbWindingCode.Code = jsonWindingCode.Code;
 				dbWindingCode.Name = jsonWindingCode.Name;
-				dbWindingCode.FolderPath = jsonWindingCode.FolderPath;
+				dbWindingCode.D1FolderPath = jsonWindingCode.D1FolderPath;
 				dbWindingCode.CodeType = jsonWindingCode.CodeType;
 				dbWindingCode.CodeTypeId = jsonWindingCode.CodeTypeId;
 

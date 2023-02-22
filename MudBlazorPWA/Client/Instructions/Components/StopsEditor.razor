@@ -1,5 +1,4 @@
-﻿@inject IHttpClientFactory HttpClient
-@implements IDisposable
+﻿@implements IDisposable
 @inject ISnackbar Snackbar
 @inject HubClientService DirectoryHub
 @inject ILogger<StopsEditor> Logger
@@ -138,26 +137,26 @@
                               Style="backdrop-filter: contrast(0.5) saturate(0.7)"/>
 
                         </div>
+                        <div class="px-2">
                         <MudSelectExtended T="string"
-                            @bind-Value="@windingCode.FolderPath"
+                            ItemCollection="_folderPaths.OrderBy(f => f).ToList()"
+                            @bind-Value="@windingCode.D1FolderPath"
                             Text="@FormatWindingCode(windingCode)"
-                            Variant="Variant.Filled"
+                            Variant="Variant.Outlined"
                             Clearable="true"
-                            OnClearButtonClick="@(() => windingCode.FolderPath = null)"
+                            OnClearButtonClick="@(() => windingCode.D1FolderPath = null)"
                             Color="Color.Dark"
                             Label="Assigned Folder"
-                            ItemCollection="_folderPaths"
                             Placeholder="Select a folder"
                             PopoverClass="folder-select-popover"
                             SearchBox="true"
-                            AutoFocus="true"
-                            DisablePopoverPadding="true"
-                            Adorn>
+                            SearchBoxAutoFocus="true"
+                            DisablePopoverPadding="true">
                           <ItemTemplate>
                             <MudText> @context.Value</MudText>
                           </ItemTemplate>
-
                         </MudSelectExtended>
+                        </div>
                       </div>
                     </ChildContent>
                   </MudExpansionPanel>
@@ -170,7 +169,7 @@
         }
       </MudGrid>
       <MudPaper Class="mud-background-gray mud-width-full my-6 py-1">
-        <MudText Align="Align.Center">@_fromHub</MudText>
+        <MudText Align="Align.Center">@ServerWindingDocsFolder</MudText>
       </MudPaper>
       break;
     case PageState.Error:
@@ -192,24 +191,26 @@
   }
 
   #region Properties
-  private HttpClient? _pwaServer = null!;
   private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; }
     = new List<IGrouping<CodeTypeId, WindingCode>>();
   private PageState State { get; set; } = PageState.Loading;
   private List<string> _folderPaths = new List<string>();
-  private readonly List<(string, List<string>?)> _folderItemGroups = new();
+  //private readonly List<(string, List<string>?)> _folderItemGroups = new();
   private Folder? RootFolder { get; set; }
-  private string _rawJson = string.Empty;
   private bool _showFullPaths = false;
-  private string _fromHub = "Default";
+  private string ServerWindingDocsFolder { get; set; } = "Default";
   #endregion
 
   protected override async Task OnInitializedAsync() {
     DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
-
     DirectoryHub.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
+    ServerWindingDocsFolder = await DirectoryHub.Hub.InvokeAsync<string>("GetServerWindingDocsFolder");
     await FetchCodesFromHub();
     await base.OnInitializedAsync();
+  }
+  public void Dispose() {
+    DirectoryHub.WindingCodesDbUpdated -= DirectoryHub_OnWindingCodesDbUpdated;
+    DirectoryHub.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
   }
 
 
@@ -224,18 +225,6 @@
     await Task.Delay(1000);
     State = PageState.Loaded;
   }
-  private async Task ParseWindingCodes(HttpResponseMessage response) {
-    var content = await response.Content.ReadAsStringAsync();
-    _rawJson = content;
-    var windingCodes = JsonSerializer.Deserialize<List<WindingCode>>(content);
-    if (windingCodes == null) {
-      State = PageState.Error;
-      return;
-    }
-    WindingCodeGroups = windingCodes.GroupBy(wc => wc.CodeTypeId);
-    State = PageState.Loaded;
-    await InvokeAsync(StateHasChanged);
-  }
   private static int GetBreakpoint(int count) {
     return count switch {
       1 => 12,
@@ -243,43 +232,15 @@
       _ => 6
       };
   }
-  private async Task HandleRootFolderChange(DirectoryMenu.FolderCallbackArgs folderArgs) {
+  private void HandleRootFolderChange(DirectoryMenu.FolderCallbackArgs folderArgs) {
     RootFolder = folderArgs.Folder;
     _folderPaths.Clear();
     if (folderArgs.SubFolders == null)
       return;
 
     _folderPaths = folderArgs.SubFolders.OrderBy(f => f).ToList();
-    await PopulateFolderItemGroups();
   }
-  private Task PopulateFolderItemGroups() {
-    _folderItemGroups.Clear();
-    var splitChar = _folderPaths.First().Contains('/') ? '/' : '\\';
-    var folderGroups = _folderPaths.Where(f => f.Count(c => c is '/' or '\\') == 1)
-      .Select(f => f.Split(splitChar).Last())
-      .Distinct()
-      .OrderBy(f => f)
-      .ToList();
 
-    foreach (var folderGroup in folderGroups) {
-      var matchFolderRegex = new Regex($@"\{splitChar}{folderGroup}\{splitChar}");
-      var folderItems = new List<string>() {
-        folderGroup
-      };
-      folderItems.AddRange(_folderPaths.Where(f => matchFolderRegex.IsMatch(f) || f == folderGroup).OrderBy(f => f).ToList());
-      _folderItemGroups.Add(folderItems.Count > 0 ? (folderGroup, folderItems) : (folderGroup, null));
-    }
-
-    _folderItemGroups.Sort((x, y) => {
-      return x.Item2 switch {
-        null when y.Item2 == null => string.Compare(x.Item1, y.Item1, StringComparison.OrdinalIgnoreCase),
-        null => -1,
-        _ => y.Item2 == null ? 1 : string.Compare(x.Item1, y.Item1, StringComparison.OrdinalIgnoreCase)
-        };
-    });
-    StateHasChanged();
-    return Task.CompletedTask;
-  }
   #endregion
 
   private async Task SetUpdatedStop(string? code) {
@@ -287,6 +248,7 @@
     var updatedWindingCode = await DirectoryHub.Hub.InvokeAsync<WindingCode?>("GetWindingCode", code);
     if (updatedWindingCode == null)
       return;
+    updatedWindingCode.D1FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.D1FolderPath}";
     DirectoryHub.SetCurrentCoilWinderStop(updatedWindingCode);
   }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
@@ -308,29 +270,12 @@
     });
   }
 
-  // private async Task ConvertStopsToJson() {
-  //   var windingCodesJson = WindingCodeGroups.SelectMany(group => group).ToList();
-  //   foreach (var windingCode in windingCodesJson.Where(windingCode => windingCode.FolderPath != null)) {
-  //     windingCode.FolderPath = windingCode.FolderPath!.Replace("..", RootFolder?.Path);
-  //   }
-  // // used to test results from hub
-  //   _fromHub = await DirectoryHub.Hub.InvokeAsync<string>("SaveWindingCodesDb", windingCodesJson, true);
-  // }
   private string FormatWindingCode(WindingCode windingCode) {
-    if (RootFolder?.Path == null)
-      return windingCode.FolderPath ?? string.Empty;
-    if (_showFullPaths)
-      return windingCode.FolderPath!;
-
-    return windingCode.FolderPath?.Replace(RootFolder.Path, "..") ?? string.Empty;
-  }
-  public void Dispose() {
-    _pwaServer?.Dispose();
-    DirectoryHub.WindingCodesDbUpdated -= DirectoryHub_OnWindingCodesDbUpdated;
-    DirectoryHub.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
+    return !_showFullPaths ? windingCode.D1FolderPath! : $"{ServerWindingDocsFolder}{windingCode.D1FolderPath}";
   }
   private async Task SaveWindingCodeDb(WindingCode windingCode) {
-    windingCode.FolderPath = windingCode.FolderPath?.Replace("..", RootFolder?.Path);
+    if (windingCode.D1FolderPath != null)
+      windingCode.D1FolderPath = windingCode.D1FolderPath.Replace("../", string.Empty);
     await DirectoryHub.Hub.InvokeAsync("UpdateWindingCode", windingCode.Name, windingCode);
     StateHasChanged();
   }
