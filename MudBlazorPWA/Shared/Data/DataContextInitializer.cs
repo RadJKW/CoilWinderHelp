@@ -66,6 +66,9 @@ public class DataContextInitializer
 				_logger.LogInformation("Removed all records from the database");
 				await ImportDataFromJson(jsonFilePath);
 				return;
+			case false: // if the database has no data, then seed it
+				await ImportDataFromJson(jsonFilePath);
+				return;
 		}
 	}
 

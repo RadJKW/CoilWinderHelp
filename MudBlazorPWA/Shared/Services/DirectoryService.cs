@@ -1,3 +1,4 @@
+// #define OS_WINDOWS
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,6 +17,7 @@ public interface IDirectoryService
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
 
 	Task<WindingCode> GetWindingCodeDocuments(WindingCode code);
+	Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes);
 
 	public string GetRelativePath(string fullPath);
 }
@@ -116,9 +118,11 @@ public class DirectoryService : IDirectoryService
 		if (folder == null) {
 			return Task.FromResult<string?>(null);
 		}
-
+#if OS_WINDOWS
 		const string tempVideoFolder = @"B:\CoilWinderTraining-Edit\TrainingVideos\Unsorted";
-
+#else
+		const string tempVideoFolder = @"/Users/jkw/WindingPractices/TrainingVideos/Unsorted";
+#endif
 		var videos = Directory.EnumerateFiles(tempVideoFolder)
 			.Where(f => f.EndsWith(".mp4"))
 			.ToArray();
@@ -191,7 +195,7 @@ public class DirectoryService : IDirectoryService
 		}
 	}
 
-	private async Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes) {
+	public async Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes) {
 		var dbWindingCodes = await _dataContext.WindingCodes.ToListAsync();
 
 		var jsonWindingCodes = windingCodes.ToList();

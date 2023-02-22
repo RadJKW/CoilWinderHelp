@@ -76,11 +76,16 @@ if (app.Environment.IsDevelopment())
             break;
         case true when !runtimeIsWindows:
             await dbContext.SeedDataAsync(
-                removeRecords: false,
+                removeRecords: true,
                 jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
             break;
         case false when runtimeIsWindows:
             await dbContext.SeedDataAsync();
+            break;
+        case false when !runtimeIsWindows:
+            await dbContext.SeedDataAsync(
+                removeRecords: false,
+                jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
             break;
     }
 

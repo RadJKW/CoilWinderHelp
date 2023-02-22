@@ -8,5 +8,12 @@
       <jdbc-url>Server=PYDEV-001</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="CoilWinderHelp.db" uuid="c6de67a4-7c67-4bd0-8791-828b69396373">
+      <driver-ref>sqlite.xerial</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/MudBlazorPWA/Server/CoilWinderHelp.db</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

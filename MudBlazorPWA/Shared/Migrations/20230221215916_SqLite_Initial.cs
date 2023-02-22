@@ -7,45 +7,48 @@
 namespace MudBlazorPWA.Shared.Migrations
 {
     /// <inheritdoc />
-    public partial class Initial : Migration
+    public partial class SqLiteInitial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "CodeTypes",
+                name: "CodeType",
                 columns: table => new
                 {
-                    CodeTypeId = table.Column<int>(type: "int", nullable: false),
-                    CodeType = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    CodeTypeId = table.Column<int>(type: "INTEGER", nullable: false),
+                    CodeType = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_CodeTypes", x => x.CodeTypeId);
+                    table.PrimaryKey("PK_CodeType", x => x.CodeTypeId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "WindingCodes",
                 columns: table => new
                 {
-                    Code = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    FolderPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CodeTypeId = table.Column<int>(type: "int", nullable: false)
+                    Code = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    FolderPath = table.Column<string>(type: "TEXT", nullable: true),
+                    CodeTypeId = table.Column<int>(type: "INTEGER", nullable: false),
+                    MediaVideo = table.Column<string>(name: "Media_Video", type: "TEXT", nullable: true),
+                    MediaPdf = table.Column<string>(name: "Media_Pdf", type: "TEXT", nullable: true),
+                    MediaReferenceFolder = table.Column<string>(name: "Media_ReferenceFolder", type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WindingCodes", x => x.Code);
                     table.ForeignKey(
-                        name: "FK_WindingCodes_CodeTypes_CodeTypeId",
+                        name: "FK_WindingCodes_CodeType_CodeTypeId",
                         column: x => x.CodeTypeId,
-                        principalTable: "CodeTypes",
+                        principalTable: "CodeType",
                         principalColumn: "CodeTypeId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.InsertData(
-                table: "CodeTypes",
+                table: "CodeType",
                 columns: new[] { "CodeTypeId", "CodeType" },
                 values: new object[,]
                 {
@@ -70,7 +73,7 @@ namespace MudBlazorPWA.Shared.Migrations
                 name: "WindingCodes");
 
             migrationBuilder.DropTable(
-                name: "CodeTypes");
+                name: "CodeType");
         }
     }
 }

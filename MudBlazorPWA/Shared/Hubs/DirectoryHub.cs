@@ -76,7 +76,10 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 	public async Task<string> SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var clientIp = GetConnectionIp(Context);
-		await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
+		 // await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
+		 if (syncDatabase)
+			 await _directoryService.UpdateDatabaseWindingCodes(windingCodes);
+
 		await Clients.Group(clientIp).WindingCodesDbUpdated();
 		return "From server: WindingCodes.json saved.";
 	}
