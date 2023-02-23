@@ -2,19 +2,16 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazorPWA.Shared.Models;
-using MudBlazorPWA.Shared.Services;
 
 namespace MudBlazorPWA.Shared.Data;
 public class DataContextInitializer
 {
 	private readonly ILogger<DataContextInitializer> _logger;
 	private readonly DataContext _dbContext;
-	private readonly IDirectoryService _directoryService;
 
-	public DataContextInitializer(ILogger<DataContextInitializer> logger, DataContext dbContext, IDirectoryService directoryService) {
+	public DataContextInitializer(ILogger<DataContextInitializer> logger, DataContext dbContext) {
 		_logger = logger;
 		_dbContext = dbContext;
-		_directoryService = directoryService;
 	}
 
 	public async Task InitialiseAsync() {
@@ -88,9 +85,6 @@ public class DataContextInitializer
 
 		var json = await File.ReadAllTextAsync(jsonFilePath);
 		var rootElement = JsonDocument.Parse(json).RootElement;
-		var options = new JsonSerializerOptions {
-			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-		};
 
 		if (rootElement.TryGetProperty("WindingCodes", out var d1WindingCodesElement)) {
 			var d1WindingCodes = JsonSerializer.Deserialize<List<WindingCode>>(d1WindingCodesElement.GetRawText());
