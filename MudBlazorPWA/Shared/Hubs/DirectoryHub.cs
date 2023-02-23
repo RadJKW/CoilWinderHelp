@@ -89,15 +89,16 @@ public class DirectoryHub : Hub<IHubClient>
 	#endregion
 
 	#region DataBase CRUD
-	public async Task<IEnumerable<WindingCode>?> GetWindingCodes() {
-		// return the codes as a list if any exist
-		var windingCodes = await _dataContext.WindingCodes.ToListAsync();
-		return windingCodes.Any() ? windingCodes : null;
+	public async Task<IEnumerable<WindingCode>?> GetWindingCodes(Division? division = null) {
+		var windingCodes = _dataContext.WindingCodes.AsQueryable();
+		if (division != null) {
+			windingCodes = windingCodes.Where(w => w.Division == division);
+		}
+		var result = await windingCodes.ToListAsync();
+		return result.Any() ? result : null;
 	}
-	public async Task<WindingCode?> GetWindingCode(string code) {
-		var windingCode = await _dataContext.WindingCodes.FirstOrDefaultAsync(e => e.Code == code);
-		Console.WriteLine("Code: " + code);
-
+	public async Task<WindingCode?> GetWindingCode(int id) {
+		var windingCode = await _dataContext.WindingCodes.FirstOrDefaultAsync(e => e.Id == id);
 		return windingCode ?? null;
 	}
 	public async Task<WindingCode?> UpdateWindingCode(string codeName, WindingCode windingCode) {
@@ -119,7 +120,7 @@ public class DirectoryHub : Hub<IHubClient>
 		return windingCode;
 	}
 	public async Task<bool> CreateWindingCode(WindingCode windingCode) {
-		if (WindingCodeExists(windingCode.Name!)) {
+		if (WindingCodeExists(windingCode.Name)) {
 			return false;
 		}
 		_dataContext.WindingCodes.Add(windingCode);

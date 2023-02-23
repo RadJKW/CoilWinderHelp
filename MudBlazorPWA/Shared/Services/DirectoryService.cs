@@ -78,25 +78,25 @@ public class DirectoryService : IDirectoryService
 	}
 
 	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
-		if (code.D1FolderPath == null) {
+		if (code.FolderPath == null) {
 			return code;
 		}
 		var documents = code.Media;
 
 		// get the pdf path
-		var pdfPath = await GetPdfPath(code.D1FolderPath, false);
+		var pdfPath = await GetPdfPath(code.FolderPath, false);
 		if (pdfPath != null) {
 			documents.Pdf = GetRelativePath(pdfPath);
 		}
 
 		// get the video path
-		var videoPath = await GetVideoPath(code.D1FolderPath);
+		var videoPath = await GetVideoPath(code.FolderPath);
 		if (videoPath != null) {
 			documents.Video = GetRelativePath(videoPath);
 		}
 
 		// get the refMedia path
-		var refMediaPath = await GetRefMediaPath(code.D1FolderPath);
+		var refMediaPath = await GetRefMediaPath(code.FolderPath);
 		if (refMediaPath != null) {
 			documents.ReferenceFolder = GetRelativePath(refMediaPath);
 		}
@@ -209,7 +209,7 @@ public class DirectoryService : IDirectoryService
 				var dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
 				dbWindingCode.Code = jsonWindingCode.Code;
 				dbWindingCode.Name = jsonWindingCode.Name;
-				dbWindingCode.D1FolderPath = jsonWindingCode.D1FolderPath;
+				dbWindingCode.FolderPath = jsonWindingCode.FolderPath;
 				dbWindingCode.CodeType = jsonWindingCode.CodeType;
 				dbWindingCode.CodeTypeId = jsonWindingCode.CodeTypeId;
 

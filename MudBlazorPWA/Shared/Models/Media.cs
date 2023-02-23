@@ -1,8 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
-
-namespace MudBlazorPWA.Shared.Models;
-[Owned]
+﻿namespace MudBlazorPWA.Shared.Models;
 public class Media
 {
 	public string? Video { get; set; }

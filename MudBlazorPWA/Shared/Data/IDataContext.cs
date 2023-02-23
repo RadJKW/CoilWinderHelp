@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Shared.Data;

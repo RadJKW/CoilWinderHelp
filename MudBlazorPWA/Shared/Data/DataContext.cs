@@ -12,34 +12,10 @@ public class DataContext : DbContext, IDataContext
 
     public IEnumerable<CodeType> CodeTypes => Set<CodeType>();
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    protected override void OnModelCreating(ModelBuilder builder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        modelBuilder.Entity<WindingCode>()
-            .HasOne(w => w.CodeType)
-            .WithMany()
-            .HasForeignKey(w => w.CodeTypeId);
-
-        var codeTypeBuilder = modelBuilder.Entity<CodeType>();
-
-        codeTypeBuilder
-            .Property(c => c.CodeTypeId)
-            .HasConversion<int>();
-
-        codeTypeBuilder
-            .Property(c => c.Name)
-            .HasColumnName("CodeType");
-
-        codeTypeBuilder
-            .HasData(Enum.GetValues(typeof(CodeTypeId))
-                .Cast<CodeTypeId>()
-                .Select(e =>
-                    new CodeType {
-                        CodeTypeId = e,
-                        Name = e.ToString()
-                    }
-                )
-            );
+        base.OnModelCreating(builder);
     }
 }
