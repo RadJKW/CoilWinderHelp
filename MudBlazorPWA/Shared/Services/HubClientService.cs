@@ -1,8 +1,15 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazorPWA.Shared.Models;
+using MudBlazorPWA.Shared.Hubs;
+
 
 namespace MudBlazorPWA.Shared.Services;
+public enum HubServers
+{
+	DirectoryHub,
+	ChatHub
+}
 
 public class HubClientService
 {
@@ -12,21 +19,38 @@ public class HubClientService
 
 	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
 
+	public event Action<string, string>? NewChatMessage;
+
+
+
 	public HubClientService(NavigationManager navigationManager) {
 		_navigationManager = navigationManager;
 		InitializeDirectoryHub();
+		InitializeChatHub();
 	}
-	public HubConnection Hub { get; private set; } = null!;
+	public HubConnection DirectoryHub { get; private set; } = null!;
+	private HubConnection ChatHub { get; set; } = null!;
 	private readonly NavigationManager _navigationManager;
 
 	private void InitializeDirectoryHub() {
-
-		Hub = new HubConnectionBuilder()
+		DirectoryHub = new HubConnectionBuilder()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
 			.Build();
 
-		RegisterHubEvents(Hub);
-		Hub.StartAsync();
+		RegisterHubEvents(DirectoryHub);
+		DirectoryHub.StartAsync();
+	}
+
+	private async void InitializeChatHub() {
+		ChatHub = new HubConnectionBuilder()
+			.WithUrl(_navigationManager.ToAbsoluteUri("/chatHub"))
+			.Build();
+
+		ChatHub.On<string, string>(nameof(IChatHub.NewMessage), (user, message) => {
+			NewChatMessage?.Invoke(user, message);
+		});
+
+		await ChatHub.StartAsync();
 	}
 	private void RegisterHubEvents(HubConnection hubConnection) {
 		hubConnection.On<string[]>("ReceiveAllFolders", folders => {
@@ -39,20 +63,22 @@ public class HubClientService
 		});
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
 		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", code => {
-			CurrentWindingStopUpdated?.Invoke(this ,code);
+			CurrentWindingStopUpdated?.Invoke(this, code);
 		});
-
 	}
 	public async void SetCurrentCoilWinderStop(WindingCode code) {
-		await Hub.InvokeAsync("UpdateCurrentWindingStop", code);
-
+		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);
 	}
 
 	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
-	 return await Hub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
+		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
 	}
 
-	public HubConnection GetHubConnection() {
-		return Hub;
+	public HubConnection GetHubConnection(HubServers hubServer) {
+		return hubServer switch {
+			HubServers.DirectoryHub => DirectoryHub,
+			HubServers.ChatHub => ChatHub,
+			_ => throw new ArgumentOutOfRangeException(nameof(hubServer), hubServer, null)
+		};
 	}
 }

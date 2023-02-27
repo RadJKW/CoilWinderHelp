@@ -1,0 +1,59 @@
+﻿@page "/HubCommander"
+@using Microsoft.AspNetCore.SignalR.Client
+@layout DocViewLayout
+@inject ISnackbar Snackbar
+@inject HubClientService HubClientService
+<MudPaper Elevation="4" Padding="32px">
+  <h1>Notify Clients</h1>
+
+  <MudSelect T="string" Label="Callback Method" @bind-Value="_selectedCallbackMethod">
+    @if (CallbackMethods != null) {
+      foreach (var method in CallbackMethods) {
+        <MudSelectItem Value="@method"/>
+      }
+    }
+  </MudSelect>
+
+  <MudSelect T="string" Label="@_groups.FirstOrDefault().Item1" @bind-Value="_selectedGroup">
+    @foreach (var group in _groups.FirstOrDefault().Item2 )
+    {
+      <MudSelectItem Value="@group"/>
+    }
+  </MudSelect>
+
+  <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="NotifyClients">Notify Clients</MudButton>
+</MudPaper>
+
+@code {
+  private HubConnection? _hubConnection;
+  private List<string>? CallbackMethods { get; set; }
+  private string _selectedCallbackMethod = string.Empty;
+  private string _selectedGroup = string.Empty;
+  private readonly List<(string, List<string>)> _groups = new();
+
+
+  protected override async Task OnInitializedAsync() {
+    _hubConnection = HubClientService.GetHubConnection(HubServers.ChatHub);
+  // Get the list of groups
+    var connectedGroups = await _hubConnection.InvokeAsync<(string, List<string>)>("GetConnectedGroups");
+    _groups.Add(connectedGroups);
+    CallbackMethods = await _hubConnection.InvokeAsync<List<string>>("GetCallbackMethods");
+    await base.OnInitializedAsync();
+  }
+
+  private async Task NotifyClients()
+  {
+  // Invoke the callback method on the selected group or all clients
+    if (!string.IsNullOrEmpty(_selectedGroup)) {
+      if (_hubConnection != null)
+        await _hubConnection.InvokeAsync(_selectedCallbackMethod, "commander", "sent from page", _selectedGroup);
+    }
+    else {
+      if (_hubConnection != null)
+        await _hubConnection.InvokeAsync(_selectedCallbackMethod);
+    }
+
+  // Show a snackbar notification
+    Snackbar.Add("Notification sent to clients", Severity.Success);
+  }
+}

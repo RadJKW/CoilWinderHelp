@@ -86,7 +86,7 @@
 
   protected override async Task OnInitializedAsync() {
     DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.Hub.InvokeAsync("GetAllFolders", null);
+    await DirectoryHub.DirectoryHub.InvokeAsync("GetAllFolders", null);
   }
 
   // after the parameters have been set,

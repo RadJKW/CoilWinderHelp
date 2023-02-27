@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazorPWA.Shared.Data;
@@ -20,6 +19,7 @@ public interface IHubClient
 	Task CurrentWindingStopUpdated(WindingCode code);
 }
 
+/// <inheritdoc />
 public class DirectoryHub : Hub<IHubClient>
 {
 	#region Constructor
@@ -36,7 +36,7 @@ public class DirectoryHub : Hub<IHubClient>
 
 	#region Hub Overrides
 	public override async Task OnConnectedAsync() {
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 		if (clientIp is null) {
 			_logger.LogWarning("Client IP is null");
 			return;
@@ -48,7 +48,7 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 	public override async Task OnDisconnectedAsync(Exception exception) {
 		// remove the client from the group
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 
 		if (clientIp is null) {
 			_logger.LogWarning("Client IP is null");
@@ -62,22 +62,22 @@ public class DirectoryHub : Hub<IHubClient>
 
 	#region Directory Methods
 	public async Task GetFolderContent(string? path = null) {
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 		var (currentPath, files, folders) = await _directoryService.GetFolderContent(path);
 		await Clients.Group(clientIp).ReceiveFolderContent(currentPath, files, folders);
 	}
 	public async Task FileSelected(string path) {
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 		var relativePath = _directoryService.GetRelativePath(path);
 		await Clients.Group(clientIp).FileSelected(relativePath);
 	}
 	public async Task GetAllFolders(string? path = null) {
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 		var folders = await _directoryService.GetFoldersInPath(path);
 		await Clients.Group(clientIp).ReceiveAllFolders(folders);
 	}
 	public async Task<string> SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 		// await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
 		if (syncDatabase)
 			await _directoryService.UpdateDatabaseWindingCodes(windingCodes);
@@ -142,7 +142,7 @@ public class DirectoryHub : Hub<IHubClient>
 
 	#region WindingStop Tracking
 	public async void UpdateCurrentWindingStop(WindingCode code) {
-		var clientIp = GetConnectionIp(Context);
+		var clientIp = HubExtensions.GetConnectionIp(Context);
 		try {
 			var windingCode = await _directoryService.GetWindingCodeDocuments(code);
 			_currentWindingStop = windingCode;
@@ -158,7 +158,7 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 	#endregion
 
-	#region Static Methods
+	/*#region Static Methods
 	private static string? GetConnectionIp(HubCallerContext context) {
 		var connection = context.Features.Get<IHttpConnectionFeature>();
 		return
@@ -167,5 +167,5 @@ public class DirectoryHub : Hub<IHubClient>
 				.ToString()
 				.Replace("::ffff:", string.Empty);
 	}
-	#endregion
+	#endregion*/
 }
