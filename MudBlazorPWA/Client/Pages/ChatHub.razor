@@ -1,0 +1,102 @@
+﻿@page "/messengerHub"
+@using Microsoft.AspNetCore.SignalR.Client
+@layout DocViewLayout
+@inject HubClientService HubClientService
+@inject ISnackbar Snackbar
+
+<MudGrid Class="pa-6 d-flex justify-center align-center align-stretch">
+  <MudItem xs="6">
+    <MudPaper Class="pa-4">
+      <MudForm >
+        <MudTextField
+          T="string"
+          Label="User"
+          @bind-Value="_userInput"
+          Variant="Variant.Outlined">
+        </MudTextField>
+
+        <MudTextField
+          T="string"
+          Label="Message"
+          @bind-Value="_messageInput"
+          Variant="Variant.Outlined">
+        </MudTextField>
+        <div class="d-flex align-center justify-end pt-4 px-4">
+          <MudButton
+            Variant="Variant.Outlined"
+            Color="Color.Success"
+            OnClick="Send" Disabled="!IsConnected">Send</MudButton>
+        </div>
+      </MudForm>
+    </MudPaper>
+  </MudItem>
+  <MudItem xs="6" >
+    <MudPaper Class="pa-4 mud-height-full">
+      <MudGrid>
+        <MudItem xs="12">
+          @{var allMessagesCount = _userMessages.Sum(x => x.Messages.Count); }
+          <MudText Class="mud-width-full"
+              Typo="Typo.subtitle2">@($"Messages : ({allMessagesCount})")</MudText>
+        </MudItem>
+        @foreach (var user in _userMessages.Where(x => x.Messages.Count > 0)) {
+          foreach (var message in user.Messages) {
+              <MudItem xs="12" Class="d-flex justify-start px-0" >
+                <MudText Class="" Color="@Color.Error">@message</MudText>
+              </MudItem>
+              <MudDivider/>
+            }
+        }
+
+      </MudGrid>
+    </MudPaper>
+  </MudItem>
+</MudGrid>
+
+@* <MudList> *@
+@*   @foreach (var message in _messages) { *@
+@*     <MudListItem> *@
+@*       <MudText>@message</MudText> *@
+@*     </MudListItem> *@
+@*   } *@
+@* </MudList> *@
+
+@code {
+
+  private class ChatMessage {
+    public string? User { get; set; }
+    public List<string> Messages { get; init; } = new();
+  }
+  private HubConnection? _hubConnection;
+  private string? _userInput = "JKW";
+  private string? _messageInput;
+  private readonly List<ChatMessage> _userMessages = new();
+
+  protected override async Task OnInitializedAsync() {
+    _hubConnection = HubClientService.GetHubConnection(HubServers.ChatHub);
+   HubClientService.NewChatMessage += (sender, message) => {
+     // if user is not in the list add it
+      if (_userMessages.All(x => x.User != sender)) {
+        _userMessages.Add(new() { User = sender, Messages = new() { message } });
+      }// if user is in the list add the message to the user
+      else {
+        var user = _userMessages.FirstOrDefault(x => x.User == sender);
+        user?.Messages.Add(message);
+      }
+
+     Snackbar.Add( $"New message from {sender} : {message}", Severity.Success);
+
+     InvokeAsync(StateHasChanged);
+   };
+    await base.OnInitializedAsync();
+  }
+
+  private async Task Send() {
+    if (_hubConnection is not null) {
+      await _hubConnection.SendAsync("SendMessage", _userInput, _messageInput);
+    }
+  }
+
+  private bool IsConnected =>
+    _hubConnection?.State == HubConnectionState.Connected;
+
+}

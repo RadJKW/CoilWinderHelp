@@ -10,35 +10,35 @@
       Index
     </MudNavLink>
     <MudNavGroup Title="Admin"
-            Expanded="DrawerOpen"
-            ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
-            Icon="@Icons.Material.Outlined.AdminPanelSettings">
+        Expanded="DrawerOpen"
+        ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
+        Icon="@Icons.Material.Outlined.AdminPanelSettings">
+      <div class="pl-4">
       <MudNavLink Href="AdminDashboard"
-          Match="NavLinkMatch.Prefix"
-          Class="pl-4">
-            Dashboard
-          </MudNavLink>
-        </MudNavGroup>
+          Match="NavLinkMatch.Prefix">
+        Dashboard
+      </MudNavLink>
+      </div>
+    </MudNavGroup>
 
-    <MudNavGroup Title="StopsDev"
+    <MudNavGroup Title="ChatHub"
         Expanded="DrawerOpen"
         ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
         Icon="@Icons.Material.Outlined.Terminal">
-      <MudNavLink Href="stopEmulator"
-          Match="NavLinkMatch.Prefix">
-        Emulator
+      <div class="pl-4">
+      <MudNavLink Href="messengerHub"
+          Match="NavLinkMatch.Prefix"
+          Icon="@Icons.Material.Outlined.Message">
+        Chat
       </MudNavLink>
+      <MudNavLink Href="HubCommander"
+          Match="NavLinkMatch.Prefix"
+          Icon="@Icons.Material.Filled.Explore">
+        Manage
+      </MudNavLink>
+      </div>
     </MudNavGroup>
-    <MudNavLink Href="messengerHub"
-        Match="NavLinkMatch.Prefix"
-        Icon="@Icons.Material.Outlined.Message">
-      Chat
-    </MudNavLink>
-    <MudNavLink Href="instructions-viewer"
-        Match="NavLinkMatch.Prefix"
-        Icon="@Icons.Material.Outlined.FolderShared">
-      Instructions
-    </MudNavLink>
+
   </MudPaper>
 </MudNavMenu>
 
