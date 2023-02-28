@@ -111,7 +111,7 @@
                                 Icon="@Icons.Material.Outlined.Bolt"
                                 Size="Size.Small"
                                 Class="mud-elevation-4"
-                                OnClick="@(() => SetUpdatedStop(windingCode.Code))"
+                                OnClick="@(() => SetUpdatedStop(windingCode.Id))"
                                 Style="backdrop-filter: contrast(0.5) saturate(0.7)"/>
                           </MudTooltip>
                           <MudTooltip Arrow="true"
@@ -139,12 +139,12 @@
                         </div>
                         <div class="px-2">
                         <MudSelectExtended T="string"
-                            ItemCollection="_folderPaths.OrderBy(f => f).ToList()"
-                            @bind-Value="@windingCode.D1FolderPath"
+                            ItemCollection="_folderPaths"
+                            @bind-Value="@windingCode.FolderPath"
                             Text="@FormatWindingCode(windingCode)"
                             Variant="Variant.Filled"
                             Clearable="true"
-                            OnClearButtonClick="@(() => windingCode.D1FolderPath = null)"
+                            OnClearButtonClick="@(() => windingCode.FolderPath = null)"
                             Color="Color.Dark"
                             Label="Assigned Folder"
                             Placeholder="Select a folder"
@@ -204,7 +204,7 @@
   protected override async Task OnInitializedAsync() {
     DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
     DirectoryHub.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
-    ServerWindingDocsFolder = await DirectoryHub.Hub.InvokeAsync<string>("GetServerWindingDocsFolder");
+    ServerWindingDocsFolder = await DirectoryHub.DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
     await FetchCodesFromHub();
     await base.OnInitializedAsync();
   }
@@ -216,7 +216,7 @@
 
   #region Startup Methods
   private async Task FetchCodesFromHub() {
-    var windingCodes = await DirectoryHub.Hub.InvokeAsync<List<WindingCode>?>("GetWindingCodes");
+    var windingCodes = await DirectoryHub.DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", Division.D1);
     if (windingCodes == null) {
       State = PageState.Error;
       return;
@@ -243,12 +243,12 @@
 
   #endregion
 
-  private async Task SetUpdatedStop(string? code) {
+  private async Task SetUpdatedStop(int codeId) {
   // get the updated code information from the hub
-    var updatedWindingCode = await DirectoryHub.Hub.InvokeAsync<WindingCode?>("GetWindingCode", code);
+    var updatedWindingCode = await DirectoryHub.DirectoryHub.InvokeAsync<WindingCode?>("GetWindingCode", codeId);
     if (updatedWindingCode == null)
       return;
-    updatedWindingCode.D1FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.D1FolderPath}";
+    updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";
     DirectoryHub.SetCurrentCoilWinderStop(updatedWindingCode);
   }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
@@ -271,12 +271,12 @@
   }
 
   private string FormatWindingCode(WindingCode windingCode) {
-    return !_showFullPaths ? windingCode.D1FolderPath! : $"{ServerWindingDocsFolder}{windingCode.D1FolderPath}";
+    return !_showFullPaths ? windingCode.FolderPath! : $"{ServerWindingDocsFolder}{windingCode.FolderPath}";
   }
   private async Task SaveWindingCodeDb(WindingCode windingCode) {
-    if (windingCode.D1FolderPath != null)
-      windingCode.D1FolderPath = windingCode.D1FolderPath.Replace("../", string.Empty);
-    await DirectoryHub.Hub.InvokeAsync("UpdateWindingCode", windingCode.Name, windingCode);
+    if (windingCode.FolderPath != null)
+      windingCode.FolderPath = windingCode.FolderPath.Replace("../", string.Empty);
+    await DirectoryHub.DirectoryHub.InvokeAsync("UpdateWindingCode", windingCode.Name, windingCode);
     StateHasChanged();
   }
 }

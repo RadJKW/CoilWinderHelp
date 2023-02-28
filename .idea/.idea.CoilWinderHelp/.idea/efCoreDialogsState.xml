@@ -7,7 +7,7 @@
         <entry key="Common:buildConfiguration" value="Debug" />
         <entry key="Common:c74c81d9-e623-4da7-8136-0af0e4669528:dbContext" value="MudBlazorPWA.Shared.Data.DataContext" />
         <entry key="Common:noBuild" value="false" />
-        <entry key="Common:outputFolder" value="Migrations" />
+        <entry key="Common:outputFolder" value="Persistence\Migrations" />
         <entry key="Common:useDefaultConnection" value="true" />
       </map>
     </option>
