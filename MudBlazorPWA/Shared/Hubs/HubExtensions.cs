@@ -5,7 +5,7 @@ namespace MudBlazorPWA.Shared.Hubs;
 public static class HubExtensions
 {
 
-	public static readonly List<(string, string)> ActiveConnections = new();
+	public static readonly Dictionary<string, List<(string ip , string contextId)>> ActiveConnections = new();
 
 	public static string? GetConnectionIp(HubCallerContext context) {
 		var connection = context.Features.Get<IHttpConnectionFeature>();

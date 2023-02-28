@@ -41,7 +41,7 @@ public class HubClientService
 		DirectoryHub.StartAsync();
 	}
 
-	private async void InitializeChatHub() {
+	private void InitializeChatHub() {
 		ChatHub = new HubConnectionBuilder()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/chatHub"))
 			.Build();
@@ -50,7 +50,7 @@ public class HubClientService
 			NewChatMessage?.Invoke(user, message);
 		});
 
-		await ChatHub.StartAsync();
+		ChatHub.StartAsync();
 	}
 	private void RegisterHubEvents(HubConnection hubConnection) {
 		hubConnection.On<string[]>("ReceiveAllFolders", folders => {
@@ -74,7 +74,7 @@ public class HubClientService
 		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
 	}
 
-	public HubConnection GetHubConnection(HubServers hubServer) {
+	public  HubConnection GetHubConnection(HubServers hubServer) {
 		return hubServer switch {
 			HubServers.DirectoryHub => DirectoryHub,
 			HubServers.ChatHub => ChatHub,
