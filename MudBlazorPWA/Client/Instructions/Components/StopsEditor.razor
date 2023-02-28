@@ -142,7 +142,7 @@
                             ItemCollection="_folderPaths.OrderBy(f => f).ToList()"
                             @bind-Value="@windingCode.D1FolderPath"
                             Text="@FormatWindingCode(windingCode)"
-                            Variant="Variant.Outlined"
+                            Variant="Variant.Filled"
                             Clearable="true"
                             OnClearButtonClick="@(() => windingCode.D1FolderPath = null)"
                             Color="Color.Dark"
@@ -153,7 +153,7 @@
                             SearchBoxAutoFocus="true"
                             DisablePopoverPadding="true">
                           <ItemTemplate>
-                            <MudText> @context.Value</MudText>
+                            <MudText Typo="Typo.button"> @context.Value</MudText>
                           </ItemTemplate>
                         </MudSelectExtended>
                         </div>
