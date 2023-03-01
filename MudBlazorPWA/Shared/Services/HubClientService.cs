@@ -32,13 +32,14 @@ public class HubClientService
 	private HubConnection ChatHub { get; set; } = null!;
 	private readonly NavigationManager _navigationManager;
 
-	private void InitializeDirectoryHub() {
+	private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
 			.Build();
 
 		RegisterHubEvents(DirectoryHub);
-		DirectoryHub.StartAsync();
+		await DirectoryHub.StartAsync();
+		await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
 	}
 
 	private void InitializeChatHub() {
@@ -65,6 +66,11 @@ public class HubClientService
 		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", code => {
 			CurrentWindingStopUpdated?.Invoke(this, code);
 		});
+	}
+
+	public async Task SendChatMessage(string user, string message) {
+		await ChatHub.InvokeAsync(HubInfo.Actions.SendMessage, user, message, null);
+
 	}
 	public async void SetCurrentCoilWinderStop(WindingCode code) {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);

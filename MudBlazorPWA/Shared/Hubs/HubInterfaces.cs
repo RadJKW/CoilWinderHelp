@@ -17,6 +17,13 @@ public static class Events
 	public static string NewWindingStop => nameof(IHubClient.CurrentWindingStopUpdated);
 	public static string NewChatMessage => nameof(IChatHub.NewMessage);
 }
+
+public static class Actions
+{
+	public static string SendMessage => nameof(ChatHub.SendMessage);
+	public static string GetFolderContent => nameof(DirectoryHub.GetFolderContent);
+	public static string GetWindingCodes => nameof(DirectoryHub.GetWindingCodes);
+}
 }
 
  #pragma warning restore CA2211

@@ -3,6 +3,7 @@
 @layout DocViewLayout
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
+@implements IDisposable
 
 <MudGrid Class="align-center align-stretch d-flex justify-center pa-6">
   <MudItem xs="6">
@@ -10,20 +11,20 @@
       <MudForm >
         <MudTextField T="string"
             Label="User"
-            @bind-Value="_userInput"
+            @bind-Value="UserInput"
             Variant="Variant.Outlined">
         </MudTextField>
 
         <MudTextField T="string"
             Label="Message"
-            @bind-Value="@_messageInput"
+            @bind-Value="MessageInput"
             Variant="Variant.Outlined">
         </MudTextField>
         <div class="align-center d-flex justify-end pt-4 px-4">
           <MudButton Variant="Variant.Outlined"
               Color="Color.Success"
-              OnClick="@(() => InvokeAsync(Send))"
-              Disabled="!IsConnected">
+              OnClick="@(() => { _hubConnection!.SendAsync("SendMessage", UserInput, MessageInput, null); MessageInput = string.Empty; })"
+              Disabled="@(!IsConnected)">
             Send
           </MudButton>
         </div>
@@ -32,29 +33,41 @@
   </MudItem>
   <MudItem xs="6">
     <MudPaper Class="mud-height-full pa-4">
-      <MudGrid>
-        <MudItem xs="12">
-          @{ var allMessagesCount = _userMessages.Sum(x => x.Messages.Count); }
-          <MudText Class="mud-width-full"
-              Typo="Typo.subtitle2">
-            @($"Messages : ({allMessagesCount})")
-          </MudText>
-        </MudItem>
-        @foreach (var user in _userMessages.Where(x => x.Messages.Count > 0)) {
-          foreach (var message in user.Messages) {
-            <MudItem xs="12"
-                Class="d-flex justify-start px-0">
-              <MudText Class=""
-                  Color="@Color.Error">
-                @message
+          <MudGrid>
+            <MudItem xs="12">
+              @{
+                var allMessagesCount = _messages.Count;
+              }
+              <MudText Class="mud-width-full"
+                  Typo="Typo.subtitle2">
+                @($"Messages : ({allMessagesCount})")
               </MudText>
             </MudItem>
-            <MudDivider/>
-          }
-        }
+            @foreach (var entry in _messages) {
 
-      </MudGrid>
-    </MudPaper>
+              <MudItem xs="12">
+                <MudPaper Class="pa-4 mud-background-gray">
+                  <MudGrid>
+                    <MudItem xs="12">
+                      <MudText Class="mud-width-full"
+                          Typo="Typo.subtitle2">
+                        @entry.user
+                      </MudText>
+                    </MudItem>
+                    <MudItem xs="12">
+                      <MudText Class="pl-8 mud-width-full"
+                          Typo="Typo.subtitle2">
+                        @entry.message
+                      </MudText>
+                    </MudItem>
+                  </MudGrid>
+                </MudPaper>
+              </MudItem>
+            }
+
+          </MudGrid>
+        </MudPaper>
+
   </MudItem>
 </MudGrid>
 
@@ -67,43 +80,24 @@
 @* </MudList> *@
 
 @code {
-
-  private class ChatMessage {
-    public string? User { get; init; }
-    public List<string> Messages { get; init; } = new();
-  }
-
-
-
   private HubConnection? _hubConnection;
-  private string _userInput = "JKW";
-  private string _messageInput = string.Empty;
-  private readonly List<ChatMessage> _userMessages = new();
+  private string UserInput { get; set; } = string.Empty;
+  private string MessageInput { get; set; } = string.Empty;
+  private readonly List<(string user, string message)> _messages = new();
+
+  private bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 
   protected override async Task OnInitializedAsync() {
     _hubConnection = HubClientService.GetHubConnection(HubServers.ChatHub);
-    HubClientService.NewChatMessage += HubClientService_NewChatMessage;
+    HubClientService.NewChatMessage += (sender, args) => {
+      _messages.Add((sender, args));
+      Snackbar.Add($"New message from {sender}");
+      StateHasChanged();
+    };
     await base.OnInitializedAsync();
   }
 
-  private void HubClientService_NewChatMessage(string arg1, string arg2) {
-    var user = _userMessages.FirstOrDefault(x => x.User == arg1);
-    if (user is not null) {
-      user.Messages.Add(arg2);
-    } else {
-      _userMessages.Add(new ChatMessage {
-        User = arg1,
-        Messages = new() {
-          arg2
-        }
-      });
-    }
+  public void Dispose() {
+    Snackbar?.Dispose();
   }
-
-  private async void Send() {
-    if (_hubConnection != null)
-      await _hubConnection.InvokeAsync("SendMessage", _userInput, _messageInput);
-  }
-
-  private bool IsConnected => _hubConnection?.State == HubConnectionState.Connected;
 }

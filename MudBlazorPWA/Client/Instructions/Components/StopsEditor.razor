@@ -248,7 +248,7 @@
     var updatedWindingCode = await DirectoryHub.DirectoryHub.InvokeAsync<WindingCode?>("GetWindingCode", codeId);
     if (updatedWindingCode == null)
       return;
-    updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";
+    /*updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";*/
     DirectoryHub.SetCurrentCoilWinderStop(updatedWindingCode);
   }
   private void DirectoryHub_OnWindingCodesDbUpdated() {

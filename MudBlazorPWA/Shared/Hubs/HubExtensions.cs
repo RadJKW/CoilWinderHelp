@@ -7,20 +7,19 @@ public static class HubExtensions
 
 	public static readonly Dictionary<string, List<(string ip , string contextId)>> ActiveConnections = new();
 
-	public static string? GetConnectionIp(HubCallerContext context) {
+	public static string? GetConnectionIp(HubCallerContext context)
+	{
 		var connection = context.Features.Get<IHttpConnectionFeature>();
-		return
-			connection?
-				.RemoteIpAddress?
-				.ToString()
-				.Replace("::ffff:", string.Empty);
+		var remoteIpAddress = connection?.RemoteIpAddress;
+
+		// Check if the address is IPv6
+		if (remoteIpAddress is not { IsIPv4MappedToIPv6: true })
+			return remoteIpAddress?.ToString();
+
+		// Convert the IPv6 address to IPv4 format
+		var bytes = remoteIpAddress.MapToIPv4().GetAddressBytes();
+		return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
+
 	}
 
-
-	public static string? GetHubCallerIp(this Hub hub) {
-
-		var connection = hub.Context.Features.Get<IHttpConnectionFeature>();
-		var ip = connection?.RemoteIpAddress?.ToString().Replace("::ffff:", string.Empty);
-		return ip;
-	}
 }
