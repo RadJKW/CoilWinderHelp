@@ -3,6 +3,7 @@
 @import url('docview-layout.css');
 @import url('menus.css');
 @import url('page-stops.css');
+@import url('hubs.css');
 
 :root {
     background-color: rgba(44,44,48,0.85);
@@ -10,7 +11,6 @@
 
 }
 body {
-    height: 100vh;
 }
 
 

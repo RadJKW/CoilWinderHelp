@@ -1,0 +1,30 @@
+﻿#hub-paper{
+    width: clamp(300px, 100%, 800px);
+    margin-inline: auto;
+}
+
+
+
+
+
+#winding-code-reel{
+    margin-inline: auto;
+    padding-block: 12px;
+    width: clamp(300px, 100%, 500px);
+}
+
+#winding-code-reel .reel {
+    --gap : 1rem;
+    display: grid;
+    gap: var(--gap);
+    grid-auto-flow: column;
+    grid-auto-columns: calc(30% - (var(--gap) / 6) );
+    overflow-x: scroll;
+    scroll-padding: var(--gap) 0;
+}
+
+#winding-code-reel .reel > * {
+    scroll-snap-align: start;
+    margin: 1rem  0.2rem;
+
+}

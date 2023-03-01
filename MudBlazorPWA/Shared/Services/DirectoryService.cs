@@ -29,7 +29,6 @@ public class DirectoryServiceOptions
 
 public class DirectoryService : IDirectoryService
 {
-
 	private readonly string _windingCodesJsonPath;
 
 	// ReSharper disable once NotAccessedField.Local
@@ -70,11 +69,9 @@ public class DirectoryService : IDirectoryService
 	}
 
 	public string GetRelativePath(string path) {
-
 		var relativePath = Path.GetRelativePath(_rootDirectory, path);
 		Console.WriteLine($"Root: {_rootDirectory} \n Path: {path} \n Relative: {relativePath}");
 		return relativePath;
-
 	}
 
 	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
@@ -84,21 +81,39 @@ public class DirectoryService : IDirectoryService
 		var documents = code.Media;
 
 		// get the pdf path
-		var pdfPath = await GetPdfPath(code.FolderPath, false);
-		if (pdfPath != null) {
-			documents.Pdf = GetRelativePath(pdfPath);
+		try {
+			var pdfPath = await GetPdfPath(code.FolderPath, false);
+			if (pdfPath != null) {
+				documents.Pdf = GetRelativePath(pdfPath);
+			}
+		}
+		catch (Exception e) {
+			Console.WriteLine($"TryPdfPath: {e.Message}");
+			throw;
 		}
 
 		// get the video path
-		var videoPath = await GetVideoPath(code.FolderPath);
-		if (videoPath != null) {
-			documents.Video = GetRelativePath(videoPath);
+		try {
+			var videoPath = await GetVideoPath(code.FolderPath);
+			if (videoPath != null) {
+				documents.Video = GetRelativePath(videoPath);
+			}
+		}
+		catch (Exception e) {
+			Console.WriteLine($"TryVideoPath: {e.Message}");
+			throw;
 		}
 
 		// get the refMedia path
-		var refMediaPath = await GetRefMediaPath(code.FolderPath);
-		if (refMediaPath != null) {
-			documents.ReferenceFolder = GetRelativePath(refMediaPath);
+		try {
+			var refMediaPath = await GetRefMediaPath(code.FolderPath);
+			if (refMediaPath != null) {
+				documents.ReferenceFolder = GetRelativePath(refMediaPath);
+			}
+		}
+		catch (Exception e) {
+			Console.WriteLine($"TryRefMediaPath: {e.Message}");
+			throw;
 		}
 		return code;
 	}
@@ -113,7 +128,6 @@ public class DirectoryService : IDirectoryService
 	}
 
 	private static Task<string?> GetVideoPath(string? folder) {
-
 		if (folder == null) {
 			return Task.FromResult<string?>(null);
 		}
