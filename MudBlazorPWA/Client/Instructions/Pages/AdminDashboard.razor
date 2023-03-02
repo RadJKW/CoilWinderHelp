@@ -1,7 +1,97 @@
 @page "/AdminDashboard"
 @layout DocViewLayout
-<StopsEditor/>
+@inject HubClientService HubClientService
+@inject ISnackbar Snackbar
+@implements IDisposable
+
+<div class="mt-6 mx-4">
+
+  @if (WindingCodesList == null) {
+    <MudProgressLinear Indeterminate="true"/>
+  } else {
+    <MudGrid Spacing="4">
+      <MudItem xs="12"
+          lg="4"
+          Class="d-flex justify-center align-center flex-column">
+        <MudText Typo="Typo.h6">Winding Codes</MudText>
+        <div class="d-flex justify-center align-center ">
+
+        <MudIconButton Color="Color.Primary"
+            Icon="@Icons.Material.Outlined.Refresh"
+            Variant="Variant.Outlined"
+            Size="Size.Small"
+            OnClick="() => HubClientService.GetCodeList()">
+        </MudIconButton>
+        <MudIconButton Color="Color.Warning"
+            Icon="@Icons.Material.Filled.DeleteOutline"
+            Variant="Variant.Outlined"
+            Size="Size.Small"
+            OnClick="() => WindingCodesList.Clear()">
+
+        </MudIconButton>
+        </div>
+      </MudItem>
+
+      <MudItem xs="12"
+          lg="4">
+
+
+      <MudCard>
+          <MudCardContent>
+            <MudText Typo="Typo.h6">Winding Codes</MudText>
+            <MudText Typo="Typo.body2">Total: @WindingCodesList.Count</MudText>
+          </MudCardContent>
+        </MudCard>
+      </MudItem>
+
+      <MudItem xs="12">
+
+        <MudTable Items="WindingCodesList"
+            Dense="true"
+            Striped="false"
+            Hover="true"
+            Bordered="true">
+          <HeaderContent>
+            <MudTh>Id</MudTh>
+            <MudTh>Code</MudTh>
+            <MudTh>Name</MudTh>
+            <MudTh>CodeType</MudTh>
+          </HeaderContent>
+          <RowTemplate>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>@context.Code</MudTd>
+            <MudTd>@context.Name</MudTd>
+            <MudTd>@context.CodeTypeId</MudTd>
+          </RowTemplate>
+        </MudTable>
+      </MudItem>
+    </MudGrid>
+  }
+</div>
 
 @code {
+
+  private List<WindingCode>? WindingCodesList { get; set; }
+
+  protected override Task OnInitializedAsync() {
+    HubClientService.WindingCodesDbUpdated += OnWindingCodesDbUpdated;
+    HubClientService.WindingCodesListUpdated += (list) => { WindingCodesList = list; StateHasChanged(); };
+    return base.OnInitializedAsync();
+  }
+  private void OnWindingCodesDbUpdated() {
+    Snackbar.Add("Winding Codes Database Updated", Severity.Success);
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      HubClientService.GetCodeList();
+    }
+    await base.OnAfterRenderAsync(firstRender);
+  }
+
+  public void Dispose() {
+    HubClientService.WindingCodesDbUpdated -= OnWindingCodesDbUpdated;
+    Snackbar.Dispose();
+  }
 
 }

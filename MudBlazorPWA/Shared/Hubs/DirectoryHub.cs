@@ -87,12 +87,12 @@ public class DirectoryHub : Hub<IHubClient>
 		var hubType = GetType();
 		var methods = hubType.GetMethods()
 			.Where(m =>
-				(m.Attributes & MethodAttributes.Virtual) == 0 && // exclude overridden methods
-				m.ReturnType == typeof(Task) ||                   // include public Task methods
-				(m.ReturnType == typeof(void) && m.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null) // include public async void methods
+				(m.Attributes & MethodAttributes.Virtual) == 0 &&// exclude overridden methods
+				m.ReturnType == typeof(Task) ||// include public Task methods
+				(m.ReturnType == typeof(void) && m.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null)// include public async void methods
 			)
 			.Select(m => m.Name)
-		.ToList();
+			.ToList();
 		return await Task.FromResult(methods);
 	}
 
@@ -121,7 +121,9 @@ public class DirectoryHub : Hub<IHubClient>
 		await Clients.Group(clientIp).WindingCodesDbUpdated();
 		return "From server: WindingCodes.json saved.";
 	}
-	public virtual Task<string> GetServerWindingDocsFolder() => Task.FromResult(AppConfig.BasePath);
+ #pragma warning disable CA1822
+	public Task<string> GetServerWindingDocsFolder() => Task.FromResult(AppConfig.BasePath);
+ #pragma warning restore CA1822
 	#endregion
 
 	#region DataBase CRUD
@@ -188,7 +190,6 @@ public class DirectoryHub : Hub<IHubClient>
 		}
 		catch (Exception e) {
 			_logger.LogError("Error updating current winding stop => {Exception}", e.Message);
-
 		}
 	}
 	public Task<WindingCode?> GetCurrentWindingStop() {

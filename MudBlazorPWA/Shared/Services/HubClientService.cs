@@ -17,6 +17,8 @@ public class HubClientService
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
 
+	public event Action<List<WindingCode>>? WindingCodesListUpdated;
+
 	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
 
 	public event Action<string, string>? NewChatMessage;
@@ -32,7 +34,7 @@ public class HubClientService
 	private HubConnection ChatHub { get; set; } = null!;
 	private readonly NavigationManager _navigationManager;
 
-	private async void InitializeDirectoryHub() {
+		private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
 			.Build();
@@ -70,6 +72,12 @@ public class HubClientService
 
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync(HubInfo.Actions.SendMessage, user, message, null);
+
+	}
+	public async void GetCodeList() {
+		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", Division.D1);
+		if (windingCodesList != null)
+			WindingCodesListUpdated?.Invoke( windingCodesList);
 
 	}
 	public async void SetCurrentCoilWinderStop(WindingCode code) {
