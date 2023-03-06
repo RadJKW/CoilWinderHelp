@@ -56,7 +56,6 @@
   public async ValueTask DisposeAsync()
   {
     if (_module != null) {
-      await _module.InvokeVoidAsync("removeHorizontalScrolling", "reel");
       await _module.DisposeAsync();
     }
   }

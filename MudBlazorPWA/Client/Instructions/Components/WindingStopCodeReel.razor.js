@@ -14,7 +14,7 @@ export function addHorizontalScrolling (id) {
   }
 }
 
-export function removeHorizontalScrolling (id) {
+/* export function removeHorizontalScrolling (id) {
   const container = document.getElementById(id)
-  container?.removeEventListener('wheel')
-}
+  container?.removeEventListener('wheel', null)
+} */

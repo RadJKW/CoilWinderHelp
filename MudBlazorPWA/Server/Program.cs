@@ -9,6 +9,7 @@ using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Hubs;
 using MudBlazorPWA.Shared.Models;
 using MudBlazorPWA.Shared.Services;
+using MudExtensions.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
