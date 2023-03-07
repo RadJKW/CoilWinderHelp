@@ -151,9 +151,7 @@ public class DirectoryHub : Hub<IHubClient>
 			if (!WindingCodeExists(codeName)) {
 				return null;
 			}
-			else {
-				throw;
-			}
+			throw;
 		}
 		return windingCode;
 	}
@@ -186,7 +184,7 @@ public class DirectoryHub : Hub<IHubClient>
 			var windingCode = await _directoryService.GetWindingCodeDocuments(code);
 			_currentWindingStop = windingCode;
 			await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
-			await Clients.All.CurrentWindingStopUpdated(windingCode);
+			//await Clients.All.CurrentWindingStopUpdated(windingCode);
 		}
 		catch (Exception e) {
 			_logger.LogError("Error updating current winding stop => {Exception}", e.Message);
@@ -197,14 +195,4 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 	#endregion
 
-	/*#region Static Methods
-	private static string? GetConnectionIp(HubCallerContext context) {
-		var connection = context.Features.Get<IHttpConnectionFeature>();
-		return
-			connection?
-				.RemoteIpAddress?
-				.ToString()
-				.Replace("::ffff:", string.Empty);
-	}
-	#endregion*/
 }

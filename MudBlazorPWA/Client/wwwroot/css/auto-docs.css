@@ -57,6 +57,7 @@
     background: transparent;
     overflow: hidden;
     width: 100%;
+    padding: 0.2rem 0 0 0.2rem;
 }
 .video-footer {
     background: rgba(41, 68, 7, 0.51);
