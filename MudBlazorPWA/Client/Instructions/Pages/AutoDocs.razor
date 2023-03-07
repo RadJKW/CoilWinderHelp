@@ -4,12 +4,13 @@
 @inherits ComponentBase
 @implements IAsyncDisposable
 
+
 @switch (_currentWindingStop is not null) {
   case true: {
     <div class="auto-docs container">
       <MudSplitter Class="auto-docs splitter"
           @bind-Dimension="@_startWidth"
-          StyleBar="width: 6px !important;"
+          StyleBar="width: 2px !important;"
           OnDoubleClicked="HandleDoubleClicked"
           EnableSlide="true"
           EnableMargin="false"
@@ -24,14 +25,12 @@
                 OnClick="ToggleContentSize">
             </MudIconButton>
           </div>
-          <PrimaryContent Src="@PdfUrl"/>
+          <PrimaryContent Src="@_currentWindingStop?.Media.Pdf"/>
 
         </StartContent>
         <EndContent>
-          @*//TODO: Figure Out why Secondary Content is not re-rendering on WindingStopUpdate*@
-
-          <SecondaryContent VideoUrl="@VideoUrl"
-              RefsFolder="@RefsFolder"/>
+          <SecondaryContent VideoUrl="@_currentWindingStop?.Media.Video"
+              RefsFolder="@_currentWindingStop?.Media.ReferenceFolder"/>
         </EndContent>
       </MudSplitter>
     </div>
@@ -57,31 +56,32 @@
 
 
 @code{
-    private const string FileServer = "http://192.168.0.10:5126/files/";
-
   private WindingCode? _currentWindingStop;
   private double _startWidth = 65;
-  private string? PdfUrl { get; set; }
-  private string? VideoUrl { get; set; }
-  private string? RefsFolder { get; set; }
 
-
+  private IJSObjectReference? _moduleJS;
 
 
   protected override async Task OnInitializedAsync() {
     _currentWindingStop = await DirectoryHub.GetCurrentCoilWinderStop();
-    DirectoryHub.CurrentWindingStopUpdated += async (_, code) => await DirectoryHub_OnCurrentWindingStopUpdated(code);
-
+    DirectoryHub.CurrentWindingStopUpdated += DirectoryHub_OnCurrentWindingStopUpdated;
     await base.OnInitializedAsync();
   }
 
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    await base.OnAfterRenderAsync(firstRender);
+    if (firstRender) {
+      // _moduleJS = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Instructions/Pages/AutoDocs.razor.js");
+      _moduleJS = null;
+    }
+  }
 
-  private async Task DirectoryHub_OnCurrentWindingStopUpdated(WindingCode windingCode) {
-    PdfUrl = windingCode.Media.Pdf is not null ? FileServer + windingCode.Media.Pdf : null;
-    VideoUrl = windingCode.Media.Video is not null ? FileServer + windingCode.Media.Video : null;
-    RefsFolder = windingCode.Media.ReferenceFolder is not null ? FileServer + windingCode.Media.ReferenceFolder : null;
+
+  private void DirectoryHub_OnCurrentWindingStopUpdated(object? sender, WindingCode windingCode) {
     _currentWindingStop = windingCode;
-    await InvokeAsync(StateHasChanged);
+    StateHasChanged();
+    if (_moduleJS != null)
+      InvokeAsync(async () => { await _moduleJS.InvokeVoidAsync("init"); });
   }
 
   private void HandleDoubleClicked() {
@@ -90,7 +90,8 @@
   private void ToggleContentSize() {
     _startWidth = _startWidth >= 50 ? 40 : 70;
   }
-  public ValueTask DisposeAsync() {
-    return ValueTask.CompletedTask;
+  public async ValueTask DisposeAsync() {
+    if (_moduleJS != null)
+      await _moduleJS.DisposeAsync();
   }
 }

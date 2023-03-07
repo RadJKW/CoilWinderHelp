@@ -2,10 +2,7 @@
 @inject ISnackbar Snackbar
 @inject HubClientService DirectoryHub
 @inject ILogger<StopsEditor> Logger
-@using System.Text.RegularExpressions
 @using Microsoft.AspNetCore.SignalR.Client
-@using System.Text.Json
-@using Microsoft.EntityFrameworkCore.Metadata.Internal
 
 <MudScrollbar Selector=""
     Width="4"
@@ -197,7 +194,7 @@
   private List<string> _folderPaths = new List<string>();
   //private readonly List<(string, List<string>?)> _folderItemGroups = new();
   private Folder? RootFolder { get; set; }
-  private bool _showFullPaths = false;
+  private bool _showFullPaths;
   private string ServerWindingDocsFolder { get; set; } = "Default";
   #endregion
 

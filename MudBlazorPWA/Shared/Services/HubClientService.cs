@@ -29,7 +29,11 @@ public class HubClientService
 		_navigationManager = navigationManager;
 		InitializeDirectoryHub();
 		InitializeChatHub();
+		FileServerUrl = _navigationManager
+			.ToAbsoluteUri("/files/");
 	}
+
+	private Uri? FileServerUrl { get; init; }
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
 	private readonly NavigationManager _navigationManager;
@@ -65,9 +69,7 @@ public class HubClientService
 			ReceiveFolderContent?.Invoke(path, files, folders);
 		});
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
-		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", code => {
-			CurrentWindingStopUpdated?.Invoke(this, code);
-		});
+		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
 	}
 
 	public async Task SendChatMessage(string user, string message) {
@@ -86,6 +88,17 @@ public class HubClientService
 
 	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
 		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
+	}
+
+	private void ParseWindingCodeMedia(WindingCode code) {
+		if (code.Media.Video != null)
+			code.Media.Video = FileServerUrl + code.Media.Video;
+		if (code.Media.Pdf != null)
+			code.Media.Pdf = FileServerUrl + code.Media.Pdf;
+		if (code.Media.ReferenceFolder != null)
+			code.Media.ReferenceFolder = FileServerUrl + code.Media.ReferenceFolder;
+
+		CurrentWindingStopUpdated?.Invoke(this, code);
 	}
 
 	public  HubConnection GetHubConnection(HubServers hubServer) {
