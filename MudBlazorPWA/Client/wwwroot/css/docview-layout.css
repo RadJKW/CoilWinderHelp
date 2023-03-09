@@ -1,12 +1,14 @@
 .docview.main-content{
     display: flex;
-    height: 100vh;
-    max-height: 100vh;
+    --mud-palette-table-striped: rgb(0 0 0 / 0.2);
+    --mud-appbar-height: 40px;
 }
 .docview.main-container{
-   padding-inline: 1rem;
+    --min-docview-height: calc(100vh - var(--mud-appbar-height));
+    --max-docview-height: calc(100vh - var(--mud-appbar-height));
+   padding: 1rem;
     margin-inline: auto;
-    height: calc(100vh - var(--mud-appbar-height));
+    height: var(--min-docview-height);
 }
 .docview.main-container :not(div) {
     /*transform: scale(98%);*/
