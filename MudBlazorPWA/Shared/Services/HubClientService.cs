@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.Logging;
 using MudBlazorPWA.Shared.Models;
 using MudBlazorPWA.Shared.Hubs;
 
@@ -25,14 +26,16 @@ public class HubClientService
 
 
 
-	public HubClientService(NavigationManager navigationManager) {
+	public HubClientService(NavigationManager navigationManager, ILogger<HubClientService> logger) {
 		_navigationManager = navigationManager;
+		_logger = logger;
 		InitializeDirectoryHub();
 		InitializeChatHub();
 		FileServerUrl = _navigationManager
 			.ToAbsoluteUri("/files/");
 	}
 
+	private ILogger<HubClientService> _logger;
 	private Uri? FileServerUrl { get; init; }
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
@@ -40,6 +43,7 @@ public class HubClientService
 
 		private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
+			.WithAutomaticReconnect()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
 			.Build();
 
@@ -50,6 +54,7 @@ public class HubClientService
 
 	private void InitializeChatHub() {
 		ChatHub = new HubConnectionBuilder()
+			.WithAutomaticReconnect()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/chatHub"))
 			.Build();
 

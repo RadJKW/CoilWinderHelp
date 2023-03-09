@@ -6,11 +6,12 @@
 @import url('hubs.css');
 
 :root {
-    background-color: rgba(44,44,48,0.85);
+    background: #27272f;
     --mud-drawer-width-mini-left: 50px !important;
 
 }
-body {
+html{
+
 }
 
 

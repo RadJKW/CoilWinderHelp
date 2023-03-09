@@ -6,64 +6,143 @@
 
 <div class="mt-6 mx-4">
 
-  @if (WindingCodesList == null) {
+  @if (_windingCodesList.Any() == false) {
     <MudProgressLinear Indeterminate="true"/>
   } else {
     <MudGrid Spacing="4">
       <MudItem xs="12"
-          lg="4"
-          Class="d-flex justify-center align-center flex-column">
-        <MudText Typo="Typo.h6">Winding Codes</MudText>
-        <div class="d-flex justify-center align-center ">
+          Class="d-flex justify-center mud-width-full">
 
-        <MudIconButton Color="Color.Primary"
-            Icon="@Icons.Material.Outlined.Refresh"
-            Variant="Variant.Outlined"
-            Size="Size.Small"
-            OnClick="() => HubClientService.GetCodeList()">
-        </MudIconButton>
-        <MudIconButton Color="Color.Warning"
-            Icon="@Icons.Material.Filled.DeleteOutline"
-            Variant="Variant.Outlined"
-            Size="Size.Small"
-            OnClick="() => WindingCodesList.Clear()">
-
-        </MudIconButton>
-        </div>
-      </MudItem>
-
-      <MudItem xs="12"
-          lg="4">
-
-
-      <MudCard>
+        <MudCard Style="width: 75%">
           <MudCardContent>
-            <MudText Typo="Typo.h6">Winding Codes</MudText>
-            <MudText Typo="Typo.body2">Total: @WindingCodesList.Count</MudText>
+            <div class="align-center d-flex flex-column gap-1 justify-center mud-width-full">
+
+              <div class="d-flex flex-row gap-6 justify-center mx-auto">
+                <div class="d-flex justify-start mx-auto px-4">
+
+                  <MudIconButton Color="Color.Primary"
+                      Icon="@Icons.Material.Outlined.Refresh"
+                      Variant="Variant.Outlined"
+                      Size="Size.Small"
+                      OnClick="() => HubClientService.GetCodeList()">
+                  </MudIconButton>
+                  <MudIconButton Color="Color.Warning"
+                      Icon="@Icons.Material.Filled.DeleteOutline"
+                      Variant="Variant.Outlined"
+                      Size="Size.Small"
+                      OnClick="() => _windingCodesList.Clear()">
+                  </MudIconButton>
+                </div>
+                <MudText Typo="Typo.h6">Winding Codes</MudText>
+                <MudText Typo="Typo.body2">Total: <strong>@_windingCodesList.Count</strong></MudText>
+              </div>
+              <MudDivider FlexItem="true"
+                  DividerType="DividerType.FullWidth"/>
+              <div class="d-flex flex-wrap justify-center">
+                <MudSwitch @bind-Checked="@_readOnly"
+                    Color="Color.Primary">
+                  Read Only
+                </MudSwitch>
+              </div>
+            </div>
           </MudCardContent>
         </MudCard>
       </MudItem>
 
-      <MudItem xs="12">
+      <MudItem xs="12"
+          Class="d-flex justify-center mud-width-full">
+        <MudDataGrid T="WindingCode"
+            Items="@_windingCodesList"
+            Height="70vh"
+            ReadOnly="@_readOnly"
+            EditMode="DataGridEditMode.Form"
+            EditTrigger="DataGridEditTrigger.OnRowClick"
+            StartedEditingItem="@StartedEditingItem"
+            CanceledEditingItem="@CanceledEditingItem"
+            CommittedItemChanges="@CommittedItemChanges"
+            FixedHeader="true"
+            Striped="true"
+            Bordered="true"
+            Dense="true">
+          <Columns>
+            <HierarchyColumn T="WindingCode"/>
+            <PropertyColumn Property="x => x.Id"
+                T="WindingCode"
+                TProperty="int"
+                IsEditable="false"
+                Hideable="true">
+              <EditTemplate>
+              </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Division.ToString()"
+                Title="Division"
+                T="WindingCode"
+                TProperty="string"
+                IsEditable="false"/>
+            <PropertyColumn Property="x => x.Code"
+                TProperty="string"
+                T="WindingCode"
+                IsEditable="false"/>
+            <PropertyColumn Property="x => x.Name"
+                T="WindingCode"
+                TProperty="string"
+                IsEditable="false"/>
+            <PropertyColumn Property="x => x.CodeTypeId.ToString()"
+                T="WindingCode"
+                TProperty="string"
+                Title="CodeType"
+                CellStyle="text-align: center;"/>
+          </Columns>
+          <ChildRowContent>
+            <MudCard>
+              <MudCardHeader>
+                <CardHeaderContent>
+                  <MudText Typo="Typo.h6">Folder & Media</MudText>
+                </CardHeaderContent>
+              </MudCardHeader>
+              <MudCardContent>
+                <MudStack Spacing="1">
+                  @{
+                    var contextItems = new[] {
+                      context.Item.FolderPath, context.Item.Media.Pdf, context.Item.Media.Video, context.Item.Media.ReferenceFolder
+                    };
 
-        <MudTable Items="WindingCodesList"
-            Dense="true"
-            Striped="false"
-            Hover="true"
-            Bordered="true">
-          <HeaderContent>
-            <MudTh>Id</MudTh>
-            <MudTh>Code</MudTh>
-            <MudTh>Name</MudTh>
-            <MudTh>CodeType</MudTh>
-          </HeaderContent>
-          <RowTemplate>
-            <MudTd>@context.Id</MudTd>
-            <MudTd>@context.Code</MudTd>
-            <MudTd>@context.Name</MudTd>
-            <MudTd>@context.CodeTypeId</MudTd>
-          </RowTemplate>
-        </MudTable>
+                    for (var i = 0; i < contextItems.Length; i++) {
+
+                      // display the Name of the attreibute and the value in a row
+
+                      // switch statement for the icons
+                      switch (i) {
+                        case 0:
+                          <MudIcon Icon="@Icons.Material.Outlined.Folder" Color="Color.Primary"/>
+                          break;
+                        case 1:
+                          <MudIcon Icon="@Icons.Material.Outlined.PictureAsPdf" Color="Color.Primary"/>
+                          break;
+                        case 2:
+                          <MudIcon Icon="@Icons.Material.Outlined.VideoLibrary" Color="Color.Primary"/>
+                          break;
+                      case 3:
+                          <MudIcon Icon="@Icons.Material.Outlined.Folder" Color="Color.Primary"/>
+                          break;
+                      }
+                      var i1 = i;
+                      <MudText Typo="Typo.body2">
+                        @contextItems[i1]
+                      </MudText>
+
+
+
+                    }
+                  }
+                </MudStack>
+
+              </MudCardContent>
+            </MudCard>
+
+          </ChildRowContent>
+
+        </MudDataGrid>
       </MudItem>
     </MudGrid>
   }
@@ -71,11 +150,15 @@
 
 @code {
 
-  private List<WindingCode>? WindingCodesList { get; set; }
-
+  private readonly List<WindingCode> _windingCodesList = new();
+  private bool _readOnly;
   protected override Task OnInitializedAsync() {
     HubClientService.WindingCodesDbUpdated += OnWindingCodesDbUpdated;
-    HubClientService.WindingCodesListUpdated += (list) => { WindingCodesList = list; StateHasChanged(); };
+    HubClientService.WindingCodesListUpdated += (list) => {
+      _windingCodesList.Clear();
+      _windingCodesList.AddRange(list);
+      StateHasChanged();
+    };
     return base.OnInitializedAsync();
   }
   private void OnWindingCodesDbUpdated() {
@@ -89,9 +172,21 @@
     await base.OnAfterRenderAsync(firstRender);
   }
 
-  public void Dispose() {
+  void IDisposable.Dispose() {
     HubClientService.WindingCodesDbUpdated -= OnWindingCodesDbUpdated;
     Snackbar.Dispose();
+  }
+
+  void StartedEditingItem(WindingCode item) {
+    Snackbar.Add($"Started editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
+  }
+
+  void CanceledEditingItem(WindingCode item) {
+    Snackbar.Add($"Canceled editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
+  }
+
+  void CommittedItemChanges(WindingCode item) {
+    Snackbar.Add($"CommittedItemChanges ,Data =  {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
   }
 
 }
