@@ -10,9 +10,7 @@
     margin-inline: auto;
     height: var(--min-docview-height);
 }
-.docview.main-container :not(div) {
-    /*transform: scale(98%);*/
-}
+/*.docview.main-container :not(div) {}
 
 /*Custom MudBlazor Overrides*/
 

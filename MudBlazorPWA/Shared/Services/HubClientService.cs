@@ -17,15 +17,8 @@ public class HubClientService
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
-
-	public event Action<List<WindingCode>>? WindingCodesListUpdated;
-
 	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
-
 	public event Action<string, string>? NewChatMessage;
-
-
-
 	public HubClientService(NavigationManager navigationManager, ILogger<HubClientService> logger) {
 		_navigationManager = navigationManager;
 		_logger = logger;
@@ -35,13 +28,13 @@ public class HubClientService
 			.ToAbsoluteUri("/files/");
 	}
 
+	// ReSharper disable once NotAccessedField.Local
 	private ILogger<HubClientService> _logger;
 	private Uri? FileServerUrl { get; init; }
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
 	private readonly NavigationManager _navigationManager;
-
-		private async void InitializeDirectoryHub() {
+	private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
 			.WithAutomaticReconnect()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
@@ -51,7 +44,6 @@ public class HubClientService
 		await DirectoryHub.StartAsync();
 		await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
 	}
-
 	private void InitializeChatHub() {
 		ChatHub = new HubConnectionBuilder()
 			.WithAutomaticReconnect()
@@ -76,25 +68,23 @@ public class HubClientService
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
 		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
 	}
-
+	public async Task<IEnumerable<string>> GetFoldersInPath(string? path = null) {
+		var folders = await DirectoryHub.InvokeAsync<IEnumerable<string>>("GetAllFolders", path);
+		return folders;
+	}
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync(HubInfo.Actions.SendMessage, user, message, null);
-
 	}
-	public async void GetCodeList() {
-		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", Division.D1);
-		if (windingCodesList != null)
-			WindingCodesListUpdated?.Invoke( windingCodesList);
-
+	public async Task<IEnumerable<WindingCode>?> GetCodeList(Division? division = null) {
+		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", division);
+		return windingCodesList ?? null;
 	}
 	public async void SetCurrentCoilWinderStop(WindingCode code) {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);
 	}
-
 	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
 		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
 	}
-
 	private void ParseWindingCodeMedia(WindingCode code) {
 		if (code.Media.Video != null)
 			code.Media.Video = FileServerUrl + code.Media.Video;
@@ -105,8 +95,7 @@ public class HubClientService
 
 		CurrentWindingStopUpdated?.Invoke(this, code);
 	}
-
-	public  HubConnection GetHubConnection(HubServers hubServer) {
+	public HubConnection GetHubConnection(HubServers hubServer) {
 		return hubServer switch {
 			HubServers.DirectoryHub => DirectoryHub,
 			HubServers.ChatHub => ChatHub,
