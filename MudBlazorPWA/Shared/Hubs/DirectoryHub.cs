@@ -107,10 +107,11 @@ public class DirectoryHub : Hub<IHubClient>
 		var relativePath = _directoryService.GetRelativePath(path);
 		await Clients.Group(clientIp).FileSelected(relativePath);
 	}
-	public async Task GetAllFolders(string? path = null) {
+	public async Task<IEnumerable<string>> GetAllFolders(string? path){
 		var clientIp = HubExtensions.GetConnectionIp(Context);
 		var folders = await _directoryService.GetFoldersInPath(path);
-		await Clients.Group(clientIp).ReceiveAllFolders(folders);
+		await Clients.Group(clientIp).ReceiveAllFolders(folders.ToArray());
+		return folders;
 	}
 	public async Task<string> SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var clientIp = HubExtensions.GetConnectionIp(Context);

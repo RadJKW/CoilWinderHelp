@@ -163,9 +163,10 @@ public class DirectoryService : IDirectoryService
 		path ??= _rootDirectory;
 		var folders = Directory.EnumerateDirectories(path, "*", SearchOption.AllDirectories);
 		// foreach folder in the list, if the folder uses "\\" as a separator, replace it with "/"
-		folders = folders.Select(f => f.Replace("\\", "/")).OrderBy(f => f);
-
-		// _logger.LogInformation("Folders: {Folders}", folders);
+		// also remove AppConfig.BasePath from the folder path
+		folders = folders.Select(f => f
+			.Replace(AppConfig.BasePath, "")
+			.Replace("\\", "/"));
 		return Task.FromResult(folders.ToArray());
 	}
 
