@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
@@ -71,7 +72,6 @@ public class DirectoryHub : Hub<IHubClient>
 		_logger.LogInformation("Client {ClientIpAddress} disconnected from group {GroupName}", clientIp, clientIp);
 	}
 	#endregion
-
 	public Task<List<string>> GetConnectedClients() {
 		// var clientIp = HubExtensions.GetConnectionIp(Context);
 		var hubName = GetType().Name;
@@ -82,7 +82,6 @@ public class DirectoryHub : Hub<IHubClient>
 		}
 		return Task.FromResult(clients);
 	}
-
 	public async Task<List<string>> GetCallbackMethods() {
 		var hubType = GetType();
 		var methods = hubType.GetMethods()
@@ -97,6 +96,11 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 
 	#region Directory Methods
+	public async Task<IEnumerable> ListPdfFiles(string? path) {
+		// var clientIP = HubExtensions.GetConnectionIp(Context);
+		var files = await _directoryService.ListPdfFiles(path);
+		return files;
+	}
 	public async Task GetFolderContent(string? path = null) {
 		var clientIp = HubExtensions.GetConnectionIp(Context);
 		var (currentPath, files, folders) = await _directoryService.GetFolderContent(path);
@@ -136,44 +140,39 @@ public class DirectoryHub : Hub<IHubClient>
 		var result = await windingCodes.ToListAsync();
 		return result.Any() ? result : null;
 	}
-	public async Task<WindingCode?> GetWindingCode(int id) {
-		var windingCode = await _dataContext.WindingCodes.FirstOrDefaultAsync(e => e.Id == id);
+	public async Task<WindingCode?> GetWindingCode(int codeId) {
+		var windingCode = await _dataContext.WindingCodes.FirstOrDefaultAsync(e => e.Id == codeId);
 		return windingCode ?? null;
 	}
-	public async Task<WindingCode?> UpdateWindingCode(string codeName, WindingCode windingCode) {
-		if (codeName != windingCode.Name) {
-			return null;
+	public async Task<bool> UpdateWindingCode(WindingCode windingCode) {
+		// use the code.Id to check if the code exists in the database
+		if (!WindingCodeExists(windingCode.Id)) {
+			return false;
 		}
-		((DataContext)_dataContext).Entry(windingCode).State = EntityState.Modified;
-		try {
-			await _dataContext.SaveChangesAsync();
-		}
-		catch (DbUpdateConcurrencyException) {
-			if (!WindingCodeExists(codeName)) {
-				return null;
-			}
-			throw;
-		}
-		return windingCode;
+		await using var dbContext = (DataContext)_dataContext;
+		dbContext.Entry(windingCode).State = EntityState.Modified;
+		await dbContext.SaveChangesAsync();
+		await Clients.All.WindingCodesDbUpdated();
+		return true;
 	}
 	public async Task<bool> CreateWindingCode(WindingCode windingCode) {
-		if (WindingCodeExists(windingCode.Name)) {
+		if (WindingCodeExists(windingCode.Id)) {
 			return false;
 		}
 		_dataContext.WindingCodes.Add(windingCode);
 		await _dataContext.SaveChangesAsync();
 		return true;
 	}
-	public async Task DeleteWindingCode(string codeName) {
-		var windingCode = await _dataContext.WindingCodes.FirstOrDefaultAsync(e => e.Name == codeName);
-		if (windingCode is null) {
+	public async Task DeleteWindingCode(int codeId) {
+		var windingCode = await _dataContext.WindingCodes.FindAsync(codeId);
+		if (windingCode == null) {
 			return;
 		}
 		_dataContext.WindingCodes.Remove(windingCode);
 		await _dataContext.SaveChangesAsync();
 	}
-	private bool WindingCodeExists(string codeName) {
-		return _dataContext.WindingCodes.Any(e => e.Name == codeName);
+	private bool WindingCodeExists(int codeId) {
+		return _dataContext.WindingCodes.Any(e => e.Id == codeId);
 	}
 	#endregion
 

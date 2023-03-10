@@ -11,7 +11,6 @@ public enum HubServers
 	DirectoryHub,
 	ChatHub
 }
-
 public class HubClientService
 {
 	public event Action<string[]>? ReceiveAllFolders;
@@ -33,6 +32,15 @@ public class HubClientService
 	private Uri? FileServerUrl { get; init; }
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
+
+	// TODO: GetHubConnection is redundant, remove it
+	public HubConnection GetHubConnection(HubServers hubServer) {
+		return hubServer switch {
+			HubServers.DirectoryHub => DirectoryHub,
+			HubServers.ChatHub => ChatHub,
+			_ => throw new ArgumentOutOfRangeException(nameof(hubServer), hubServer, null)
+		};
+	}
 	private readonly NavigationManager _navigationManager;
 	private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
@@ -68,22 +76,27 @@ public class HubClientService
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
 		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
 	}
+
+	#region DirectoryInfo
 	public async Task<IEnumerable<string>> GetFoldersInPath(string? path = null) {
 		var folders = await DirectoryHub.InvokeAsync<IEnumerable<string>>("GetAllFolders", path);
 		return folders;
 	}
+
+	public async Task<List<string>> ListPdfFiles(string? path = null) {
+		var files = await DirectoryHub.InvokeAsync<List<string>>("ListPdfFiles", path);
+		return files;
+	}
+	#endregion
+
+	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
+		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
+	}
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync(HubInfo.Actions.SendMessage, user, message, null);
 	}
-	public async Task<IEnumerable<WindingCode>?> GetCodeList(Division? division = null) {
-		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", division);
-		return windingCodesList ?? null;
-	}
 	public async void SetCurrentCoilWinderStop(WindingCode code) {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);
-	}
-	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
-		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
 	}
 	private void ParseWindingCodeMedia(WindingCode code) {
 		if (code.Media.Video != null)
@@ -95,11 +108,23 @@ public class HubClientService
 
 		CurrentWindingStopUpdated?.Invoke(this, code);
 	}
-	public HubConnection GetHubConnection(HubServers hubServer) {
-		return hubServer switch {
-			HubServers.DirectoryHub => DirectoryHub,
-			HubServers.ChatHub => ChatHub,
-			_ => throw new ArgumentOutOfRangeException(nameof(hubServer), hubServer, null)
-		};
+
+	#region WindingCodeDB Crud
+	public async Task<IEnumerable<WindingCode>?> GetCodeList(Division? division = null) {
+		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", division);
+		return windingCodesList ?? null;
 	}
+	public async Task<WindingCode?> GetWindingCode(int codeId) {
+		return await DirectoryHub.InvokeAsync<WindingCode>("GetWindingCode", codeId);
+	}
+	public async Task<bool> AddWindingCode(WindingCode code) {
+		return await DirectoryHub.InvokeAsync<bool>("CreateWindingCode", code);
+	}
+	public async Task<bool> UpdateWindingCode(WindingCode code) {
+		return await DirectoryHub.InvokeAsync<bool>("UpdateWindingCode", code);
+	}
+	public async Task<WindingCode?> DeleteWindingCode(WindingCode code) {
+		return await DirectoryHub.InvokeAsync<WindingCode>("DeleteWindingCode", code);
+	}
+	#endregion
 }

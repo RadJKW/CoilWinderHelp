@@ -82,6 +82,11 @@
     overflow-x: clip;
 }
 
+#winding-codes-data-grid .mud-toolbar.mud-table-toolbar{
+    height: 72px;
+
+}
+
 #winding-codes-data-grid thead tr th{
     padding: 0.5rem 1rem;
     text-align: center;

@@ -12,6 +12,8 @@ public interface IDirectoryService
 	Task<(string, string[], string[])> GetFolderContent(string? path = null);
 	Task<string[]> GetFoldersInPath(string? path = null);
 
+	Task<List<string>> ListPdfFiles(string? path = null);
+
 	Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase);
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
 
@@ -51,7 +53,18 @@ public class DirectoryService : IDirectoryService
 		_windingCodesJsonPath = options.Value.WindingCodesJsonPath ?? _rootDirectory + "WindingCodes.json";
 	}
 
-	// Used by the hub to get the contents of the root
+
+	public Task<List<string>> ListPdfFiles(string? path = null) {
+		Console.WriteLine("ListPdfFiles");
+		path ??= AppConfig.BasePath;
+		var files = Directory.EnumerateFiles(path)
+			.Where(f => f.EndsWith(".pdf"))
+			.OrderBy(f => f)
+			.ToList();
+		return Task.FromResult(files);
+	}
+
+	#region Refactor Later
 	public Task<(string, string[], string[])> GetFolderContent(string? path = null) {
 		var directory = path ?? _rootDirectory;
 
@@ -67,13 +80,11 @@ public class DirectoryService : IDirectoryService
 
 		return Task.FromResult((directory, files, folders));
 	}
-
 	public string GetRelativePath(string path) {
 		var relativePath = Path.GetRelativePath(_rootDirectory, path);
 		Console.WriteLine($"Root: {_rootDirectory} \n Path: {path} \n Relative: {relativePath}");
 		return relativePath;
 	}
-
 	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
 		if (code.FolderPath == null) {
 			return code;
@@ -117,7 +128,6 @@ public class DirectoryService : IDirectoryService
 		}
 		return code;
 	}
-
 	private Task<string?> GetPdfPath(string folder, bool relative) {
 		var pdfPath = Directory.EnumerateFiles(folder)
 			.FirstOrDefault(f => f.EndsWith(".pdf"));
@@ -126,7 +136,6 @@ public class DirectoryService : IDirectoryService
 		}
 		return Task.FromResult(pdfPath);
 	}
-
 	private static Task<string?> GetVideoPath(string? folder) {
 		if (folder == null) {
 			return Task.FromResult<string?>(null);
@@ -149,14 +158,11 @@ public class DirectoryService : IDirectoryService
 
 		return Task.FromResult(videoPath)!;
 	}
-
-
 	private static Task<string?> GetRefMediaPath(string folder) {
 		var refMediaPath = Directory.EnumerateDirectories(folder)
 			.FirstOrDefault(f => f.Contains("Ref", StringComparison.OrdinalIgnoreCase));
 		return Task.FromResult(refMediaPath);
 	}
-
 	public Task<string[]> GetFoldersInPath(string? path = null) {
 		Console.WriteLine("GettingFoldersInPath");
 		// return a list of all folders starting from the root directory
@@ -169,7 +175,6 @@ public class DirectoryService : IDirectoryService
 			.Replace("\\", "/"));
 		return Task.FromResult(folders.ToArray());
 	}
-
 	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var windingCodesList = windingCodes.ToList();
 		var json = JsonSerializer.Serialize(windingCodesList, new JsonSerializerOptions {
@@ -195,8 +200,6 @@ public class DirectoryService : IDirectoryService
 			await UpdateDatabaseWindingCodes(windingCodesList);
 		}
 	}
-
-	// function to return the json file to DataContextInitializer so it can compare the json file to the database
 	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
 		try {
 			var filePath = path ?? _windingCodesJsonPath;
@@ -209,7 +212,6 @@ public class DirectoryService : IDirectoryService
 			throw;
 		}
 	}
-
 	public async Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes) {
 		var dbWindingCodes = await _dataContext.WindingCodes.ToListAsync();
 
@@ -239,4 +241,5 @@ public class DirectoryService : IDirectoryService
 
 		await _dataContext.SaveChangesAsync();
 	}
+	#endregion
 }
