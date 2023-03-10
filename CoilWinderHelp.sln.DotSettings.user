@@ -1,4 +1,8 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
+	<s:Boolean x:Key="/Default/CodeEditing/TypingAssist/Asp/FormatOnClosingTag/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeEditing/TypingAssist/Asp/FormatOnEnter/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeEditing/TypingAssist/SkipClosingBracesOnTabInIndentPosition/@EntryValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/CodeEditing/TypingAssist/SkipClosingBracesOnTabInStringLiterals/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/CodeInspection/Highlighting/SweaWarningsMode/@EntryValue">ShowAndRun</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/ACCESSOR_DECLARATION_BRACES/@EntryValue">END_OF_LINE</s:String>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/CSharpFormat/ACCESSOR_OWNER_DECLARATION_BRACES/@EntryValue">END_OF_LINE</s:String>
@@ -14,6 +18,7 @@
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LinebreaksInsideMultilineTag/@EntryValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LinebreaksInsideTagsWithTags/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/TagAttributesFormat/@EntryValue">FirstAttributeOnSingleLine</s:String>
+	<s:String x:Key="/Default/CustomTools/CustomToolsData/@EntryValue"></s:String>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpKeepExistingMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpPlaceEmbeddedOnSameLineMigration/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/SettingsMigration/IsMigratorApplied/=JetBrains_002EReSharper_002EPsi_002ECSharp_002ECodeStyle_002ECSharpUseContinuousIndentInsideBracesMigration/@EntryIndexedValue">True</s:Boolean>
@@ -31,4 +36,5 @@
 	
 	
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=ffff/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Hideable/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=jwest/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

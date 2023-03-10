@@ -72,15 +72,29 @@
                 Dense="true">
               <ToolBarContent>
                 <MudStack Row
-                    Spacing="4">
+                    AlignItems="AlignItems.Center"
+                    Justify="Justify.Center">
+                  <MudTooltip Placement="Placement.Bottom"
+                      Text="Table Settings">
+                    <MudMenu Icon="@Icons.Material.Filled.Settings"
+                        Class="mud-background-gray"
+                        AnchorOrigin="Origin.BottomLeft"
+                        TransformOrigin="Origin.TopLeft"
+                        Variant="Variant.Filled"
+                        PopoverClass="py-1 px-2 border border-radius-4"
+                        Size="Size.Small">
+                      <MudCheckBox Label="Enable Edit"
+                          @bind-Checked="_enableEdit"
+                          Color="Color.Info"
+                          Dense="true"
+                          Size="Size.Small"/>
+                    </MudMenu>
+                  </MudTooltip>
                   <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
-                  <MudSwitch @bind-Checked="@_enableEdit"
-                      Color="Color.Primary"
-                      Label="Edit"
-                      LabelPosition="LabelPosition.End"/>
                 </MudStack>
                 <MudSpacer/>
                 <MudTextField @bind-Value="_searchString"
+                    Variant="Variant.Text"
                     Placeholder="Search"
                     Adornment="Adornment.Start"
                     Immediate="true"
@@ -91,13 +105,7 @@
               </ToolBarContent>
               <Columns>
                 <HierarchyColumn T="WindingCode"
-                    ButtonDisabledFunc="@_assignedMediaDisabled"
-                    Style="width: 50px;">
-                  <MudIconButton Color="Color.Primary"
-                      Icon="@Icons.Material.Filled.Add"
-                      Variant="Variant.Outlined"
-                      Size="Size.Small"/>
-                </HierarchyColumn>
+                    ButtonDisabledFunc="@_assignedMediaDisabled"/>
                 <PropertyColumn Property="x => x.Id"
                     T="WindingCode"
                     TProperty="int"
@@ -151,15 +159,20 @@
                         Context="selectContext"
                         ItemCollection="@(_folderPathsCollection.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
                         @bind-Value="@context.Item.FolderPath"
+                        Margin="Margin.Dense"
                         Variant="Variant.Filled"
                         Clearable="true"
+                        CloseIcon="true"
                         OnClearButtonClick="@(() => @context.Item.FolderPath = null)"
                         Color="Color.Dark"
                         Label="Assigned Folder"
                         Placeholder="Select a folder"
                         PopoverClass="folder-select-popover"
+                        ForceShrink="true"
                         SearchBox="true"
+                        SearchBoxPlaceholder="@($"\"{@context.Item.Name}\"")"
                         SearchBoxAutoFocus="true"
+                        LockScroll="true"
                         DisablePopoverPadding="true">
                       <ItemTemplate>
                         <MudText Typo="Typo.button"> @selectContext.Value</MudText>
@@ -167,6 +180,7 @@
                     </MudSelectExtended>
                   </EditTemplate>
                 </PropertyColumn>
+
               </Columns>
               <ChildRowContent>
                 <div class="d-flex justify-center mud-width-full">
@@ -196,6 +210,7 @@
                                   AdornmentIcon="@field.Icon"
                                   AdornmentColor="Color.Primary"/>
                             }
+                            <MudAutocomplete T="string"></MudAutocomplete>
                           </MudStack>
                         </MudItem>
                       </MudGrid>
@@ -213,19 +228,12 @@
 
 @code {
 
+  // ReSharper disable once CollectionNeverQueried.Local
+  private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
   private bool _enableEdit;
   private string? _searchString;
-
-  private readonly Dictionary<string, Func<WindingCode, string>> _columnMap = new() {
-    ["CodeType"] = x => x.CodeTypeId.ToString(),
-    ["CodeTypeId"] = x => x.CodeTypeId.ToString(),
-    ["Code"] = x => x.Code,
-    ["Name"] = x => x.Name,
-    ["Division"] = x => x.Division.ToString(),
-    ["Dept"] = x => x.Division.ToString(),
-  };
 
   private static IEnumerable<(string? Placeholder, string Label, string Icon)> GetFields(WindingCode contextItem) {
     yield return (Placeholder: contextItem.FolderPath, Label: nameof(WindingCode.FolderPath), Icon: Icons.Material.Outlined.Folder);
@@ -234,23 +242,27 @@
     yield return (Placeholder: contextItem.Media.ReferenceFolder, Label: "REFERENCE FOLDER", Icon: Icons.Material.Outlined.PermMedia);
   }
 
+
   protected override Task OnInitializedAsync() {
     HubClientService.WindingCodesDbUpdated += OnWindingCodesDbUpdated;
     return base.OnInitializedAsync();
   }
   private void OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success);
+    RefreshWindingCodes();
   }
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender) {
       var getWindingCodesTask = HubClientService.GetCodeList();
       var getFolderPathsTask = HubClientService.GetFoldersInPath();
+      var getPdfFilePathsTask = HubClientService.ListPdfFiles();
 
-      await Task.WhenAll(getWindingCodesTask, getFolderPathsTask);
+      await Task.WhenAll(getWindingCodesTask, getFolderPathsTask, getPdfFilePathsTask);
 
       if (getWindingCodesTask.Result != null) {
         _windingCodesList.AddRange(getWindingCodesTask.Result);
         _folderPathsCollection.AddRange(getFolderPathsTask.Result);
+        _pdfPathsCollection.AddRange(getPdfFilePathsTask.Result);
         StateHasChanged();
       }
     }
@@ -261,6 +273,16 @@
     Snackbar.Dispose();
   }
 
+  #region QuickFilterSearch
+  private readonly Dictionary<string, Func<WindingCode, string>> _columnMap = new() {
+    ["CodeType"] = x => x.CodeTypeId.ToString(),
+    ["CodeTypeId"] = x => x.CodeTypeId.ToString(),
+    ["Code"] = x => x.Code,
+    ["Name"] = x => x.Name,
+    ["Division"] = x => x.Division.ToString(),
+    ["Dept"] = x => x.Division.ToString(),
+  };
+
   private Func<WindingCode, bool> DataGridQuickFilter => x => {
     if (string.IsNullOrWhiteSpace(_searchString)) {
       return true;
@@ -268,14 +290,15 @@
 
     var searchTerms = _searchString.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s));
     foreach (var searchTerm in searchTerms) {
-      var delimiterIndex = searchTerm.IndexOfAny(new[] { '=', ':' });
+      var delimiterIndex = searchTerm.IndexOfAny(new[] {
+        '=', ':'
+      });
       if (delimiterIndex < 0) {
         var matches = _columnMap.Values.Any(propertySelector => propertySelector(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
         if (!matches) {
           return false;
         }
-      }
-      else {
+      } else {
         var columnName = searchTerm.Substring(0, delimiterIndex).Trim();
         if (!_columnMap.TryGetValue(columnName, out var propertySelector)) {
           continue;
@@ -291,10 +314,9 @@
 
     return true;
   };
-
+  #endregion
 
   private readonly Func<WindingCode, bool> _assignedMediaDisabled = (windingCode) => windingCode.FolderPath == null;
-
   void RefreshWindingCodes() => Task.Run(async () => {
     var windingCodesList = await HubClientService.GetCodeList();
     if (windingCodesList != null) {
@@ -303,18 +325,25 @@
       StateHasChanged();
     }
   });
-
-
   void StartedEditingItem(WindingCode item) {
     Snackbar.Add($"Started editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
   }
-
   void CanceledEditingItem(WindingCode item) {
     Snackbar.Add($"Canceled editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
   }
-
-  void CommittedItemChanges(WindingCode item) {
-    Snackbar.Add($"CommittedItemChanges ,Data =  {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
-  }
+  void CommittedItemChanges(WindingCode item) => Task.Run(async () => {
+    var result = await HubClientService.UpdateWindingCode(item);
+    if (!result) {
+      Snackbar.Add($"Failed to commit changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Error);
+      return;
+    }
+    Snackbar.Add($"Committed changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Success);
+    var updatedItem = await HubClientService.GetWindingCode(item.Id);
+    if (updatedItem != null) {
+      var index = _windingCodesList.FindIndex(x => x.Id == updatedItem.Id);
+      _windingCodesList[index] = updatedItem;
+      StateHasChanged();
+    }
+  });
 
 }
