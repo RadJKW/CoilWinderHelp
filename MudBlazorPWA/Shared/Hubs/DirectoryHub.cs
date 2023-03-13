@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
@@ -96,7 +95,7 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 
 	#region Directory Methods
-	public async Task<IEnumerable> ListPdfFiles(string? path) {
+	public async Task<List<string>> ListPdfFiles(string? path) {
 		// var clientIP = HubExtensions.GetConnectionIp(Context);
 		var files = await _directoryService.ListPdfFiles(path);
 		return files;

@@ -59,6 +59,8 @@
                 Height="50vh"
                 Virtualize="true"
                 OverscanCount="5"
+                ShowMenuIcon="true"
+                Hover="true"
                 ReadOnly="@(_enableEdit != true)"
                 EditMode="DataGridEditMode.Form"
                 EditTrigger="DataGridEditTrigger.OnRowClick"
@@ -76,7 +78,7 @@
                     Justify="Justify.Center">
                   <MudTooltip Placement="Placement.Bottom"
                       Text="Table Settings">
-                    <MudMenu Icon="@Icons.Material.Filled.Settings"
+                    <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
                         Class="mud-background-gray"
                         AnchorOrigin="Origin.BottomLeft"
                         TransformOrigin="Origin.TopLeft"
@@ -136,7 +138,8 @@
                 <PropertyColumn Property="x => x.CodeTypeId.ToString()"
                     T="WindingCode"
                     TProperty="string"
-                    Title="CodeType">
+                    Title="CodeType"
+                    Hideable="true">
                   <EditTemplate>
                     <MudSelectExtended T="CodeTypeId"
                         Class="mt-4"
@@ -199,22 +202,47 @@
                       <MudGrid Spacing="2"
                           Class="mud-width-full"
                           Justify="Justify.Center">
-                        <MudItem xs="11">
+                        <MudItem xs="8">
                           <MudStack Spacing="2">
-                            @foreach (var field in GetFields(context.Item)) {
-                              <MudTextField Placeholder="@field.Placeholder"
-                                  Label="@field.Label"
-                                  Margin="Margin.Dense"
-                                  Variant="Variant.Outlined"
-                                  Adornment="Adornment.Start"
-                                  AdornmentIcon="@field.Icon"
-                                  AdornmentColor="Color.Primary"/>
-                            }
-                            <MudAutocomplete T="string"></MudAutocomplete>
+                            <MudAutocomplete T="string"
+                                @bind-Value="@context.Item.FolderPath"
+                                SearchFunc="@FolderSearchFunc"
+                                Placeholder="@context.Item.FolderPath"
+                                Label="@(nameof(WindingCode.FolderPath))"
+                                Margin="Margin.Dense"
+                                Variant="Variant.Outlined"/>
+                            <MudAutocomplete T="string"
+                                @bind-Value="@context.Item.Media.Pdf"
+                                SearchFunc="@PdfSearchFunc"
+                                Placeholder="@context.Item.Media.Pdf"
+                                Label="@(nameof(WindingCode.Media.Pdf))"
+                                Margin="Margin.Dense"
+                                Variant="Variant.Outlined"/>
+                            <MudAutocomplete T="string"
+                                @bind-Value="@context.Item.Media.Video"
+                                SearchFunc="@VideoSearchFunc"
+                                Placeholder="@context.Item.Media.Video"
+                                Label="@(nameof(WindingCode.Media.Video))"
+                                Margin="Margin.Dense"
+                                Variant="Variant.Outlined"/>
+                            <MudAutocomplete T="string"
+                                SearchFunc="@PdfSearchFunc"
+                                Placeholder="@_pdfPathsCollection.Count.ToString()">
+                            </MudAutocomplete>
                           </MudStack>
                         </MudItem>
                       </MudGrid>
                     </MudCardContent>
+                    <MudCardActions>
+                      <MudStack Row
+                          Spacing="2">
+                        @* TODO: // fix changes not saving to DB *@
+                        <MudButton StartIcon="@Icons.Material.Filled.Verified"
+                            OnClick="() => CommittedItemChanges(context.Item)">
+                          Submit
+                        </MudButton>
+                      </MudStack>
+                    </MudCardActions>
                   </MudCard>
                 </div>
               </ChildRowContent>
@@ -227,21 +255,18 @@
 </div>
 
 @code {
-
-  // ReSharper disable once CollectionNeverQueried.Local
   private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
   private bool _enableEdit;
   private string? _searchString;
 
-  private static IEnumerable<(string? Placeholder, string Label, string Icon)> GetFields(WindingCode contextItem) {
-    yield return (Placeholder: contextItem.FolderPath, Label: nameof(WindingCode.FolderPath), Icon: Icons.Material.Outlined.Folder);
-    yield return (Placeholder: contextItem.Media.Pdf, Label: nameof(WindingCode.Media.Pdf).ToUpper(), Icon: Icons.Material.Outlined.PictureAsPdf);
-    yield return (Placeholder: contextItem.Media.Video, Label: nameof(WindingCode.Media.Video).ToUpper(), Icon: Icons.Material.Outlined.VideoLibrary);
-    yield return (Placeholder: contextItem.Media.ReferenceFolder, Label: "REFERENCE FOLDER", Icon: Icons.Material.Outlined.PermMedia);
-  }
-
+  // private static IEnumerable<(string? Placeholder, string Label, string Icon, WindingCode Item )> GetFields(WindingCode contextItem) {
+  //   yield return (Placeholder: contextItem.FolderPath, Label: nameof(WindingCode.FolderPath), Icon: Icons.Material.Outlined.Folder, contextItem);
+  //   yield return (Placeholder: contextItem.Media.Pdf, Label: nameof(WindingCode.Media.Pdf).ToUpper(), Icon: Icons.Material.Outlined.PictureAsPdf, contextItem);
+  //   yield return (Placeholder: contextItem.Media.Video, Label: nameof(WindingCode.Media.Video).ToUpper(), Icon: Icons.Material.Outlined.VideoLibrary, contextItem);
+  //   yield return (Placeholder: contextItem.Media.ReferenceFolder, Label: "REFERENCE FOLDER", Icon: Icons.Material.Outlined.PermMedia, contextItem);
+  // }
 
   protected override Task OnInitializedAsync() {
     HubClientService.WindingCodesDbUpdated += OnWindingCodesDbUpdated;
@@ -280,7 +305,7 @@
     ["Code"] = x => x.Code,
     ["Name"] = x => x.Name,
     ["Division"] = x => x.Division.ToString(),
-    ["Dept"] = x => x.Division.ToString(),
+    ["Dept"] = x => x.Division.ToString()
   };
 
   private Func<WindingCode, bool> DataGridQuickFilter => x => {
@@ -345,5 +370,23 @@
       StateHasChanged();
     }
   });
+  private async Task<IEnumerable<string>> PdfSearchFunc(string arg) {
+    await Task.CompletedTask;
 
+    return
+      string.IsNullOrWhiteSpace(arg)
+        ? _pdfPathsCollection
+        : _pdfPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
+  }
+  private async Task<IEnumerable<string>> FolderSearchFunc(string arg) {
+    await Task.CompletedTask;
+
+    return
+      string.IsNullOrWhiteSpace(arg)
+        ? _folderPathsCollection
+        : _folderPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
+  }
+  private static Task<IEnumerable<string>> VideoSearchFunc(string arg) {
+    return Task.FromResult(Enumerable.Empty<string>());
+  }
 }
