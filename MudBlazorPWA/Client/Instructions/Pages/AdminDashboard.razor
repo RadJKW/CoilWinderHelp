@@ -2,6 +2,8 @@
 @layout DocViewLayout
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
+@inject ILogger<AdminDashboard> Logger
+@using MudExtensions.Enums
 @implements IDisposable
 
 <MudScrollbar Selector=""
@@ -57,6 +59,7 @@
                 Items="@_windingCodesList"
                 QuickFilter="@DataGridQuickFilter"
                 Height="50vh"
+                EditDialogOptions="@(new DialogOptions() { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
                 Virtualize="true"
                 OverscanCount="5"
                 ShowMenuIcon="true"
@@ -69,6 +72,8 @@
                 CommittedItemChanges="@CommittedItemChanges"
                 HorizontalScrollbar="false"
                 FixedHeader="true"
+                FilterMode="DataGridFilterMode.Simple"
+                FilterDefinitions="@_dataGridFilter"
                 Striped="true"
                 Bordered="true"
                 Dense="true">
@@ -93,6 +98,53 @@
                     </MudMenu>
                   </MudTooltip>
                   <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
+                  <MudMenu Label="Filter"
+                      StartIcon="@Icons.Material.Outlined.FilterAlt"
+                      AnchorOrigin="Origin.BottomLeft"
+                      TransformOrigin="Origin.TopLeft"
+
+                      Variant="Variant.Outlined">
+                    <div class="px-4 py-2">
+                      <MudSelectExtended T="Division"
+                          Context="selectedDivision"
+                          SelectedValues="@_selectedDivisions"
+                          ItemCollection="@(Enum.GetValues<Division>().ToList())"
+                          SelectedValuesChanged="UpdateGridFilterList"
+                          Style="min-width: 150px"
+                          FullWidth="true"
+                          RelativeWidth="false"
+                          PopoverClass="py-1 px-2 border border-radius-4 d-flex flex-column gap-1 justify-center"
+                          ChipSize="Size.Small"
+                          IconSize="Size.Small"
+                          AnchorOrigin="Origin.BottomLeft"
+                          TransformOrigin="Origin.TopLeft"
+                          OnClearButtonClick="() => _selectedDivisions.Clear()"
+                          ValuePresenter="ValuePresenter.Chip"
+                          MultiSelection="true"
+                          Clearable="true"
+                          ChipCloseable="true"
+                          MultiSelectionTextFunc="@(new Func<List<Division>, string>(GetMultiSelectDivText))"
+                          Margin="Margin.None"
+                          Dense="true"
+                          Variant="Variant.Outlined"
+                          Label="Filter: Div">
+                        @*<ItemTemplate>
+                          <MudStack Spacing="0"
+                              AlignItems="AlignItems.Center"
+                              Justify="Justify.Center">
+
+                          <MudChip Value="@selectedDivision"
+                              Color="Color.Info"
+                              Size="Size.Small"
+                              Variant="Variant.Filled"
+                              IconColor="Color.Success"
+                              Class="mud-elevation-4">@selectedDivision.Value.ToString()</MudChip>
+                          <MudDivider />
+                          </MudStack>
+                        </ItemTemplate>*@
+                      </MudSelectExtended>
+                    </div>
+                  </MudMenu>
                 </MudStack>
                 <MudSpacer/>
                 <MudTextField @bind-Value="_searchString"
@@ -120,6 +172,7 @@
                     T="WindingCode"
                     TProperty="string"
                     IsEditable="false"
+                    Filterable="true"
                     Hideable="true">
                   <EditTemplate/>
                 </PropertyColumn>
@@ -183,7 +236,39 @@
                     </MudSelectExtended>
                   </EditTemplate>
                 </PropertyColumn>
-
+                <PropertyColumn Property="x => x.Media.Pdf"
+                    T="WindingCode"
+                    TProperty="string"
+                    Hidden="true">
+                  <EditTemplate>
+                    <MudSelectExtended T="string"
+                        Context="selectContext"
+                        ItemCollection="@(_pdfPathsCollection.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
+                        @bind-Value="@context.Item.Media.Pdf"
+                        Margin="Margin.Dense"
+                        Variant="Variant.Filled"
+                        Clearable="true"
+                        CloseIcon="true"
+                        OnClearButtonClick="@(() => @context.Item.Media.Pdf = null)"
+                        Color="Color.Dark"
+                        Label="File: PDF"
+                        Placeholder="Select a PDF file"
+                        PopoverClass="folder-select-popover"
+                        ForceShrink="true"
+                        SearchBox="true"
+                        FullWidth="true"
+                        RelativeWidth="false"
+                        SearchBoxPlaceholder="@($"\"{@context.Item.Name}\"")"
+                        SearchBoxAutoFocus="true"
+                        LockScroll="true"
+                        DisablePopoverPadding="true"
+                        TransformOrigin="Origin.BottomCenter">
+                      <ItemTemplate>
+                        <MudText Typo="Typo.button"> @selectContext.Value</MudText>
+                      </ItemTemplate>
+                    </MudSelectExtended>
+                  </EditTemplate>
+                </PropertyColumn>
               </Columns>
               <ChildRowContent>
                 <div class="d-flex justify-center mud-width-full">
@@ -205,29 +290,37 @@
                         <MudItem xs="8">
                           <MudStack Spacing="2">
                             <MudAutocomplete T="string"
-                                @bind-Value="@context.Item.FolderPath"
+                                @bind-Value="context.Item.FolderPath"
                                 SearchFunc="@FolderSearchFunc"
                                 Placeholder="@context.Item.FolderPath"
+                                MaxItems="25"
                                 Label="@(nameof(WindingCode.FolderPath))"
                                 Margin="Margin.Dense"
                                 Variant="Variant.Outlined"/>
                             <MudAutocomplete T="string"
-                                @bind-Value="@context.Item.Media.Pdf"
+                                @bind-Value="context.Item.Media.Pdf"
                                 SearchFunc="@PdfSearchFunc"
                                 Placeholder="@context.Item.Media.Pdf"
+                                MaxItems="25"
                                 Label="@(nameof(WindingCode.Media.Pdf))"
                                 Margin="Margin.Dense"
                                 Variant="Variant.Outlined"/>
                             <MudAutocomplete T="string"
-                                @bind-Value="@context.Item.Media.Video"
+                                @bind-Value="context.Item.Media.Video"
                                 SearchFunc="@VideoSearchFunc"
                                 Placeholder="@context.Item.Media.Video"
+                                MaxItems="25"
                                 Label="@(nameof(WindingCode.Media.Video))"
                                 Margin="Margin.Dense"
                                 Variant="Variant.Outlined"/>
                             <MudAutocomplete T="string"
-                                SearchFunc="@PdfSearchFunc"
-                                Placeholder="@_pdfPathsCollection.Count.ToString()">
+                                @bind-Value="context.Item.Media.ReferenceFolder"
+                                SearchFunc="@FolderSearchFunc"
+                                Placeholder="@context.Item.Media.ReferenceFolder"
+                                MaxItems="25"
+                                Label="RefMedia"
+                                Margin="Margin.Dense"
+                                Variant="Variant.Outlined">
                             </MudAutocomplete>
                           </MudStack>
                         </MudItem>
@@ -258,6 +351,9 @@
   private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
+  private readonly List<string> _videoPathsCollection = new();
+  private readonly List<Division> _selectedDivisions = new();
+  private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
   private bool _enableEdit;
   private string? _searchString;
 
@@ -280,14 +376,16 @@
     if (firstRender) {
       var getWindingCodesTask = HubClientService.GetCodeList();
       var getFolderPathsTask = HubClientService.GetFoldersInPath();
-      var getPdfFilePathsTask = HubClientService.ListPdfFiles();
+      var getPdfFilesTask = HubClientService.ListPdfFiles();
+      var getVideoFilesTask = HubClientService.ListVideoFiles();
 
-      await Task.WhenAll(getWindingCodesTask, getFolderPathsTask, getPdfFilePathsTask);
+      await Task.WhenAll(getWindingCodesTask, getFolderPathsTask, getPdfFilesTask, getVideoFilesTask);
 
       if (getWindingCodesTask.Result != null) {
         _windingCodesList.AddRange(getWindingCodesTask.Result);
         _folderPathsCollection.AddRange(getFolderPathsTask.Result);
-        _pdfPathsCollection.AddRange(getPdfFilePathsTask.Result);
+        _pdfPathsCollection.AddRange(getPdfFilesTask.Result);
+        _videoPathsCollection.AddRange(getVideoFilesTask.Result);
         StateHasChanged();
       }
     }
@@ -324,12 +422,12 @@
           return false;
         }
       } else {
-        var columnName = searchTerm.Substring(0, delimiterIndex).Trim();
+        var columnName = searchTerm[..delimiterIndex].Trim();
         if (!_columnMap.TryGetValue(columnName, out var propertySelector)) {
           continue;
         }
 
-        var searchTermValue = searchTerm.Substring(delimiterIndex + 1).Trim();
+        var searchTermValue = searchTerm[(delimiterIndex + 1)..].Trim();
         var columnValue = propertySelector(x);
         if (!columnValue.Contains(searchTermValue, StringComparison.OrdinalIgnoreCase)) {
           return false;
@@ -386,7 +484,41 @@
         ? _folderPathsCollection
         : _folderPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
   }
-  private static Task<IEnumerable<string>> VideoSearchFunc(string arg) {
-    return Task.FromResult(Enumerable.Empty<string>());
+  private async Task<IEnumerable<string>> VideoSearchFunc(string arg) {
+    await Task.CompletedTask;
+    return
+      string.IsNullOrWhiteSpace(arg)
+        ? _videoPathsCollection
+        : _videoPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
+  }
+  private static string GetMultiSelectDivText(List<Division> selectedValues) {
+    return selectedValues.Count switch {
+      0 => "",
+      1 => selectedValues[0].ToString(),
+      _ => string.Join(", ", selectedValues.Select(d => d.ToString()))
+      };
+  }
+
+  private void UpdateGridFilterList(IEnumerable<Division> selectedDivs) {
+  // if selectedDivs is empty, remove the filter
+    var enumerable = selectedDivs.ToList();
+    Logger.LogInformation("Selected Divs: {DivFilter}", string.Join(", ", enumerable));
+    if (!enumerable.Any()) {
+      _dataGridFilter.Clear();
+      return;
+    }
+
+    _dataGridFilter.Clear();
+  // Add a new filter for Division
+    _dataGridFilter.Add(new() {
+      FilterFunction = (x) => {
+  // return true if the item is equal to any of the selected divisions
+        return enumerable.Any(d => d == x.Division);
+      }
+    });
+
+  // add the divs in selectedDivs to _selectedDivs
+    _selectedDivisions.Clear();
+    _selectedDivisions.AddRange(enumerable);
   }
 }

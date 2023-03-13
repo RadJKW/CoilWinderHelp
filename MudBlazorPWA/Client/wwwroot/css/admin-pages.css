@@ -1,16 +1,19 @@
-.stops-editor.stack-container{
+.stops-editor.stack-container {
     height: 100%;
 }
-.stops-editor .stops-editor-grid{
+
+.stops-editor .stops-editor-grid {
     background-color: var(--mud-palette-background-grey);
     box-shadow: var(--mud-elevation-4);
     padding: 4px;
 }
+
 .stops-editor .stops-editor-grid .stops-grid-item {
-display: flex;
+    display: flex;
     flex-direction: column;
     justify-content: flex-start;
 }
+
 .stops-editor .stops-editor-paper {
     display: flex;
     flex-direction: column;
@@ -19,8 +22,8 @@ display: flex;
     overflow: auto;
     border: 4px double rgb(120, 120, 120);
     height: 35vh;
-
 }
+
 .stops-editor .stops-expansion-panel {
     padding: 8px;
 }
@@ -28,6 +31,10 @@ display: flex;
 .stops-editor .stops-expansion-item .mud-expand-panel-content {
     padding: 8px 16px;
     background-color: rgba(155, 155, 155, 0.1);
+}
+
+.mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
+    padding: 10px 0 !important;
 }
 
 /*.folder-select-popover .mud-list-item-extended:not(.folder-item){

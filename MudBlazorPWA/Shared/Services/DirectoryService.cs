@@ -16,6 +16,8 @@ public interface IDirectoryService
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
 	Task<WindingCode> GetWindingCodeDocuments(WindingCode code);
 	Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes);
+
+	Task<List<string>> ListVideoFiles(string? path = null);
 	public string GetRelativePath(string fullPath);
 }
 
@@ -59,6 +61,19 @@ public class DirectoryService : IDirectoryService
 				=> f
 					.Replace(AppConfig.BasePath, "")
 					.Replace("\\", "/"))
+			.ToList());
+	}
+
+	public Task<List<string>> ListVideoFiles(string? path = null) {
+		path ??= AppConfig.BasePath;
+		var mp4Files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+			.Where(f => f.EndsWith(".mp4"))
+			.OrderBy(f => f)
+			.ToList();
+		return Task.FromResult(mp4Files
+			.Select(f => f
+				.Replace(AppConfig.BasePath, "")
+				.Replace("\\", "/"))
 			.ToList());
 	}
 
