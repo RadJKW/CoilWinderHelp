@@ -87,6 +87,12 @@ public class HubClientService
 		var files = await DirectoryHub.InvokeAsync<List<string>>("ListPdfFiles", path);
 		return files;
 	}
+
+	public async Task<List<string>> ListVideoFiles(string? path = null)
+	{
+		var files = await DirectoryHub.InvokeAsync<List<string>>("ListVideoFiles", path);
+		return files;
+	}
 	#endregion
 
 	public async Task<WindingCode?> GetCurrentCoilWinderStop() {

@@ -95,6 +95,11 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 
 	#region Directory Methods
+
+	public async Task<List<string>> ListVideoFiles(string path) {
+		var result = await _directoryService.ListVideoFiles(path);
+		return result;
+	}
 	public async Task<List<string>> ListPdfFiles(string? path) {
 		// var clientIP = HubExtensions.GetConnectionIp(Context);
 		var files = await _directoryService.ListPdfFiles(path);
@@ -150,6 +155,7 @@ public class DirectoryHub : Hub<IHubClient>
 		}
 		await using var dbContext = (DataContext)_dataContext;
 		dbContext.Entry(windingCode).State = EntityState.Modified;
+		dbContext.Entry(windingCode.Media).State = EntityState.Modified;
 		await dbContext.SaveChangesAsync();
 		await Clients.All.WindingCodesDbUpdated();
 		return true;
