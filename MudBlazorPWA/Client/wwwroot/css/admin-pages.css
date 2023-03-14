@@ -33,7 +33,7 @@
     background-color: rgba(155, 155, 155, 0.1);
 }
 
-.mud-input > input.mud-input-root-outlined, div.mud-input-slot.mud-input-root-outlined {
+.mud-input.filter-select-input > input.mud-input-root-outlined, .filter-select-input div.mud-input-slot.mud-input-root-outlined {
     padding: 10px 0 !important;
 }
 

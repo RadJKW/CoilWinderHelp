@@ -3,7 +3,8 @@
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
 @inject ILogger<AdminDashboard> Logger
-@using MudExtensions.Enums
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 @implements IDisposable
 
 <MudScrollbar Selector=""
@@ -58,7 +59,7 @@
                 Style="min-width: 60%;"
                 Items="@_windingCodesList"
                 QuickFilter="@DataGridQuickFilter"
-                Height="50vh"
+                Height="60vh"
                 EditDialogOptions="@(new DialogOptions() { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
                 Virtualize="true"
                 OverscanCount="5"
@@ -98,51 +99,30 @@
                     </MudMenu>
                   </MudTooltip>
                   <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
-                  <MudMenu Label="Filter"
+                  <MudMenu Label="@(_selectedDivisions.Any() ? string.Join(", ", _selectedDivisions)  : "Division")"
                       StartIcon="@Icons.Material.Outlined.FilterAlt"
-                      AnchorOrigin="Origin.BottomLeft"
-                      TransformOrigin="Origin.TopLeft"
+                      Dense="true"
+                      LockScroll="true"
+                      PositionAtCursor="true"
+                      PopoverClass="data-grid-filter-popover mud-background-gray"
+                      FullWidth="false"
 
+                      Color="@(_selectedDivisions.Any() ? Color.Info : Color.Default)"
                       Variant="Variant.Outlined">
-                    <div class="px-4 py-2">
-                      <MudSelectExtended T="Division"
-                          Context="selectedDivision"
-                          SelectedValues="@_selectedDivisions"
-                          ItemCollection="@(Enum.GetValues<Division>().ToList())"
-                          SelectedValuesChanged="UpdateGridFilterList"
-                          Style="min-width: 150px"
-                          FullWidth="true"
-                          RelativeWidth="false"
-                          PopoverClass="py-1 px-2 border border-radius-4 d-flex flex-column gap-1 justify-center"
-                          ChipSize="Size.Small"
-                          IconSize="Size.Small"
-                          AnchorOrigin="Origin.BottomLeft"
-                          TransformOrigin="Origin.TopLeft"
-                          OnClearButtonClick="() => _selectedDivisions.Clear()"
-                          ValuePresenter="ValuePresenter.Chip"
-                          MultiSelection="true"
-                          Clearable="true"
-                          ChipCloseable="true"
-                          MultiSelectionTextFunc="@(new Func<List<Division>, string>(GetMultiSelectDivText))"
-                          Margin="Margin.None"
-                          Dense="true"
-                          Variant="Variant.Outlined"
-                          Label="Filter: Div">
-                        @*<ItemTemplate>
-                          <MudStack Spacing="0"
-                              AlignItems="AlignItems.Center"
-                              Justify="Justify.Center">
-
-                          <MudChip Value="@selectedDivision"
-                              Color="Color.Info"
-                              Size="Size.Small"
-                              Variant="Variant.Filled"
-                              IconColor="Color.Success"
-                              Class="mud-elevation-4">@selectedDivision.Value.ToString()</MudChip>
-                          <MudDivider />
-                          </MudStack>
-                        </ItemTemplate>*@
-                      </MudSelectExtended>
+                    <div class="px-2 pt-1">
+                      <MudStack Spacing="1">
+                        @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
+                          <div class="d-flex flex-column mud-width-full border px-2 ">
+                            <MudCheckBox Checked="@_selectedDivisions.Contains(divEnum)"
+                                CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"
+                                Color="Color.Info"
+                                Dense="true"
+                                Size="Size.Small">
+                              <MudText Class="mx-2" Typo="Typo.body2">@divEnum.ToString()</MudText>
+                            </MudCheckBox>
+                          </div>
+                        }
+                      </MudStack>
                     </div>
                   </MudMenu>
                 </MudStack>
@@ -172,7 +152,6 @@
                     T="WindingCode"
                     TProperty="string"
                     IsEditable="false"
-                    Filterable="true"
                     Hideable="true">
                   <EditTemplate/>
                 </PropertyColumn>
@@ -185,9 +164,7 @@
                 <PropertyColumn Property="x => x.Name"
                     T="WindingCode"
                     TProperty="string"
-                    IsEditable="false">
-                  <EditTemplate/>
-                </PropertyColumn>
+                    IsEditable/>
                 <PropertyColumn Property="x => x.CodeTypeId.ToString()"
                     T="WindingCode"
                     TProperty="string"
@@ -239,34 +216,10 @@
                 <PropertyColumn Property="x => x.Media.Pdf"
                     T="WindingCode"
                     TProperty="string"
+                    IsEditable="false"
                     Hidden="true">
                   <EditTemplate>
-                    <MudSelectExtended T="string"
-                        Context="selectContext"
-                        ItemCollection="@(_pdfPathsCollection.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
-                        @bind-Value="@context.Item.Media.Pdf"
-                        Margin="Margin.Dense"
-                        Variant="Variant.Filled"
-                        Clearable="true"
-                        CloseIcon="true"
-                        OnClearButtonClick="@(() => @context.Item.Media.Pdf = null)"
-                        Color="Color.Dark"
-                        Label="File: PDF"
-                        Placeholder="Select a PDF file"
-                        PopoverClass="folder-select-popover"
-                        ForceShrink="true"
-                        SearchBox="true"
-                        FullWidth="true"
-                        RelativeWidth="false"
-                        SearchBoxPlaceholder="@($"\"{@context.Item.Name}\"")"
-                        SearchBoxAutoFocus="true"
-                        LockScroll="true"
-                        DisablePopoverPadding="true"
-                        TransformOrigin="Origin.BottomCenter">
-                      <ItemTemplate>
-                        <MudText Typo="Typo.button"> @selectContext.Value</MudText>
-                      </ItemTemplate>
-                    </MudSelectExtended>
+
                   </EditTemplate>
                 </PropertyColumn>
               </Columns>
@@ -285,11 +238,12 @@
                     <MudDivider/>
                     <MudCardContent>
                       <MudGrid Spacing="2"
-                          Class="mud-width-full"
+                          Class="mud-width-full px-4"
                           Justify="Justify.Center">
-                        <MudItem xs="8">
-                          <MudStack Spacing="2">
+                        <MudItem xs="12">
+                          <MudStack Spacing="0">
                             <MudAutocomplete T="string"
+                                Class="pb-4"
                                 @bind-Value="context.Item.FolderPath"
                                 SearchFunc="@FolderSearchFunc"
                                 Placeholder="@context.Item.FolderPath"
@@ -300,23 +254,33 @@
                             <MudAutocomplete T="string"
                                 @bind-Value="context.Item.Media.Pdf"
                                 SearchFunc="@PdfSearchFunc"
-                                Placeholder="@context.Item.Media.Pdf"
                                 MaxItems="25"
                                 Label="@(nameof(WindingCode.Media.Pdf))"
                                 Margin="Margin.Dense"
+                                Adornment="Adornment.Start"
+                                AdornmentColor="Color.Secondary"
+                                AdornmentIcon="@Icons.Material.Filled.PictureAsPdf"
+                                OnAdornmentClick="@(() => OpenFilePreview(context.Item.Media.Pdf))"
+                                HelperTextOnFocus
+                                HelperText="@GetFileName(context.Item.Media.Pdf)"
                                 Variant="Variant.Outlined"/>
                             <MudAutocomplete T="string"
                                 @bind-Value="context.Item.Media.Video"
                                 SearchFunc="@VideoSearchFunc"
-                                Placeholder="@context.Item.Media.Video"
                                 MaxItems="25"
                                 Label="@(nameof(WindingCode.Media.Video))"
+                                Adornment="Adornment.Start"
+                                AdornmentColor="Color.Secondary"
+                                AdornmentIcon="@Icons.Material.Filled.Movie"
+                                OnAdornmentClick="@(() => OpenFilePreview(context.Item.Media.Video))"
+                                HelperTextOnFocus
+                                HelperText="@GetFileName(context.Item.Media.Video)"
                                 Margin="Margin.Dense"
                                 Variant="Variant.Outlined"/>
                             <MudAutocomplete T="string"
+                                Class="pt-4"
                                 @bind-Value="context.Item.Media.ReferenceFolder"
                                 SearchFunc="@FolderSearchFunc"
-                                Placeholder="@context.Item.Media.ReferenceFolder"
                                 MaxItems="25"
                                 Label="RefMedia"
                                 Margin="Margin.Dense"
@@ -356,13 +320,6 @@
   private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
   private bool _enableEdit;
   private string? _searchString;
-
-  // private static IEnumerable<(string? Placeholder, string Label, string Icon, WindingCode Item )> GetFields(WindingCode contextItem) {
-  //   yield return (Placeholder: contextItem.FolderPath, Label: nameof(WindingCode.FolderPath), Icon: Icons.Material.Outlined.Folder, contextItem);
-  //   yield return (Placeholder: contextItem.Media.Pdf, Label: nameof(WindingCode.Media.Pdf).ToUpper(), Icon: Icons.Material.Outlined.PictureAsPdf, contextItem);
-  //   yield return (Placeholder: contextItem.Media.Video, Label: nameof(WindingCode.Media.Video).ToUpper(), Icon: Icons.Material.Outlined.VideoLibrary, contextItem);
-  //   yield return (Placeholder: contextItem.Media.ReferenceFolder, Label: "REFERENCE FOLDER", Icon: Icons.Material.Outlined.PermMedia, contextItem);
-  // }
 
   protected override Task OnInitializedAsync() {
     HubClientService.WindingCodesDbUpdated += OnWindingCodesDbUpdated;
@@ -440,7 +397,7 @@
   #endregion
 
   private readonly Func<WindingCode, bool> _assignedMediaDisabled = (windingCode) => windingCode.FolderPath == null;
-  void RefreshWindingCodes() => Task.Run(async () => {
+  private void RefreshWindingCodes() => Task.Run(async () => {
     var windingCodesList = await HubClientService.GetCodeList();
     if (windingCodesList != null) {
       _windingCodesList.Clear();
@@ -448,13 +405,14 @@
       StateHasChanged();
     }
   });
-  void StartedEditingItem(WindingCode item) {
+  private void StartedEditingItem(WindingCode item) {
     Snackbar.Add($"Started editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
   }
-  void CanceledEditingItem(WindingCode item) {
+  private void CanceledEditingItem(WindingCode item) {
     Snackbar.Add($"Canceled editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
   }
-  void CommittedItemChanges(WindingCode item) => Task.Run(async () => {
+
+  private async Task CommittedItemChanges(WindingCode item) {
     var result = await HubClientService.UpdateWindingCode(item);
     if (!result) {
       Snackbar.Add($"Failed to commit changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Error);
@@ -467,7 +425,7 @@
       _windingCodesList[index] = updatedItem;
       StateHasChanged();
     }
-  });
+  }
   private async Task<IEnumerable<string>> PdfSearchFunc(string arg) {
     await Task.CompletedTask;
 
@@ -491,17 +449,17 @@
         ? _videoPathsCollection
         : _videoPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
   }
-  private static string GetMultiSelectDivText(List<Division> selectedValues) {
+  /*private static string GetMultiSelectDivText(List<Division> selectedValues) {
     return selectedValues.Count switch {
       0 => "",
       1 => selectedValues[0].ToString(),
       _ => string.Join(", ", selectedValues.Select(d => d.ToString()))
       };
-  }
+  }*/
 
-  private void UpdateGridFilterList(IEnumerable<Division> selectedDivs) {
+  private void UpdateGridFilterList() {
   // if selectedDivs is empty, remove the filter
-    var enumerable = selectedDivs.ToList();
+    var enumerable = _selectedDivisions.ToList();
     Logger.LogInformation("Selected Divs: {DivFilter}", string.Join(", ", enumerable));
     if (!enumerable.Any()) {
       _dataGridFilter.Clear();
@@ -520,5 +478,43 @@
   // add the divs in selectedDivs to _selectedDivs
     _selectedDivisions.Clear();
     _selectedDivisions.AddRange(enumerable);
+  }
+
+  // ReSharper disable once UnusedMember.Local
+  private static string MinifyPath(string arg) {
+  // find the index of the first "/" and the last "/" and return the full string with the middle replaced with "..."
+    var firstSlash = arg.IndexOf('/');
+    var lastSlash = arg.LastIndexOf('/');
+    if (firstSlash == -1 || lastSlash == -1) {
+      return arg;
+    }
+
+    return arg[..firstSlash] + "/..." + arg[lastSlash..];
+  }
+  private static string GetFileName(string? mediaPdf) {
+    if (mediaPdf == null) {
+      return "";
+    }
+    var lastSlash = mediaPdf.LastIndexOf('/');
+    return lastSlash == -1 ? mediaPdf : mediaPdf[(lastSlash + 1)..];
+  }
+  private async Task OpenFilePreview(string? filePath) {
+    if (!string.IsNullOrEmpty(filePath)) {
+  //use NavigationManager to get the baseURl and append "files/" then the filePath
+      var url = $"{NavigationManager.BaseUri}files/{filePath}";
+      await JSRuntime.InvokeVoidAsync("openFilePreview", url);
+    }
+  }
+  private Task OnDivisionCheckedChanged(bool isChecked, Division divEnum) {
+    // if isChecked is true, add divEnum to _selectedDivisions
+    // if isChecked is false, remove divEnum from _selectedDivisions
+    if (isChecked) {
+      _selectedDivisions.Add(divEnum);
+    } else {
+      _selectedDivisions.Remove(divEnum);
+    }
+    // call UpdateGridFilterList with _selectedDivisions
+    UpdateGridFilterList();
+    return Task.CompletedTask;
   }
 }
