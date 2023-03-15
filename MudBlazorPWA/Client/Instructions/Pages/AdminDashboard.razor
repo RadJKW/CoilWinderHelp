@@ -65,7 +65,7 @@
                 OverscanCount="5"
                 ShowMenuIcon="true"
                 Hover="true"
-                ReadOnly="@(_enableEdit != true)"
+                ReadOnly="@(_enableEdit == false)"
                 EditMode="DataGridEditMode.Form"
                 EditTrigger="DataGridEditTrigger.OnRowClick"
                 StartedEditingItem="@StartedEditingItem"
@@ -99,26 +99,28 @@
                     </MudMenu>
                   </MudTooltip>
                   <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
-                  <MudMenu Label="@(_selectedDivisions.Any() ? string.Join(", ", _selectedDivisions)  : "Division")"
+                  <MudMenu Label="@(_selectedDivisions.Any() ? string.Join(", ", _selectedDivisions) : "Division")"
                       StartIcon="@Icons.Material.Outlined.FilterAlt"
                       Dense="true"
                       LockScroll="true"
                       PositionAtCursor="true"
                       PopoverClass="data-grid-filter-popover mud-background-gray"
                       FullWidth="false"
-
                       Color="@(_selectedDivisions.Any() ? Color.Info : Color.Default)"
                       Variant="Variant.Outlined">
-                    <div class="px-2 pt-1">
+                    <div class="pt-1 px-2">
                       <MudStack Spacing="1">
                         @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
-                          <div class="d-flex flex-column mud-width-full border px-2 ">
+                          <div class="border d-flex flex-column mud-width-full px-2">
                             <MudCheckBox Checked="@_selectedDivisions.Contains(divEnum)"
                                 CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"
                                 Color="Color.Info"
                                 Dense="true"
                                 Size="Size.Small">
-                              <MudText Class="mx-2" Typo="Typo.body2">@divEnum.ToString()</MudText>
+                              <MudText Class="mx-2"
+                                  Typo="Typo.body2">
+                                @divEnum.ToString()
+                              </MudText>
                             </MudCheckBox>
                           </div>
                         }
@@ -148,9 +150,9 @@
                   <EditTemplate/>
                 </PropertyColumn>
                 <PropertyColumn Property="x => x.Division.ToString()"
-                    Title="Dept"
                     T="WindingCode"
                     TProperty="string"
+                    Title="Dept"
                     IsEditable="false"
                     Hideable="true">
                   <EditTemplate/>
@@ -218,9 +220,7 @@
                     TProperty="string"
                     IsEditable="false"
                     Hidden="true">
-                  <EditTemplate>
-
-                  </EditTemplate>
+                  <EditTemplate/>
                 </PropertyColumn>
               </Columns>
               <ChildRowContent>
@@ -322,12 +322,12 @@
   private string? _searchString;
 
   protected override Task OnInitializedAsync() {
-    HubClientService.WindingCodesDbUpdated += OnWindingCodesDbUpdated;
+    HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
     return base.OnInitializedAsync();
   }
-  private void OnWindingCodesDbUpdated() {
+  private async Task OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success);
-    RefreshWindingCodes();
+    await RefreshWindingCodes();
   }
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     if (firstRender) {
@@ -349,7 +349,6 @@
     await base.OnAfterRenderAsync(firstRender);
   }
   void IDisposable.Dispose() {
-    HubClientService.WindingCodesDbUpdated -= OnWindingCodesDbUpdated;
     Snackbar.Dispose();
   }
 
@@ -397,14 +396,16 @@
   #endregion
 
   private readonly Func<WindingCode, bool> _assignedMediaDisabled = (windingCode) => windingCode.FolderPath == null;
-  private void RefreshWindingCodes() => Task.Run(async () => {
+  private async Task RefreshWindingCodes() {
     var windingCodesList = await HubClientService.GetCodeList();
     if (windingCodesList != null) {
       _windingCodesList.Clear();
       _windingCodesList.AddRange(windingCodesList);
       StateHasChanged();
     }
-  });
+  }
+
+
   private void StartedEditingItem(WindingCode item) {
     Snackbar.Add($"Started editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
   }
@@ -449,48 +450,6 @@
         ? _videoPathsCollection
         : _videoPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
   }
-  /*private static string GetMultiSelectDivText(List<Division> selectedValues) {
-    return selectedValues.Count switch {
-      0 => "",
-      1 => selectedValues[0].ToString(),
-      _ => string.Join(", ", selectedValues.Select(d => d.ToString()))
-      };
-  }*/
-
-  private void UpdateGridFilterList() {
-  // if selectedDivs is empty, remove the filter
-    var enumerable = _selectedDivisions.ToList();
-    Logger.LogInformation("Selected Divs: {DivFilter}", string.Join(", ", enumerable));
-    if (!enumerable.Any()) {
-      _dataGridFilter.Clear();
-      return;
-    }
-
-    _dataGridFilter.Clear();
-  // Add a new filter for Division
-    _dataGridFilter.Add(new() {
-      FilterFunction = (x) => {
-  // return true if the item is equal to any of the selected divisions
-        return enumerable.Any(d => d == x.Division);
-      }
-    });
-
-  // add the divs in selectedDivs to _selectedDivs
-    _selectedDivisions.Clear();
-    _selectedDivisions.AddRange(enumerable);
-  }
-
-  // ReSharper disable once UnusedMember.Local
-  private static string MinifyPath(string arg) {
-  // find the index of the first "/" and the last "/" and return the full string with the middle replaced with "..."
-    var firstSlash = arg.IndexOf('/');
-    var lastSlash = arg.LastIndexOf('/');
-    if (firstSlash == -1 || lastSlash == -1) {
-      return arg;
-    }
-
-    return arg[..firstSlash] + "/..." + arg[lastSlash..];
-  }
   private static string GetFileName(string? mediaPdf) {
     if (mediaPdf == null) {
       return "";
@@ -500,20 +459,34 @@
   }
   private async Task OpenFilePreview(string? filePath) {
     if (!string.IsNullOrEmpty(filePath)) {
-  //use NavigationManager to get the baseURl and append "files/" then the filePath
       var url = $"{NavigationManager.BaseUri}files/{filePath}";
       await JSRuntime.InvokeVoidAsync("openFilePreview", url);
     }
   }
+  private void UpdateGridFilterList() {
+    var enumerable = _selectedDivisions.ToList();
+    Logger.LogInformation("Selected Divs: {DivFilter}", string.Join(", ", enumerable));
+    if (!enumerable.Any()) {
+      _dataGridFilter.Clear();
+      return;
+    }
+
+    _dataGridFilter.Clear();
+    _dataGridFilter.Add(new() {
+      FilterFunction = (x) => { return enumerable.Any(d => d == x.Division); }
+    });
+
+    _selectedDivisions.Clear();
+    _selectedDivisions.AddRange(enumerable);
+  }
+
   private Task OnDivisionCheckedChanged(bool isChecked, Division divEnum) {
-    // if isChecked is true, add divEnum to _selectedDivisions
-    // if isChecked is false, remove divEnum from _selectedDivisions
     if (isChecked) {
       _selectedDivisions.Add(divEnum);
     } else {
       _selectedDivisions.Remove(divEnum);
     }
-    // call UpdateGridFilterList with _selectedDivisions
+
     UpdateGridFilterList();
     return Task.CompletedTask;
   }
