@@ -1,7 +1,6 @@
 ﻿@page "/StopEmulator"
 @layout DocViewLayout
-@inject IHttpClientFactory HttpClient
-@using System.Text.Json
+@inject HubClientService HubClientService
 <MudScrollbar Selector=""
     Width="6"
     BorderRadius="6"
@@ -64,18 +63,12 @@
 @code{
 
   #region Properties
-  private HttpClient _pwaServer = null!;
   private readonly List<DropItem>? _items = new();
-  private List<WindingCode>? WindingCodes { get; set; }
+  private IEnumerable<WindingCode>? WindingCodes { get; set; }
   #endregion
 
   protected override async Task OnInitializedAsync() {
-    _pwaServer = HttpClient.CreateClient("PwaServer");
-    var response = await _pwaServer.GetAsync("files/WindingCodes.json");
-    if (response.IsSuccessStatusCode) {
-      var content = await response.Content.ReadAsStringAsync();
-      WindingCodes = JsonSerializer.Deserialize<List<WindingCode>>(content);
-    }
+    WindingCodes = await HubClientService.GetCodeList();
     await base.OnInitializedAsync();
   }
   private static void ItemUpdated(MudItemDropInfo<DropItem> dropItem) {
