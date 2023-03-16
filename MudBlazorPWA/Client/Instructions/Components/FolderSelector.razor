@@ -5,7 +5,7 @@
 
 <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start">
 
-  @foreach (var breadcrumb in _breadCrumbs) {
+  @foreach (Folder? breadcrumb in _breadCrumbs) {
     <MudChip Text="@breadcrumb!.Name"
         Icon="@Icons.Material.Outlined.Folder"
         Size="Size.Small"
@@ -23,7 +23,7 @@
     <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
         AnchorOrigin="Origin.BottomCenter"
         TransformOrigin="Origin.TopLeft">
-      @foreach (var folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
+      @foreach (Folder folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
         <MudMenuItem Icon="@Icons.Material.Filled.Folder"
             OnClick="() => NavigateToFolder(folder)">
           @folder.Name
@@ -50,8 +50,8 @@
     </MudListSubheaderExtended>
 
     @if (RootFolder is not null) {
-      foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
-        var hasSubFolders = folder.SubFolders.Any();
+      foreach (Folder folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
+        bool hasSubFolders = folder.SubFolders.Any();
         switch (hasSubFolders) {
           case true:
             <MudListItemExtended T="Folder"
@@ -100,12 +100,12 @@
   #endregion
 
   protected override async Task OnInitializedAsync() {
-    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.DirectoryHub.InvokeAsync("GetAllFolders", DirectoryPath ?? null);
+    var enumerable = await DirectoryHub.GetFoldersInPath();
+    OnReceiveAllFolders(enumerable);
     await base.OnInitializedAsync();
   }
-  private void OnReceiveAllFolders(string[] folders) {
-    _folders = folders;
+  private void OnReceiveAllFolders(IEnumerable<string> folders) {
+    _folders = folders.Select(f => f.Insert(0, AppConfig.BasePath)).ToArray();
     RootFolder = BuildDirectoryTree(_folders);
     _breadCrumbs.Add(RootFolder);
     InvokeAsync(StateHasChanged);

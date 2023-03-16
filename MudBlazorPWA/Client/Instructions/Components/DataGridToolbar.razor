@@ -1,0 +1,60 @@
+﻿<MudStack Row
+    AlignItems="AlignItems.Center"
+    Justify="Justify.Center">
+  <MudTooltip Placement="Placement.Bottom"
+      Text="Table Settings">
+    <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
+        Class="mud-background-gray"
+        AnchorOrigin="Origin.BottomLeft"
+        TransformOrigin="Origin.TopLeft"
+        Variant="Variant.Filled"
+        PopoverClass="py-1 px-2 border border-radius-4"
+        Size="Size.Small">
+      <MudCheckBox Label="Enable Edit"
+          Checked="@EnableEdit"
+          CheckedChanged="@((bool isChecked) => EnableEdit = isChecked)"
+          Color="Color.Info"
+          Dense="true"
+          Size="Size.Small"/>
+    </MudMenu>
+  </MudTooltip>
+  <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
+  <MudMenu StartIcon="@Icons.Material.Outlined.FilterAlt"
+      Label="@(SelectedDivisions.Any() ? string.Join(",", SelectedDivisions) : "Filter")"
+      Dense="true"
+      LockScroll="true"
+      PositionAtCursor="true"
+      PopoverClass="data-grid-filter-popover mud-background-gray"
+      FullWidth="false"
+      Color="@(SelectedDivisions.Any() ? Color.Info : Color.Default)"
+      Variant="Variant.Outlined">
+    <div class="pt-1 px-2">
+      <MudStack Spacing="1">
+        @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
+          <div class="border d-flex flex-column mud-width-full px-2">
+            <MudCheckBox Checked="@SelectedDivisions.Contains(divEnum)"
+                CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"
+                Color="Color.Info"
+                Dense="true"
+                Size="Size.Small">
+              <MudText Class="mx-2"
+                  Typo="Typo.body2">
+                @divEnum.ToString()
+              </MudText >
+            </MudCheckBox >
+          </div>
+        }
+      </MudStack >
+    </div >
+  </MudMenu >
+</MudStack >
+<MudSpacer/>
+<MudTextField @bind-Value="@SearchString"
+    Variant="Variant.Text"
+    Placeholder="Search"
+    Adornment="Adornment.Start"
+    Immediate="true"
+    AdornmentIcon="@Icons.Material.Filled.Search"
+    IconSize="Size.Medium"
+    Class="mt-0">
+</MudTextField >
