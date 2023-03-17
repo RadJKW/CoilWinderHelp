@@ -71,7 +71,7 @@
               <MudExpansionPanels MultiExpansion="true"
                   Class="flex-grow-0 overflow-auto stops-expansion-panel"
                   Elevation="2">
-                @foreach (var windingCode in group) {
+                @foreach (WindingCode windingCode in group) {
                   <MudExpansionPanel Class="stops-expansion-item"
                       IsInitiallyExpanded="false">
                     <TitleContent>
@@ -94,8 +94,10 @@
                     </TitleContent>
                     <ChildContent>
 
-                      <div class="align-center"
-                          style="display: grid; grid-template-columns: auto 1fr; ">
+                      <MudStack Row
+                          Spacing="0"
+                          AlignItems="AlignItems.Center"
+                          Style="width: 100%; overflow-inline: hidden">
                         <div class="align-content-start border-r border-solid mud-border-lines-default pr-8"
                             style="display: flex; flex-direction: column; gap: 0.2rem;">
                           <MudTooltip Arrow="true"
@@ -134,27 +136,31 @@
                               Style="backdrop-filter: contrast(0.5) saturate(0.7)"/>
 
                         </div>
-                        <div class="px-2">
                         <MudSelectExtended T="string"
+                            Class="px-2"
                             ItemCollection="_folderPaths"
                             @bind-Value="@windingCode.FolderPath"
                             Text="@FormatWindingCode(windingCode)"
                             Variant="Variant.Filled"
-                            Clearable="true"
+                            Margin="Margin.Dense"
                             OnClearButtonClick="@(() => windingCode.FolderPath = null)"
                             Color="Color.Dark"
                             Label="Assigned Folder"
                             Placeholder="Select a folder"
                             PopoverClass="folder-select-popover"
-                            SearchBox="true"
-                            SearchBoxAutoFocus="true"
-                            DisablePopoverPadding="true">
+                            AnchorOrigin="Origin.BottomCenter"
+                            FullWidth
+                            Clearable
+                            Dense
+                            Virtualize
+                            SearchBox
+                            SearchBoxAutoFocus
+                            DisablePopoverPadding>
                           <ItemTemplate>
                             <MudText Typo="Typo.button"> @context.Value</MudText>
                           </ItemTemplate>
                         </MudSelectExtended>
-                        </div>
-                      </div>
+                      </MudStack>
                     </ChildContent>
                   </MudExpansionPanel>
                 }
@@ -210,7 +216,6 @@
     DirectoryHub.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
   }
 
-
   #region Startup Methods
   private async Task FetchCodesFromHub() {
     var windingCodes = await DirectoryHub.DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", Division.D1);
@@ -237,7 +242,6 @@
 
     _folderPaths = folderArgs.SubFolders.OrderBy(f => f).ToList();
   }
-
   #endregion
 
   private async Task SetUpdatedStop(int codeId) {
@@ -245,7 +249,7 @@
     var updatedWindingCode = await DirectoryHub.DirectoryHub.InvokeAsync<WindingCode?>("GetWindingCode", codeId);
     if (updatedWindingCode == null)
       return;
-    /*updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";*/
+  /*updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";*/
     DirectoryHub.SetCurrentCoilWinderStop(updatedWindingCode);
   }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
@@ -256,15 +260,15 @@
     });
   }
   private void OnCurrentWindingStopUpdated(object? obj, WindingCode code) {
-    var media = code.Media;
+    Media media = code.Media;
     Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.ReferenceFolder}",
       Severity.Info,
       config => {
-      config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
+        config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
         config.ShowCloseIcon = true;
         config.RequireInteraction = true;
         config.CloseAfterNavigation = true;
-    });
+      });
   }
 
   private string FormatWindingCode(WindingCode windingCode) {

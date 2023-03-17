@@ -1,0 +1,124 @@
+﻿@using MudBlazorPWA.Client.Instructions.Pages
+<div class="d-flex justify-center mud-width-full">
+  <MudCard Elevation="4"
+      Class="mud-width-full"
+      Style="background-color: transparent"
+      Outlined="true">
+    <MudCardHeader Class="mud-background-gray">
+      <MudText Typo="Typo.h6">
+        <strong>
+          Assigned Media
+        </strong>
+      </MudText>
+    </MudCardHeader>
+    <MudDivider/>
+    <MudCardContent>
+      <MudGrid Spacing="1"
+          Class="mud-width-full"
+          Justify="Justify.Center">
+        <MudItem xs="12">
+          <MudStack Spacing="2" Class="mud-width-full">
+            <MudStack Row
+                Spacing="1"
+                Justify="Justify.SpaceEvenly"
+                AlignItems="AlignItems.Stretch">
+              <MudDropZone T="AdminDashboard.DropItem"
+                  Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-success mud-width-full"
+                  Identifier="WindingCode.Folder">
+                <ChildContent>
+                  <div class="mud-width-full d-flex justify-start">
+
+                    <MudText Typo="Typo.button"
+                        Align="Align.Left"><strong>Folder Path</strong></MudText>
+                  </div>
+                </ChildContent>
+                <ItemRenderer>
+                  <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
+                    <MudChip Icon="@Icons.Material.Outlined.Folder"
+                        Class="align-center cursor-grab justify-start py-2"
+                        Variant="Variant.Filled"
+                        Size="Size.Medium">
+                      <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
+                    </MudChip>
+                  </div>
+                </ItemRenderer>
+              </MudDropZone>
+              <MudDropZone T="AdminDashboard.DropItem"
+                  Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-warning mud-width-full"
+                  Identifier="WindingCode.Media.Pdf">
+                <ChildContent>
+                  <div class="mud-width-full d-flex justify-start">
+
+                    <MudText Typo="Typo.button"
+                        Align="Align.Left"><strong>PDF</strong></MudText>
+                  </div>
+                </ChildContent>
+                <ItemRenderer>
+                  <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
+                    <MudChip Icon="@Icons.Material.Outlined.PictureAsPdf"
+                        Class="align-center cursor-grab justify-start py-2"
+                        Variant="Variant.Filled"
+                        Size="Size.Medium">
+                      <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
+                    </MudChip>
+                  </div>
+                </ItemRenderer>
+              </MudDropZone>
+              <MudDropZone T="AdminDashboard.DropItem"
+                  Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-info mud-width-full"
+                  Identifier="WindingCode.Media.Video">
+                <ChildContent>
+                  <div class="mud-width-full d-flex justify-start">
+
+                    <MudText Typo="Typo.button"
+                        Align="Align.Left"><strong>Video</strong></MudText>
+                  </div>
+                </ChildContent>
+                <ItemRenderer>
+                  <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
+                    <MudChip Icon="@Icons.Material.Filled.Movie"
+                        Class="align-center cursor-grab justify-start py-2"
+                        Variant="Variant.Filled"
+                        Size="Size.Medium">
+                      <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
+                    </MudChip>
+                  </div>
+                </ItemRenderer>
+              </MudDropZone>
+            </MudStack>
+             <MudDropZone T="AdminDashboard.DropItem"
+                              Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-warning mud-width-full"
+                              Identifier="WindingCode.Media.RefMedia">
+               <ChildContent>
+                 <div class="mud-width-full d-flex justify-start">
+
+                   <MudText Typo="Typo.button"
+                       Align="Align.Left"><strong>Reference Media</strong></MudText>
+                 </div>
+               </ChildContent>
+                 <ItemRenderer>
+                                             <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
+                                               <MudChip Icon="@Icons.Material.Outlined.Folder"
+                                                   Class="align-center cursor-grab justify-start py-2"
+                                                   Variant="Variant.Filled"
+                                                   Size="Size.Medium">
+                                                 <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
+                                               </MudChip>
+                                             </div>
+                                           </ItemRenderer>
+
+                          </MudDropZone>
+          </MudStack>
+        </MudItem>
+      </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+      <MudStack Row
+          Spacing="2">
+        <MudButton StartIcon="@Icons.Material.Filled.Verified">
+          Submit
+        </MudButton>
+      </MudStack>
+    </MudCardActions>
+  </MudCard>
+</div>

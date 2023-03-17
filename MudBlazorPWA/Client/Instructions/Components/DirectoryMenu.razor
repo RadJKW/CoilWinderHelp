@@ -4,7 +4,7 @@
 
 <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start ">
 
-  @foreach (var breadcrumb in _breadCrumbs) {
+  @foreach (Folder? breadcrumb in _breadCrumbs) {
     <MudTooltip Duration="1000"
         Text="@breadcrumb?.Path">
       <MudChip Text="@breadcrumb!.Name"
@@ -35,7 +35,7 @@
       Select Folder
     </MudListSubheaderExtended>
     <MudDivider/>
-    @foreach (var folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
+    @foreach (Folder folder in RootFolder!.SubFolders.Where(f => f.SubFolders.Any())) {
       <MudMenuItem Icon="@Icons.Material.Filled.Folder"
           OnClick="() => NavigateToFolder(folder)">
         @folder.Name
@@ -85,23 +85,23 @@
   #endregion
 
   protected override async Task OnInitializedAsync() {
-    DirectoryHub.ReceiveAllFolders += OnReceiveAllFolders;
-    await DirectoryHub.DirectoryHub.InvokeAsync("GetAllFolders", null);
+
+   var enumerable = await DirectoryHub.GetFoldersInPath(StartFolderPath!);
+    OnReceiveAllFolders(enumerable);
+    await base.OnInitializedAsync();
   }
 
   // after the parameters have been set,
-  private void OnReceiveAllFolders(string[] folders) {
-    _folders = folders;
+  private void OnReceiveAllFolders(IEnumerable<string> folders ) {
+    _folders = folders.Select(f => f.Insert(0, AppConfig.BasePath)).ToArray();
     RootFolder = BuildDirectoryTree(_folders);
     NavigateToFolder(RootFolder!);
-    StateHasChanged();
   }
   public void Dispose() {
-    DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
   }
 
   private Task SetFolderAsRoot(Folder newRoot) {
-    var index = _breadCrumbs.IndexOf(newRoot);
+    int index = _breadCrumbs.IndexOf(newRoot);
     _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
     RootFolder = newRoot;
     _breadCrumbs.Add(newRoot);
@@ -116,7 +116,7 @@
   private async Task RootFolderChanged() {
   // filter out the folder paths that are not in the current root folder
   // after the filter, replace the root folder path with "../" or "..\" depending on the OS
-    var splitChar = RootFolder!.Path!.Contains('\\') ? @"\" : @"/";
+    string splitChar = RootFolder!.Path!.Contains('\\') ? @"\" : @"/";
     var subFolders = _folders!.Where(f => f.StartsWith(RootFolder!.Path! + splitChar)).ToList();
     subFolders = subFolders.Select(f => f.Replace(RootFolder!.Path!, $"..")).ToList();
     await OnRootFolderChange.InvokeAsync(new() {
@@ -137,16 +137,16 @@
       return null;
     }
 
-    var firstPath = enumerable.First();
-    var splitChar = firstPath.Contains('\\') ? '\\' : '/';
+    string firstPath = enumerable.First();
+    char splitChar = firstPath.Contains('\\') ? '\\' : '/';
     var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
-    var commonParts = FindCommonParts(splitPaths);
+    int commonParts = FindCommonParts(splitPaths);
 
     var root = new Folder(
       splitPaths[0][commonParts],
       string.Join(splitChar, splitPaths[0].Take(commonParts + 1)));
 
-    foreach (var splitPath in splitPaths) {
+    foreach (string[] splitPath in splitPaths) {
       AddRemainingParts(root, splitPath, commonParts, splitChar);
     }
     return root;
@@ -155,8 +155,8 @@
     var commonParts = int.MaxValue;
     var stringsEnumerable = splitPaths.ToList();
     for (var i = 0; i < stringsEnumerable.First().Length; i++) {
-      var currentPart = stringsEnumerable.First()[i];
-      var count = 1 + stringsEnumerable.Skip(1)
+      string currentPart = stringsEnumerable.First()[i];
+      int count = 1 + stringsEnumerable.Skip(1)
         .TakeWhile(splitPath => i < splitPath.Length && splitPath[i] == currentPart)
         .Count();
       if (count == stringsEnumerable.Count()) {
@@ -169,9 +169,9 @@
   }
   private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int
     commonParts, char splitChar) {
-    var current = root;
-    for (var i = commonParts + 1; i < splitPath.Count; i++) {
-      var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+    Folder? current = root;
+    for (int i = commonParts + 1; i < splitPath.Count; i++) {
+      Folder? next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
       if (next == null) {
         next = new(splitPath[i], $"{current?.Path}{splitChar}{splitPath[i]}");
         current?.SubFolders.Add(next);

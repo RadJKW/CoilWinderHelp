@@ -20,7 +20,7 @@
           OnFoldersSubmitted="HandleFoldersSubmitted"/>
     </div>
     <div class="stops-right-column">
-      @foreach (var windingCode in WindingCodes ?? Enumerable.Empty<WindingCode>()) {
+      @foreach (WindingCode windingCode in WindingCodes ?? Enumerable.Empty<WindingCode>()) {
         <div>
           <MudListSubheaderExtended T="string"
               Class="align-center d-flex flex-row justify-center pa-2"
@@ -104,6 +104,7 @@
   public class DropItem {
     public string? Name { get; init; }
     public string? Identifier { get; set; }
+    public string? Value { get; init; }
   }
 
 

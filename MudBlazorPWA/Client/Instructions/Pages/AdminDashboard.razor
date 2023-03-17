@@ -3,8 +3,6 @@
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
 @inject ILogger<AdminDashboard> Logger
-@inject IJSRuntime JSRuntime
-@inject NavigationManager NavigationManager
 @implements IDisposable
 
 <MudScrollbar Selector=""
@@ -12,306 +10,222 @@
     Color="@Colors.DeepPurple.Accent3"
     BorderRadius="6"/>
 
-<div class="mt-6 mx-4">
-  <MudGrid Spacing="4">
-    <MudItem xs="12"
-        Class="d-flex justify-center mud-width-full">
-      <MudCard Style="width: 75%">
-        <MudCardContent>
-          <div class="align-center d-flex flex-column gap-1 justify-center mud-width-full">
-            <div class="d-flex flex-row gap-6 justify-center mx-auto">
-              <div class="d-flex justify-start mx-auto px-4">
-                <MudIconButton Color="Color.Primary"
-                    Icon="@Icons.Material.Outlined.Refresh"
-                    Variant="Variant.Outlined"
-                    Size="Size.Small"
-                    OnClick="RefreshWindingCodes">
-                </MudIconButton>
-                <MudIconButton Color="Color.Warning"
-                    Icon="@Icons.Material.Filled.DeleteOutline"
-                    Variant="Variant.Outlined"
-                    Size="Size.Small"
-                    OnClick="() => _windingCodesList.Clear()">
-                </MudIconButton>
-              </div>
-              <MudText Typo="Typo.h6">Winding Codes</MudText>
-              <MudText Typo="Typo.body2">Total: <strong>@_windingCodesList.Count</strong></MudText>
-            </div>
-            <MudDivider FlexItem="true"
-                DividerType="DividerType.FullWidth"/>
-            <div class="d-flex flex-wrap justify-center">
-            </div>
-          </div>
-        </MudCardContent>
-      </MudCard>
-    </MudItem>
-    @switch (_windingCodesList.Count == 0) {
-      case true:
-        <MudProgressLinear Indeterminate="true"/>
-        break;
-      case false:
-        <MudItem xs="12"
-            Class="d-flex justify-center">
-          <div class="data-grid-border mud-background-gray">
-            <MudDataGrid T="WindingCode"
-                id="winding-codes-data-grid"
-                Class="mud-elevation-4"
-                Style="min-width: 60%;"
-                Items="@_windingCodesList"
-                QuickFilter="@DataGridQuickFilter"
-                Height="60vh"
-                EditDialogOptions="@(new DialogOptions() { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
-                Virtualize="true"
-                OverscanCount="5"
-                ShowMenuIcon="true"
-                Hover="true"
-                ReadOnly="@(_enableEdit == false)"
-                EditMode="DataGridEditMode.Form"
-                EditTrigger="DataGridEditTrigger.OnRowClick"
-                StartedEditingItem="@StartedEditingItem"
-                CanceledEditingItem="@CanceledEditingItem"
-                CommittedItemChanges="@CommittedItemChanges"
-                HorizontalScrollbar="false"
-                FixedHeader="true"
-                FilterMode="DataGridFilterMode.Simple"
-                FilterDefinitions="@_dataGridFilter"
-                Striped="true"
-                Bordered="true"
-                Dense="true">
-              <ToolBarContent>
-                <MudStack Row
-                    AlignItems="AlignItems.Center"
-                    Justify="Justify.Center">
-                  <MudTooltip Placement="Placement.Bottom"
-                      Text="Table Settings">
-                    <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
-                        Class="mud-background-gray"
-                        AnchorOrigin="Origin.BottomLeft"
-                        TransformOrigin="Origin.TopLeft"
-                        Variant="Variant.Filled"
-                        PopoverClass="py-1 px-2 border border-radius-4"
-                        Size="Size.Small">
-                      <MudCheckBox Label="Enable Edit"
-                          @bind-Checked="_enableEdit"
-                          Color="Color.Info"
-                          Dense="true"
-                          Size="Size.Small"/>
-                    </MudMenu>
-                  </MudTooltip>
-                  <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
-                  <MudMenu Label="@(_selectedDivisions.Any() ? string.Join(", ", _selectedDivisions) : "Division")"
-                      StartIcon="@Icons.Material.Outlined.FilterAlt"
-                      Dense="true"
-                      LockScroll="true"
-                      PositionAtCursor="true"
-                      PopoverClass="data-grid-filter-popover mud-background-gray"
-                      FullWidth="false"
-                      Color="@(_selectedDivisions.Any() ? Color.Info : Color.Default)"
-                      Variant="Variant.Outlined">
-                    <div class="pt-1 px-2">
-                      <MudStack Spacing="1">
-                        @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
-                          <div class="border d-flex flex-column mud-width-full px-2">
-                            <MudCheckBox Checked="@_selectedDivisions.Contains(divEnum)"
-                                CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"
-                                Color="Color.Info"
-                                Dense="true"
-                                Size="Size.Small">
-                              <MudText Class="mx-2"
-                                  Typo="Typo.body2">
-                                @divEnum.ToString()
-                              </MudText>
-                            </MudCheckBox>
-                          </div>
-                        }
-                      </MudStack>
-                    </div>
-                  </MudMenu>
-                </MudStack>
-                <MudSpacer/>
-                <MudTextField @bind-Value="_searchString"
-                    Variant="Variant.Text"
-                    Placeholder="Search"
-                    Adornment="Adornment.Start"
-                    Immediate="true"
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    IconSize="Size.Medium"
-                    Class="mt-0">
-                </MudTextField>
-              </ToolBarContent>
-              <Columns>
-                <HierarchyColumn T="WindingCode"
-                    ButtonDisabledFunc="@_assignedMediaDisabled"/>
-                <PropertyColumn Property="x => x.Id"
-                    T="WindingCode"
-                    TProperty="int"
-                    IsEditable="false"
-                    Hideable="true">
-                  <EditTemplate/>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Division.ToString()"
-                    T="WindingCode"
-                    TProperty="string"
-                    Title="Dept"
-                    IsEditable="false"
-                    Hideable="true">
-                  <EditTemplate/>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Code"
-                    TProperty="string"
-                    T="WindingCode"
-                    IsEditable="false">
-                  <EditTemplate/>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Name"
-                    T="WindingCode"
-                    TProperty="string"
-                    IsEditable/>
-                <PropertyColumn Property="x => x.CodeTypeId.ToString()"
-                    T="WindingCode"
-                    TProperty="string"
-                    Title="CodeType"
-                    Hideable="true">
-                  <EditTemplate>
-                    <MudSelectExtended T="CodeTypeId"
-                        Class="mt-4"
-                        RelativeWidth="true"
-                        ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
-                        @bind-Value="@context.Item.CodeTypeId"
-                        Margin="Margin.Dense"
+<MudDropContainer T="DropItem"
+    Items="_dropItems"
+    Class="mud-width-full"
+    ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
+    ItemDropped="ItemUpdated">
+  <ChildContent>
+
+    <div class="mt-6 mud-height-full mx-4">
+      <MudStack Row
+          Class="mud-width-full"
+          AlignItems="AlignItems.Stretch"
+          Justify="Justify.Center">
+
+        <FolderSelector OnFoldersSubmitted="@HandleFoldersSubmitted"/>
+
+        @switch (_windingCodesList.Count == 0) {
+          case true:
+            <MudProgressLinear Indeterminate="true"/>
+            break;
+          case false:
+
+
+            <div class="data-grid-border mud-background-gray">
+              <MudDataGrid T="WindingCode"
+                  id="winding-codes-data-grid"
+                  Class="mud-elevation-4"
+                  Style="min-width: 60%;"
+                  Items="@_windingCodesList"
+                  QuickFilter="@DataGridQuickFilter"
+                  Height="60vh"
+                  EditDialogOptions="@(new DialogOptions() { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
+                  Virtualize="true"
+                  OverscanCount="5"
+                  ShowMenuIcon="true"
+                  Hover="true"
+                  ReadOnly="@(_enableEdit == false)"
+                  EditMode="DataGridEditMode.Form"
+                  EditTrigger="DataGridEditTrigger.OnRowClick"
+                  StartedEditingItem="@StartedEditingItem"
+                  CanceledEditingItem="@CanceledEditingItem"
+                  CommittedItemChanges="@CommittedItemChanges"
+                  HorizontalScrollbar="false"
+                  FixedHeader="true"
+                  FilterMode="DataGridFilterMode.Simple"
+                  FilterDefinitions="@_dataGridFilter"
+                  Striped="true"
+                  Bordered="true"
+                  Dense="true">
+                <ToolBarContent>
+                  <MudStack Row
+                      AlignItems="AlignItems.Center"
+                      Justify="Justify.Center">
+                    <MudTooltip Placement="Placement.Bottom"
+                        Text="Table Settings">
+                      <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
+                          Class="mud-background-gray"
+                          AnchorOrigin="Origin.BottomLeft"
+                          TransformOrigin="Origin.TopLeft"
+                          Variant="Variant.Filled"
+                          PopoverClass="py-1 px-2 border border-radius-4"
+                          Size="Size.Small">
+                        <MudCheckBox Label="Enable Edit"
+                            @bind-Checked="_enableEdit"
+                            Color="Color.Info"
+                            Dense="true"
+                            Size="Size.Small"/>
+                      </MudMenu>
+                    </MudTooltip>
+                    <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
+                    <MudMenu Label="@(_selectedDivisions.Any() ? string.Join(", ", _selectedDivisions) : "Division")"
+                        StartIcon="@Icons.Material.Outlined.FilterAlt"
                         Dense="true"
-                        Variant="Variant.Outlined"
-                        Label="CodeType">
-                    </MudSelectExtended>
-                  </EditTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.FolderPath"
-                    T="WindingCode"
-                    TProperty="string"
-                    Hidden="true">
-                  <EditTemplate>
-                    <MudSelectExtended T="string"
-                        Context="selectContext"
-                        ItemCollection="@(_folderPathsCollection.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
-                        @bind-Value="@context.Item.FolderPath"
-                        Margin="Margin.Dense"
-                        Variant="Variant.Filled"
-                        Clearable="true"
-                        CloseIcon="true"
-                        OnClearButtonClick="@(() => @context.Item.FolderPath = null)"
-                        Color="Color.Dark"
-                        Label="Assigned Folder"
-                        Placeholder="Select a folder"
-                        PopoverClass="folder-select-popover"
-                        ForceShrink="true"
-                        SearchBox="true"
-                        SearchBoxPlaceholder="@($"\"{@context.Item.Name}\"")"
-                        SearchBoxAutoFocus="true"
                         LockScroll="true"
-                        DisablePopoverPadding="true">
-                      <ItemTemplate>
-                        <MudText Typo="Typo.button"> @selectContext.Value</MudText>
-                      </ItemTemplate>
-                    </MudSelectExtended>
-                  </EditTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Media.Pdf"
-                    T="WindingCode"
-                    TProperty="string"
-                    IsEditable="false"
-                    Hidden="true">
-                  <EditTemplate/>
-                </PropertyColumn>
-              </Columns>
-              <ChildRowContent>
-                <div class="d-flex justify-center mud-width-full">
-                  <MudCard Style="width: 75%; background-color: transparent"
-                      Elevation="4"
-                      Outlined="true">
-                    <MudCardHeader>
-                      <MudText Typo="Typo.h6">
-                        <strong>
-                          Assigned Media
-                        </strong>
-                      </MudText>
-                    </MudCardHeader>
-                    <MudDivider/>
-                    <MudCardContent>
-                      <MudGrid Spacing="2"
-                          Class="mud-width-full px-4"
-                          Justify="Justify.Center">
-                        <MudItem xs="12">
-                          <MudStack Spacing="0">
-                            <MudAutocomplete T="string"
-                                Class="pb-4"
-                                @bind-Value="context.Item.FolderPath"
-                                SearchFunc="@FolderSearchFunc"
-                                Placeholder="@context.Item.FolderPath"
-                                MaxItems="25"
-                                Label="@(nameof(WindingCode.FolderPath))"
-                                Margin="Margin.Dense"
-                                Variant="Variant.Outlined"/>
-                            <MudAutocomplete T="string"
-                                @bind-Value="context.Item.Media.Pdf"
-                                SearchFunc="@PdfSearchFunc"
-                                MaxItems="25"
-                                Label="@(nameof(WindingCode.Media.Pdf))"
-                                Margin="Margin.Dense"
-                                Adornment="Adornment.Start"
-                                AdornmentColor="Color.Secondary"
-                                AdornmentIcon="@Icons.Material.Filled.PictureAsPdf"
-                                OnAdornmentClick="@(() => OpenFilePreview(context.Item.Media.Pdf))"
-                                HelperTextOnFocus
-                                HelperText="@GetFileName(context.Item.Media.Pdf)"
-                                Variant="Variant.Outlined"/>
-                            <MudAutocomplete T="string"
-                                @bind-Value="context.Item.Media.Video"
-                                SearchFunc="@VideoSearchFunc"
-                                MaxItems="25"
-                                Label="@(nameof(WindingCode.Media.Video))"
-                                Adornment="Adornment.Start"
-                                AdornmentColor="Color.Secondary"
-                                AdornmentIcon="@Icons.Material.Filled.Movie"
-                                OnAdornmentClick="@(() => OpenFilePreview(context.Item.Media.Video))"
-                                HelperTextOnFocus
-                                HelperText="@GetFileName(context.Item.Media.Video)"
-                                Margin="Margin.Dense"
-                                Variant="Variant.Outlined"/>
-                            <MudAutocomplete T="string"
-                                Class="pt-4"
-                                @bind-Value="context.Item.Media.ReferenceFolder"
-                                SearchFunc="@FolderSearchFunc"
-                                MaxItems="25"
-                                Label="RefMedia"
-                                Margin="Margin.Dense"
-                                Variant="Variant.Outlined">
-                            </MudAutocomplete>
-                          </MudStack>
-                        </MudItem>
-                      </MudGrid>
-                    </MudCardContent>
-                    <MudCardActions>
-                      <MudStack Row
-                          Spacing="2">
-                        @* TODO: // fix changes not saving to DB *@
-                        <MudButton StartIcon="@Icons.Material.Filled.Verified"
-                            OnClick="() => CommittedItemChanges(context.Item)">
-                          Submit
-                        </MudButton>
-                      </MudStack>
-                    </MudCardActions>
-                  </MudCard>
-                </div>
-              </ChildRowContent>
-            </MudDataGrid>
-          </div>
-        </MudItem>
-        break;
-    }
-  </MudGrid>
-</div>
+                        PositionAtCursor="true"
+                        PopoverClass="data-grid-filter-popover mud-background-gray"
+                        FullWidth="false"
+                        Color="@(_selectedDivisions.Any() ? Color.Info : Color.Default)"
+                        Variant="Variant.Outlined">
+                      <div class="pt-1 px-2">
+                        <MudStack Spacing="1">
+                          @foreach (Division divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
+                            <div class="border d-flex flex-column mud-width-full px-2">
+                              <MudCheckBox Checked="@_selectedDivisions.Contains(divEnum)"
+                                  CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"
+                                  Color="Color.Info"
+                                  Dense="true"
+                                  Size="Size.Small">
+                                <MudText Class="mx-2"
+                                    Typo="Typo.body2">
+                                  @divEnum.ToString()
+                                </MudText>
+                              </MudCheckBox>
+                            </div>
+                          }
+                        </MudStack>
+                      </div>
+                    </MudMenu>
+                  </MudStack>
+                  <MudSpacer/>
+                  <MudTextField @bind-Value="_searchString"
+                      Variant="Variant.Text"
+                      Placeholder="Search"
+                      Adornment="Adornment.Start"
+                      Immediate="true"
+                      AdornmentIcon="@Icons.Material.Filled.Search"
+                      IconSize="Size.Medium"
+                      Class="mt-0">
+                  </MudTextField>
+                </ToolBarContent>
+                <Columns>
+                  <HierarchyColumn T="WindingCode"
+                      ButtonDisabledFunc="@_assignedMediaDisabled"/>
+                  <PropertyColumn Property="x => x.Id"
+                      T="WindingCode"
+                      TProperty="int"
+                      IsEditable="false"
+                      Hideable="true">
+                    <EditTemplate/>
+                  </PropertyColumn>
+                  <PropertyColumn Property="x => x.Division.ToString()"
+                      T="WindingCode"
+                      TProperty="string"
+                      Title="Dept"
+                      IsEditable="false"
+                      Hideable="true">
+                    <EditTemplate/>
+                  </PropertyColumn>
+                  <PropertyColumn Property="x => x.Code"
+                      TProperty="string"
+                      T="WindingCode"
+                      IsEditable="false">
+                    <EditTemplate/>
+                  </PropertyColumn>
+                  <PropertyColumn Property="x => x.Name"
+                      T="WindingCode"
+                      TProperty="string"
+                      IsEditable/>
+                  <PropertyColumn Property="x => x.CodeTypeId.ToString()"
+                      T="WindingCode"
+                      TProperty="string"
+                      Title="CodeType"
+                      Hideable="true">
+                    <EditTemplate>
+                      <MudSelectExtended T="CodeTypeId"
+                          Class="mt-4"
+                          RelativeWidth="true"
+                          ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
+                          @bind-Value="@context.Item.CodeTypeId"
+                          Margin="Margin.Dense"
+                          Dense="true"
+                          Variant="Variant.Outlined"
+                          Label="CodeType">
+                      </MudSelectExtended>
+                    </EditTemplate>
+                  </PropertyColumn>
+                  <PropertyColumn Property="x => x.FolderPath"
+                      T="WindingCode"
+                      TProperty="string"
+                      Hidden="true">
+                    <EditTemplate>
+                      <MudSelectExtended T="string"
+                          Context="selectContext"
+                          ItemCollection="@(_folderPathsCollection.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
+                          @bind-Value="@context.Item.FolderPath"
+                          Margin="Margin.Dense"
+                          Variant="Variant.Filled"
+                          Clearable="true"
+                          CloseIcon="true"
+                          OnClearButtonClick="@(() => @context.Item.FolderPath = null)"
+                          Color="Color.Dark"
+                          Label="Assigned Folder"
+                          Placeholder="Select a folder"
+                          PopoverClass="folder-select-popover"
+                          ForceShrink="true"
+                          SearchBox="true"
+                          SearchBoxPlaceholder="@($"\"{@context.Item.Name}\"")"
+                          SearchBoxAutoFocus="true"
+                          LockScroll="true"
+                          DisablePopoverPadding="true">
+                        <ItemTemplate>
+                          <MudText Typo="Typo.button"> @selectContext.Value</MudText>
+                        </ItemTemplate>
+                      </MudSelectExtended>
+                    </EditTemplate>
+                  </PropertyColumn>
+                  <PropertyColumn Property="x => x.Media.Pdf"
+                      T="WindingCode"
+                      TProperty="string"
+                      IsEditable="false"
+                      Hidden="true">
+                    <EditTemplate/>
+                  </PropertyColumn>
+                </Columns>
+                <ChildRowContent>
+                  <WindingCodeMediaDropZones/>
+                  @*<WindingCodeMediaCard Context="context"
+                      FolderPathsCollection="_folderPathsCollection"
+                      PdfPathsCollection="_pdfPathsCollection"
+                      VideoPathsCollection="_videoPathsCollection"
+                      OnCommittedItemChanges="CommittedItemChanges">
+                  </WindingCodeMediaCard>*@
+
+                </ChildRowContent>
+              </MudDataGrid>
+            </div>
+            break;
+        }
+
+      </MudStack>
+    </div>
+  </ChildContent>
+
+</MudDropContainer>
 
 @code {
+  private readonly List<DropItem> _dropItems = new();
   private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
@@ -368,23 +282,23 @@
     }
 
     var searchTerms = _searchString.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s));
-    foreach (var searchTerm in searchTerms) {
-      var delimiterIndex = searchTerm.IndexOfAny(new[] {
+    foreach (string searchTerm in searchTerms) {
+      int delimiterIndex = searchTerm.IndexOfAny(new[] {
         '=', ':'
       });
       if (delimiterIndex < 0) {
-        var matches = _columnMap.Values.Any(propertySelector => propertySelector(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        bool matches = _columnMap.Values.Any(propertySelector => propertySelector(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
         if (!matches) {
           return false;
         }
       } else {
-        var columnName = searchTerm[..delimiterIndex].Trim();
+        string columnName = searchTerm[..delimiterIndex].Trim();
         if (!_columnMap.TryGetValue(columnName, out var propertySelector)) {
           continue;
         }
 
-        var searchTermValue = searchTerm[(delimiterIndex + 1)..].Trim();
-        var columnValue = propertySelector(x);
+        string searchTermValue = searchTerm[(delimiterIndex + 1)..].Trim();
+        string columnValue = propertySelector(x);
         if (!columnValue.Contains(searchTermValue, StringComparison.OrdinalIgnoreCase)) {
           return false;
         }
@@ -395,6 +309,7 @@
   };
   #endregion
 
+  #region DataGrid Methods
   private readonly Func<WindingCode, bool> _assignedMediaDisabled = (windingCode) => windingCode.FolderPath == null;
   private async Task RefreshWindingCodes() {
     var windingCodesList = await HubClientService.GetCodeList();
@@ -414,53 +329,17 @@
   }
 
   private async Task CommittedItemChanges(WindingCode item) {
-    var result = await HubClientService.UpdateWindingCode(item);
+    bool result = await HubClientService.UpdateWindingCode(item);
     if (!result) {
       Snackbar.Add($"Failed to commit changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Error);
       return;
     }
     Snackbar.Add($"Committed changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Success);
-    var updatedItem = await HubClientService.GetWindingCode(item.Id);
+    WindingCode? updatedItem = await HubClientService.GetWindingCode(item.Id);
     if (updatedItem != null) {
-      var index = _windingCodesList.FindIndex(x => x.Id == updatedItem.Id);
+      int index = _windingCodesList.FindIndex(x => x.Id == updatedItem.Id);
       _windingCodesList[index] = updatedItem;
       StateHasChanged();
-    }
-  }
-  private async Task<IEnumerable<string>> PdfSearchFunc(string arg) {
-    await Task.CompletedTask;
-
-    return
-      string.IsNullOrWhiteSpace(arg)
-        ? _pdfPathsCollection
-        : _pdfPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
-  }
-  private async Task<IEnumerable<string>> FolderSearchFunc(string arg) {
-    await Task.CompletedTask;
-
-    return
-      string.IsNullOrWhiteSpace(arg)
-        ? _folderPathsCollection
-        : _folderPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
-  }
-  private async Task<IEnumerable<string>> VideoSearchFunc(string arg) {
-    await Task.CompletedTask;
-    return
-      string.IsNullOrWhiteSpace(arg)
-        ? _videoPathsCollection
-        : _videoPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
-  }
-  private static string GetFileName(string? mediaPdf) {
-    if (mediaPdf == null) {
-      return "";
-    }
-    var lastSlash = mediaPdf.LastIndexOf('/');
-    return lastSlash == -1 ? mediaPdf : mediaPdf[(lastSlash + 1)..];
-  }
-  private async Task OpenFilePreview(string? filePath) {
-    if (!string.IsNullOrEmpty(filePath)) {
-      var url = $"{NavigationManager.BaseUri}files/{filePath}";
-      await JSRuntime.InvokeVoidAsync("openFilePreview", url);
     }
   }
   private void UpdateGridFilterList() {
@@ -490,4 +369,29 @@
     UpdateGridFilterList();
     return Task.CompletedTask;
   }
+  #endregion
+
+  private async Task HandleFoldersSubmitted(Folder[]? folders) {
+    if (folders != null) {
+      _dropItems.AddRange(folders.Where(x => _dropItems.All(y => y.Name != x.Name))
+        .Select(x => new DropItem() {
+          Name = x.Name,
+          Identifier = "Drop Zone 0"
+        }));
+    } else {
+      _dropItems.Clear();
+    }
+
+
+    await InvokeAsync(StateHasChanged);
+  }
+  private static void ItemUpdated(MudItemDropInfo<DropItem> dropItem) {
+    dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
+  }
+
+  public class DropItem {
+    public string? Name { get; init; }
+    public string? Identifier { get; set; }
+  }
+
 }

@@ -1,0 +1,149 @@
+﻿@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+<div class="d-flex justify-center mud-width-full">
+  <MudCard Style="width: 75%; background-color: transparent"
+      Elevation="4"
+      Outlined="true">
+    <MudCardHeader>
+      <MudText Typo="Typo.h6">
+        <strong>
+          Assigned Media
+        </strong>
+      </MudText>
+    </MudCardHeader>
+    <MudDivider/>
+    <MudCardContent>
+      <MudGrid Spacing="2"
+          Class="mud-width-full px-4"
+          Justify="Justify.Center">
+        <MudItem xs="12">
+          <MudStack Spacing="0">
+            <MudAutocomplete T="string"
+                Class="pb-4"
+                @bind-Value="Context.Item.FolderPath"
+                SearchFunc="@FolderSearchFunc"
+                Placeholder="@Context.Item.FolderPath"
+                MaxItems="25"
+                Label="@(nameof(WindingCode.FolderPath))"
+                Margin="Margin.Dense"
+                Variant="Variant.Outlined"/>
+            <MudAutocomplete T="string"
+                @bind-Value="Context.Item.Media.Pdf"
+                SearchFunc="@PdfSearchFunc"
+                MaxItems="25"
+                Label="@(nameof(WindingCode.Media.Pdf))"
+                Margin="Margin.Dense"
+                Adornment="Adornment.Start"
+                AdornmentColor="Color.Secondary"
+                AdornmentIcon="@Icons.Material.Filled.PictureAsPdf"
+                OnAdornmentClick="@(() => OpenFilePreview(Context.Item.Media.Pdf))"
+                HelperTextOnFocus
+                HelperText="@GetFileName(Context.Item.Media.Pdf)"
+                Variant="Variant.Outlined"/>
+            <MudAutocomplete T="string"
+                @bind-Value="Context.Item.Media.Video"
+                SearchFunc="@VideoSearchFunc"
+                MaxItems="25"
+                Label="@(nameof(WindingCode.Media.Video))"
+                Adornment="Adornment.Start"
+                AdornmentColor="Color.Secondary"
+                AdornmentIcon="@Icons.Material.Filled.Movie"
+                OnAdornmentClick="@(() => OpenFilePreview(Context.Item.Media.Video))"
+                HelperTextOnFocus
+                HelperText="@GetFileName(Context.Item.Media.Video)"
+                Margin="Margin.Dense"
+                Variant="Variant.Outlined"/>
+            <MudAutocomplete T="string"
+                Class="pt-4"
+                @bind-Value="Context.Item.Media.ReferenceFolder"
+                SearchFunc="@FolderSearchFunc"
+                MaxItems="25"
+                Label="RefMedia"
+                Margin="Margin.Dense"
+                Variant="Variant.Outlined">
+            </MudAutocomplete>
+          </MudStack>
+        </MudItem>
+      </MudGrid>
+    </MudCardContent>
+    <MudCardActions>
+      <MudStack Row
+          Spacing="2">
+        <MudButton StartIcon="@Icons.Material.Filled.Verified"
+            OnClick="() => CommittedItemChanges(Context.Item)">
+          Submit
+        </MudButton>
+      </MudStack>
+    </MudCardActions>
+  </MudCard>
+</div>
+
+@code{
+
+  [Parameter, EditorRequired]
+  public required CellContext<WindingCode> Context { get; set; }
+  [Parameter, EditorRequired]
+  public required List<string> PdfPathsCollection { get; set; }
+  [Parameter, EditorRequired]
+  public required List<string> FolderPathsCollection { get; set; }
+  [Parameter, EditorRequired]
+  public required List<string> VideoPathsCollection { get; set; }
+  [Parameter]
+  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
+
+
+
+  private List<string> _pdfPathsCollection = new();
+  private List<string> _folderPathsCollection = new();
+private List<string> _videoPathsCollection = new();
+
+
+
+  protected override void OnParametersSet() {
+    _pdfPathsCollection = PdfPathsCollection;
+    _folderPathsCollection = FolderPathsCollection;
+    _videoPathsCollection = VideoPathsCollection;
+  }
+
+
+  private async Task<IEnumerable<string>> PdfSearchFunc(string arg) {
+    await Task.CompletedTask;
+
+    return
+      string.IsNullOrWhiteSpace(arg)
+        ? _pdfPathsCollection
+        : _pdfPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
+  }
+  private async Task<IEnumerable<string>> FolderSearchFunc(string arg) {
+    await Task.CompletedTask;
+
+    return
+      string.IsNullOrWhiteSpace(arg)
+        ? _folderPathsCollection
+        : _folderPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
+  }
+  private async Task<IEnumerable<string>> VideoSearchFunc(string arg) {
+    await Task.CompletedTask;
+    return
+      string.IsNullOrWhiteSpace(arg)
+        ? _videoPathsCollection
+        : _videoPathsCollection.Where(x => x.Contains(arg, StringComparison.OrdinalIgnoreCase));
+  }
+  private static string GetFileName(string? mediaPdf) {
+    if (mediaPdf == null) {
+      return "";
+    }
+    int lastSlash = mediaPdf.LastIndexOf('/');
+    return lastSlash == -1 ? mediaPdf : mediaPdf[(lastSlash + 1)..];
+  }
+  private async Task OpenFilePreview(string? filePath) {
+    if (!string.IsNullOrEmpty(filePath)) {
+      var url = $"{NavigationManager.BaseUri}files/{filePath}";
+      await JSRuntime.InvokeVoidAsync("openFilePreview", url);
+    }
+  }
+
+  private async Task CommittedItemChanges(WindingCode contextItem) {
+    await OnCommittedItemChanges.InvokeAsync(contextItem);
+  }
+}
