@@ -11,7 +11,7 @@ public enum HubServers
 	DirectoryHub,
 	ChatHub
 }
-public class HubClientService
+public sealed class HubClientService: IAsyncDisposable
 {
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
@@ -133,4 +133,9 @@ public class HubClientService
 		return await DirectoryHub.InvokeAsync<WindingCode>("DeleteWindingCode", code);
 	}
 	#endregion
+
+	public async ValueTask DisposeAsync() {
+		if (DirectoryHub.State == HubConnectionState.Connected)
+			await DirectoryHub.DisposeAsync();
+	}
 }
