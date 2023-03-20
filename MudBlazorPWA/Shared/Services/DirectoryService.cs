@@ -16,7 +16,6 @@ public interface IDirectoryService
 	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
 	Task<WindingCode> GetWindingCodeDocuments(WindingCode code);
 	Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes);
-
 	Task<List<string>> ListVideoFiles(string? path = null);
 	public string GetRelativePath(string fullPath);
 }
@@ -49,10 +48,12 @@ public class DirectoryService : IDirectoryService
 		_rootDirectory = options.Value.RootDirectoryPath;
 		_windingCodesJsonPath = options.Value.WindingCodesJsonPath ?? _rootDirectory + "WindingCodes.json";
 	}
+
 	public Task<List<string>> ListPdfFiles(string? path = null) {
-		Console.WriteLine("ListPdfFiles");
+		Console.WriteLine($"Searching PDFs in {path ?? "BasePath"}");
+		SearchOption searchOption = path == null ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 		path ??= AppConfig.BasePath;
-		var files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+		var files = Directory.EnumerateFiles(path, "*.*", searchOption)
 			.Where(f => f.EndsWith(".pdf"))
 			.OrderBy(f => f)
 			.ToList();
@@ -65,8 +66,10 @@ public class DirectoryService : IDirectoryService
 	}
 
 	public Task<List<string>> ListVideoFiles(string? path = null) {
+		SearchOption searchOption = path == null ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 		path ??= AppConfig.BasePath;
-		var mp4Files = Directory.EnumerateFiles(path, "*.*", SearchOption.AllDirectories)
+
+		var mp4Files = Directory.EnumerateFiles(path, "*.*", searchOption)
 			.Where(f => f.EndsWith(".mp4"))
 			.OrderBy(f => f)
 			.ToList();

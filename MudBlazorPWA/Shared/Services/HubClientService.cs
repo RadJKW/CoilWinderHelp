@@ -25,13 +25,17 @@ public sealed class HubClientService: IAsyncDisposable
 		InitializeChatHub();
 		FileServerUrl = _navigationManager
 			.ToAbsoluteUri("/files/");
+		GetServerDocsFolder();
 	}
 
 	// ReSharper disable once NotAccessedField.Local
-	private ILogger<HubClientService> _logger;
+	private readonly ILogger<HubClientService> _logger;
+	private readonly NavigationManager _navigationManager;
 	private Uri? FileServerUrl { get; init; }
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
+
+	public string WindingDocsFolder { get; private set; } = string.Empty;
 
 	// TODO: GetHubConnection is redundant, remove it
 	public HubConnection GetHubConnection(HubServers hubServer) {
@@ -41,7 +45,9 @@ public sealed class HubClientService: IAsyncDisposable
 			_ => throw new ArgumentOutOfRangeException(nameof(hubServer), hubServer, null)
 		};
 	}
-	private readonly NavigationManager _navigationManager;
+	private async void GetServerDocsFolder() {
+		WindingDocsFolder = await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
+	}
 	private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
 			.WithAutomaticReconnect()
@@ -83,6 +89,12 @@ public sealed class HubClientService: IAsyncDisposable
 		return folders;
 	}
 
+	public async Task<(List<string>, List<string>)> ListMediaFiles(string? path = null) {
+		_logger.LogInformation("ListMediaFiles @ {Path}", path ?? "null");
+		var pdfFiles = await DirectoryHub.InvokeAsync<List<string>>("ListPdfFiles", path);
+		var videoFiles = await DirectoryHub.InvokeAsync<List<string>>("ListVideoFiles", path);
+		return (pdfFiles, videoFiles);
+	}
 	public async Task<List<string>> ListPdfFiles(string? path = null) {
 		var files = await DirectoryHub.InvokeAsync<List<string>>("ListPdfFiles", path);
 		return files;
