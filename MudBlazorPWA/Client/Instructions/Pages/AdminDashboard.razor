@@ -11,7 +11,7 @@
     BorderRadius="6"/>
 
 <MudDropContainer T="DropItem"
-    Items="_dropItems"
+    Items="@_selectedFolder?.DropItems"
     Class="mud-width-full"
     ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
     ItemDropped="ItemUpdated">
@@ -23,7 +23,7 @@
           AlignItems="AlignItems.Stretch"
           Justify="Justify.Center">
 
-        <FolderSelector OnFoldersSubmitted="@HandleFoldersSubmitted"/>
+        <FolderSelector OnFoldersSubmitted="@HandleFoldersSubmitted" OnFolderSelected="HandleFolderSelected"/>
 
         @switch (_windingCodesList.Count == 0) {
           case true:
@@ -39,7 +39,7 @@
                   Style="min-width: 60%;"
                   Items="@_windingCodesList"
                   QuickFilter="@DataGridQuickFilter"
-                  Height="60vh"
+                  Height="80vh"
                   EditDialogOptions="@(new DialogOptions() { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
                   Virtualize="true"
                   OverscanCount="5"
@@ -205,13 +205,6 @@
                 </Columns>
                 <ChildRowContent>
                   <WindingCodeMediaDropZones/>
-                  @*<WindingCodeMediaCard Context="context"
-                      FolderPathsCollection="_folderPathsCollection"
-                      PdfPathsCollection="_pdfPathsCollection"
-                      VideoPathsCollection="_videoPathsCollection"
-                      OnCommittedItemChanges="CommittedItemChanges">
-                  </WindingCodeMediaCard>*@
-
                 </ChildRowContent>
               </MudDataGrid>
             </div>
@@ -226,12 +219,13 @@
 
 @code {
   private readonly List<DropItem> _dropItems = new();
-  private readonly List<string> _pdfPathsCollection = new();
+  // private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
-  private readonly List<string> _videoPathsCollection = new();
+  // private readonly List<string> _videoPathsCollection = new();
   private readonly List<Division> _selectedDivisions = new();
   private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
+  private Folder? _selectedFolder;
   private bool _enableEdit;
   private string? _searchString;
 
@@ -255,8 +249,8 @@
       if (getWindingCodesTask.Result != null) {
         _windingCodesList.AddRange(getWindingCodesTask.Result);
         _folderPathsCollection.AddRange(getFolderPathsTask.Result);
-        _pdfPathsCollection.AddRange(getPdfFilesTask.Result);
-        _videoPathsCollection.AddRange(getVideoFilesTask.Result);
+        /*_pdfPathsCollection.AddRange(getPdfFilesTask.Result);
+        _videoPathsCollection.AddRange(getVideoFilesTask.Result);*/
         StateHasChanged();
       }
     }
@@ -372,14 +366,17 @@
   #endregion
 
   private async Task HandleFoldersSubmitted(Folder[]? folders) {
-    if (folders != null) {
-      _dropItems.AddRange(folders.Where(x => _dropItems.All(y => y.Name != x.Name))
+    _dropItems.Clear();
+    Logger.LogInformation("Folders Submitted: {Folders}", string.Join(", ", folders?.Select(x => x.Name) ?? Array.Empty<string>()));
+    if (folders != null && _selectedFolder != null) {
+      _selectedFolder.DropItems.AddRange(folders.Where(x => _dropItems.All(y => y.Name != x.Name))
         .Select(x => new DropItem() {
           Name = x.Name,
-          Identifier = "Drop Zone 0"
+          Identifier = "Drop Zone 0",
+          Path = x.Path,
+          Type = DropItemType.Folder
         }));
-    } else {
-      _dropItems.Clear();
+      Logger.LogInformation("Drop Items: {DropItems}", string.Join(", ", _dropItems.Select(x => x.Name)));
     }
 
 
@@ -389,9 +386,9 @@
     dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
   }
 
-  public class DropItem {
-    public string? Name { get; init; }
-    public string? Identifier { get; set; }
-  }
 
+  private Task HandleFolderSelected(Folder arg) {
+    _selectedFolder = arg;
+    return Task.CompletedTask;
+  }
 }

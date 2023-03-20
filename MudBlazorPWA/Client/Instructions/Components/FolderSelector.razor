@@ -1,9 +1,10 @@
 @inject HubClientService DirectoryHub
-@using Microsoft.AspNetCore.SignalR.Client
-@using MudBlazorPWA.Client.Instructions.Pages
+@inject ILogger<FolderSelector> Logger
 @implements IDisposable
-<MudStack Spacing="0">
-  <MudPaper Class="left-column-paper mud-height-full" Width="300px">
+<MudStack Spacing="0"
+    Class="mud-height-full">
+  <MudPaper Class="left-column-paper mud-height-full"
+      Width="300px">
 
     <MudListExtended T="Folder"
         @ref="SelectableFolders"
@@ -11,6 +12,7 @@
         Clickable
         DisablePadding
         Class="mud-width-full"
+        Style="overflow-y: hidden;"
         MultiSelection="false"
         @bind-SelectedItem="SelectedItem"
         @bind-SelectedValue="SelectedValue">
@@ -24,31 +26,36 @@
               Spacing="1"
               Justify="Justify.FlexStart"
               AlignItems="AlignItems.Center">
-            <MudTooltip Text="@($"Go to {baseFolder?.Name}")"
+            <MudTooltip Text="@($"{baseFolder?.Name}")"
                 Arrow="true"
                 Placement="Placement.Top">
+              @* disable icon button if the baseFolder is the only folder in _breadcrumbs*@
               <MudIconButton Icon="@Icons.Material.Outlined.Home"
+                  Disabled="@(_breadCrumbs.Count == 1)"
                   Color="Color.Primary"
                   Size="Size.Small"
                   Variant="Variant.Text"
-                  OnClick="@(() => SetFolderAsRoot(baseFolder))"/>
+                  OnClick="@(() => SetFolderAsRoot(baseFolder!))"/>
             </MudTooltip>
-            @if (_breadCrumbs.Count > 1) {
+            @if (_breadCrumbs.Count >= 3) {
               int currentFolderIndex = _breadCrumbs.IndexOf(_breadCrumbs.Last());
               Folder? parentFolder = _breadCrumbs[currentFolderIndex - 1];
+              if (parentFolder == null)
+                return;
               <strong>/</strong>
-              <MudTooltip Text="@($"Go to {parentFolder?.Name}")"
+              <MudTooltip Text="@($"{parentFolder.Name}")"
                   Arrow
                   ShowOnHover
                   Placement="Placement.Top">
                 <MudChip Color="Color.Default"
+                    Class="px-1"
                     Size="Size.Small"
                     Variant="Variant.Text"
-                    Text="..."
-                    OnClick="@(() => SetFolderAsRoot(parentFolder))">
+                    Text="@parentFolder?.Name"
+                    OnClick="@(() => SetFolderAsRoot(parentFolder!))">
                 </MudChip>
               </MudTooltip>
-            }
+              }
             @if (_breadCrumbs.Any()) {
               Folder? currentFolder = _breadCrumbs.Last();
               <strong class="px-1">/</strong>
@@ -57,44 +64,97 @@
           </MudStack>
         }
       </MudListSubheaderExtended>
-
       @if (RootFolder is not null) {
+          var hasSubFolders = false;
+          var hasPdfs = false;
+          var hasVideos = false;
         foreach (Folder folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
-          bool hasSubFolders = folder.SubFolders.Any();
-          switch (hasSubFolders) {
-            case true:
-              <MudListItemExtended T="Folder"
-                  Icon="@Icons.Material.Filled.Folder"
-                  Text="@folder.Name"
-                  Value="@folder"
-                  OnClick="SetFolderAsRoot">
-              </MudListItemExtended>
-              break;
-            case false:
-              _selectedFolders.Add(folder);
-              break;
+          if (folder.MediaFiles.PdfFiles != null)
+            hasPdfs = folder.MediaFiles.PdfFiles.Any();
+
+          if (folder.MediaFiles.VideoFiles != null)
+            hasVideos = folder.MediaFiles.VideoFiles.Any();
+
+          hasSubFolders = folder.SubFolders.Any();
+          if (hasSubFolders || hasPdfs || hasVideos){
+            <MudListItemExtended T="Folder"
+                Icon="@Icons.Material.Filled.Folder"
+                Text="@folder.Name"
+                Value="@folder"
+                OnClick="SetFolderAsRoot">
+            </MudListItemExtended>
           }
         }
-      }
+        if (!hasSubFolders && !hasPdfs && !hasVideos) {
+          <div class="pa-4">
 
-      @{
-        //if any folders in _breadCrumbs.Last() have SubFolders, then display the dropzone
-        if (_breadCrumbs.Count > 0)
-          _displayDropZone = _breadCrumbs.Count > 1;
-
-        if (_displayDropZone) {
-          <MudDropZone T="AdminDashboard.DropItem"
+          </div>
+        }
+        if (_breadCrumbs.Count > 1) {
+          <MudListSubheaderExtended T="string" Sticky="true"
+              SecondaryBackground="true">
+            Folders
+          </MudListSubheaderExtended>
+          <MudDropZone T="DropItem"
               Identifier="Drop Zone 0"
-              Class="mud-background-gray">
+              Class="align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-background py-1"
+              Style="max-height: 30%; overflow-y: auto; overflow-x: hidden;">
             <ItemRenderer>
-              <div class="mud-width-full d-flex justify-center align-center py-1 cursor-default">
-                <MudChip Text="@context.Name"
+              <MudChip Text="@context.Name"
                   Class="cursor-grab"
+                  Style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
                   Icon="@Icons.Material.Outlined.Folder"
                   Size="Size.Small"
                   Label="true">
               </MudChip>
+            </ItemRenderer>
+          </MudDropZone>
+        }
+        if (RootFolder.MediaFiles.PdfFiles != null && RootFolder.MediaFiles.PdfFiles.Any()) {
+          <MudListSubheaderExtended T="string"
+              Sticky="true"
+              SecondaryBackground="true">
+            PDFs
+          </MudListSubheaderExtended>
+          <MudDropZone T="DropItem"
+              Identifier="DZ-PDF"
+              Class="align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-background py-1"
+              Style="max-height: 30%; overflow-y: auto; overflow-x: hidden;">
+            <ItemRenderer>
+              <div class="mud-width-full d-flex justify-center">
+
+              <MudChip Class="cursor-grab"
+                  Style="height: auto; max-width: 75%;"
+                  Icon="@Icons.Material.Outlined.PictureAsPdf"
+                  Size="Size.Small"
+                  Label="true">
+                <div class="d-flex justify-center mud-width-full">
+
+                  <p style="white-space: pre-wrap; margin: 4px; width: 75%">@context.Name</p>
+                </div>
+              </MudChip>
               </div>
+            </ItemRenderer>
+          </MudDropZone>
+        }
+
+        if (RootFolder.MediaFiles.VideoFiles != null && RootFolder.MediaFiles.VideoFiles.Any()) {
+          <MudListSubheaderExtended T="string"
+              Sticky="true"
+              SecondaryBackground="true">
+            Videos
+          </MudListSubheaderExtended>
+          <MudDropZone T="DropItem"
+              Identifier="DZ-Video"
+              Class="align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-background py-1"
+              Style="max-height: 30%; overflow-y: auto; overflow-x: hidden;">
+            <ItemRenderer>
+              <MudChip Class="cursor-grab"
+                  Icon="@Icons.Material.Outlined.Movie"
+                  Size="Size.Small"
+                  Label="true">
+                 <p style="white-space: pre-wrap; margin-block: 4px">@context.Name</p>
+              </MudChip>
             </ItemRenderer>
           </MudDropZone>
         }
@@ -108,27 +168,31 @@
   [Parameter]
   public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
   [Parameter]
+  public EventCallback<Folder> OnFolderSelected { get; set; }
+  [Parameter]
   public string? DirectoryPath { get; set; }
+
+    private const string PdfDropZoneId = "DZ-PDF";
+    private const string VideoDropZoneId = "DZ-Video";
 
   #region Properties
   private readonly List<Folder?> _breadCrumbs = new();
-  private readonly List<Folder> _selectedFolders = new();
   private MudListExtended<Folder>? SelectableFolders { get; set; }
   private MudListExtended<Folder>? SelectedFoldersList { get; set; }
   private MudListItemExtended<Folder?>? SelectedItem { get; set; }
   private Folder? SelectedValue { get; set; }
   private Folder? RootFolder { get; set; }
   private string[]? _folders;
-  private bool _displayDropZone;
   #endregion
 
   protected override async Task OnInitializedAsync() {
     var enumerable = await DirectoryHub.GetFoldersInPath();
     OnReceiveAllFolders(enumerable);
+    await OnFolderSelected.InvokeAsync(RootFolder);
     await base.OnInitializedAsync();
   }
   private void OnReceiveAllFolders(IEnumerable<string> folders) {
-    _folders = folders.Select(f => f.Insert(0, AppConfig.BasePath)).ToArray();
+    _folders = folders.Select(f => f.Insert(0, DirectoryHub.WindingDocsFolder)).ToArray();
     RootFolder = BuildDirectoryTree(_folders);
     _breadCrumbs.Add(RootFolder);
     InvokeAsync(StateHasChanged);
@@ -137,22 +201,24 @@
     DirectoryHub.ReceiveAllFolders -= OnReceiveAllFolders;
   }
 
-  private Task SetFolderAsRoot() {
-    if (SelectedValue == null || !SelectedValue.SubFolders.Any())
-      return Task.CompletedTask;
+  private async Task SetFolderAsRoot() {
+    if (SelectedValue == null)
+      return;
 
     RootFolder = SelectedValue;
+    await ConvertMediaFilesToDropItems(RootFolder);
     _breadCrumbs.Add(SelectedValue);
-    return InvokeAsync(StateHasChanged).ContinueWith(_ => SubmitSelectedFolders());
+    await SubmitSelectedFolders();
   }
-  private Task SetFolderAsRoot(Folder? newRoot) {
+  private async Task SetFolderAsRoot(Folder newRoot) {
   // remove the newRoot from _breadCrumbs and all following items
     int index = _breadCrumbs.IndexOf(newRoot);
     _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
     RootFolder = newRoot;
+    await ConvertMediaFilesToDropItems(RootFolder);
     _breadCrumbs.Add(newRoot);
     SelectableFolders!.Clear();
-    return SubmitSelectedFolders();
+    await SubmitSelectedFolders();
   }
   private Task NavigateToFolder(Folder folder) {
     RootFolder = folder;
@@ -160,12 +226,11 @@
     return SubmitSelectedFolders();
   }
   private async Task SubmitSelectedFolders() {
-    var folders = _breadCrumbs.Count == 1 ? null : _selectedFolders.ToArray();
-    _selectedFolders.Clear();
-    await OnFoldersSubmitted.InvokeAsync(folders);
+    await OnFolderSelected.InvokeAsync(_breadCrumbs.Last());
+    await OnFoldersSubmitted.InvokeAsync(_breadCrumbs.Last()?.SubFolders.ToArray());
   }
 
-
+  #region Static Methods
   /// <summary>
   /// Builds a directory tree from a collection of file paths.
   /// </summary>
@@ -177,16 +242,13 @@
     if (!enumerable.Any()) {
       return null;
     }
-
   // Find the common part of the paths
     string firstPath = enumerable.First();
     char splitChar = firstPath.Contains('\\') ? '\\' : '/';
     var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
     int commonParts = FindCommonParts(splitPaths);
-
   // Set the root of the tree to the common part
-    var root = new Folder(splitPaths[0][commonParts], string.Join("", splitPaths[0].Take(commonParts + 1)));
-
+    var root = new Folder(splitPaths[0][commonParts], string.Join(splitChar, splitPaths[0].Take(commonParts + 1)), splitChar);
   // Add the remaining parts to the tree
     foreach (string[] splitPath in splitPaths) {
       AddRemainingParts(root, splitPath, commonParts);
@@ -227,12 +289,13 @@
     for (int i = commonParts + 1; i < splitPath.Count; i++) {
       Folder? next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
       if (next == null) {
-        next = new Folder(splitPath[i], current?.Path + splitPath[i]);
-        current?.SubFolders.Add(next);
+        next = new(splitPath[i], current?.Path + current?.SplitChar + splitPath[i], current!.SplitChar);
+        current.SubFolders.Add(next);
       }
       current = next;
     }
   }
+  #endregion
 
   private string GetNameWithParent(string folderName) {
     string? path = _folders?.FirstOrDefault(f => f.EndsWith(folderName));
@@ -244,5 +307,41 @@
     string parent = splitPath[^2];
     return $"{parent}{splitChar}{folderName}";
   }
+  // TODO: call this method when RootFolder is set for the first time only,
+  // remove the recursive blocker.
+  private async Task ConvertMediaFilesToDropItems(Folder rootFolder) {
+  // if Pdf Files is not null, add drop items if not already added
+    Logger.LogInformation("ConvertMediaFilesToDropItems Started");
+    var (pdfFiles, videoFiles) = await DirectoryHub.ListMediaFiles(rootFolder.Path);
+    rootFolder.MediaFiles.PdfFiles = pdfFiles;
+    rootFolder.MediaFiles.VideoFiles = videoFiles;
 
+
+    rootFolder.DropItems.AddRange(rootFolder.MediaFiles.PdfFiles
+      .Where(f => rootFolder.DropItems.All(d => d.Path != f))
+      .Select(f => new DropItem {
+        Name = f.Split("/").Last(),
+        Path = f,
+        Type = DropItemType.Pdf,
+        Identifier = PdfDropZoneId
+      }));
+
+    rootFolder.DropItems.AddRange(rootFolder.MediaFiles.VideoFiles
+      .Where(f => rootFolder.DropItems.All(d => d.Path != f))
+      .Select(f => new DropItem {
+        Name = f.Split("/").Last(),
+        Path = f,
+        Type = DropItemType.Video,
+        Identifier = VideoDropZoneId
+      }));
+
+    Logger.LogInformation("Calling ConvertMediaFilesToDropItems Recursive");
+
+    if (rootFolder.Name != RootFolder?.Name || !rootFolder.SubFolders.Any())
+      return;
+    foreach (Folder subFolder in rootFolder.SubFolders) {
+      await ConvertMediaFilesToDropItems(subFolder);
+    }
+
+  }
 }

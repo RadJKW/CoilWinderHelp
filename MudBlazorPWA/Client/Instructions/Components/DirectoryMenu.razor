@@ -1,5 +1,6 @@
 ﻿@inject HubClientService DirectoryHub
 @using Microsoft.AspNetCore.SignalR.Client
+@using MudBlazorPWA.Client.ViewModels
 @implements IDisposable
 
 <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start ">
@@ -144,7 +145,7 @@
 
     var root = new Folder(
       splitPaths[0][commonParts],
-      string.Join(splitChar, splitPaths[0].Take(commonParts + 1)));
+      string.Join(splitChar, splitPaths[0].Take(commonParts + 1)), splitChar);
 
     foreach (string[] splitPath in splitPaths) {
       AddRemainingParts(root, splitPath, commonParts, splitChar);
@@ -173,7 +174,7 @@
     for (int i = commonParts + 1; i < splitPath.Count; i++) {
       Folder? next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
       if (next == null) {
-        next = new(splitPath[i], $"{current?.Path}{splitChar}{splitPath[i]}");
+        next = new(splitPath[i], $"{current?.Path}{splitChar}{splitPath[i]}", splitChar);
         current?.SubFolders.Add(next);
       }
       current = next;
