@@ -11,8 +11,14 @@
     BorderRadius="6"/>
 
 <MudDropContainer T="DropItem"
+    id="code-drop-container"
     Items="@_selectedFolder?.DropItems"
     Class="mud-width-full"
+    CanDropClass="mud-border-success cursor-cell"
+    NoDropClass="mud-border-error cursor-not-allowed"
+    DraggingClass="item-dragging"
+    ApplyDropClassesOnDragStarted="true"
+    ItemDraggingClass=""
     ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
     ItemDropped="ItemUpdated">
   <ChildContent>
@@ -21,8 +27,7 @@
       <MudStack Row
           Class="mud-width-full"
           AlignItems="AlignItems.Stretch"
-          Justify="Justify.Center">
-
+          Justify="Justify.FlexStart">
         <FolderSelector OnFoldersSubmitted="@HandleFoldersSubmitted" OnFolderSelected="HandleFolderSelected"/>
 
         @switch (_windingCodesList.Count == 0) {
@@ -218,7 +223,6 @@
 </MudDropContainer>
 
 @code {
-  private readonly List<DropItem> _dropItems = new();
   // private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
@@ -365,22 +369,18 @@
   }
   #endregion
 
-  private async Task HandleFoldersSubmitted(Folder[]? folders) {
-    _dropItems.Clear();
-    Logger.LogInformation("Folders Submitted: {Folders}", string.Join(", ", folders?.Select(x => x.Name) ?? Array.Empty<string>()));
+  private Task HandleFoldersSubmitted(Folder[]? folders) {
     if (folders != null && _selectedFolder != null) {
-      _selectedFolder.DropItems.AddRange(folders.Where(x => _dropItems.All(y => y.Name != x.Name))
-        .Select(x => new DropItem() {
+      // if the DropItem is already in the list, dont add it again
+      _selectedFolder.DropItems.AddRange(folders.Where(x => _selectedFolder.DropItems.All(y => y.Path != x.Path))
+        .Select(x => new DropItem {
           Name = x.Name,
-          Identifier = "Drop Zone 0",
+          Identifier = "DZ-Folder",
           Path = x.Path,
           Type = DropItemType.Folder
         }));
-      Logger.LogInformation("Drop Items: {DropItems}", string.Join(", ", _dropItems.Select(x => x.Name)));
     }
-
-
-    await InvokeAsync(StateHasChanged);
+    return Task.CompletedTask;
   }
   private static void ItemUpdated(MudItemDropInfo<DropItem> dropItem) {
     dropItem.Item.Identifier = dropItem.DropzoneIdentifier;

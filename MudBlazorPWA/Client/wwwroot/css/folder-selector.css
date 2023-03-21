@@ -1,0 +1,91 @@
+/*private const string DropZoneClass = "align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-elevation-2 py-1";*/
+/*private const string DropZoneSmallStyle = "max-height: 30vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);";*/
+/*private const string DropZoneLargeStyle = "max-height: 76vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);"*/
+#code-drop-container > *:not(table tr td th thead tbody tfoot tr) {
+    border-radius: 8px;
+}
+#folder-selector {
+    width:100%;
+    max-width: 25vw;
+    height: 91vh;
+    background-color: var(--mud-palette-dark);
+    border-radius: 8px;
+}
+
+#folder-selector .folder-list {
+    max-height: 91vh;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+#folder-selector .drop-zone-gallery {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+    justify-content: center;
+    align-items: center;
+    justify-items: stretch;
+    background-color: var(--mud-palette-background-grey);
+    padding-block: 12px;
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: var(--mud-palette-lines-default);
+}
+
+#folder-selector .drop-zone-wrapper{
+    max-block-size: 78vh;
+    padding: 0;
+    overflow-y: scroll;
+    overflow-anchor: auto;
+}
+
+#folder-selector .drop-zone-gallery > :nth-child(1n) {
+    width: 70%;
+}
+
+#folder-selector .drop-zone-item {
+    min-height: 30px;
+    width: 100%;
+    margin: auto;
+    padding-inline-end: 4px;
+    height: auto;
+}
+
+#folder-selector .drop-zone-item > span {
+    width: 100%;
+    padding-inline: 10px 4px;
+    white-space: pre-line;
+    word-break: break-all;
+}
+
+#folder-selector .drop-zone-item > * p {
+    margin-block: 4px;
+    margin-inline: auto;
+}
+
+#folder-selector .drop-zone-item.folder-item {
+    background-color: rgb(255 64 129 / 0.3);
+
+}
+
+#folder-selector .drop-zone-item.folder-item:hover {
+    background-color: rgb(255 64 129 / 0.5);
+}
+
+#folder-selector .drop-zone-item.video-item {
+    background-color: rgb(50 153 255 / 0.3);
+}
+
+#folder-selector .drop-zone-item.video-item:hover {
+    background-color: rgb(50 153 255 / 0.5);
+}
+
+#folder-selector .drop-zone-item.pdf-item {
+    background-color: rgb(9 154 80 / 0.3);
+}
+
+#folder-selector .drop-zone-item.pdf-item:hover {
+    background-color: rgb(9 154 80 / 0.5);
+}
