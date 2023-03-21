@@ -82,25 +82,25 @@ public class DirectoryService : IDirectoryService
 
 	#region Refactor Later
 	public Task<(string, string[], string[])> GetFolderContent(string? path = null) {
-		var directory = path ?? _rootDirectory;
-		var files = Directory.EnumerateFiles(directory).Where(f => _allowedExtensions.Any(f.EndsWith)).OrderBy(f => f).ToArray();
-		var folders = Directory.GetDirectories(directory).OrderBy(f => f).ToArray();
+		string directory = path ?? _rootDirectory;
+		string[] files = Directory.EnumerateFiles(directory).Where(f => _allowedExtensions.Any(f.EndsWith)).OrderBy(f => f).ToArray();
+		string[] folders = Directory.GetDirectories(directory).OrderBy(f => f).ToArray();
 
 		// _logger.LogInformation("FolderContent: \n Path: {Path} \n Files: {Files} \n Folder: {Folders}", path, files, folders);
 		return Task.FromResult((directory, files, folders));
 	}
 	public string GetRelativePath(string path) {
-		var relativePath = Path.GetRelativePath(_rootDirectory, path);
+		string relativePath = Path.GetRelativePath(_rootDirectory, path);
 		Console.WriteLine($"Root: {_rootDirectory} \n Path: {path} \n Relative: {relativePath}");
 		return relativePath;
 	}
 	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
 		if (code.FolderPath == null) { return code; }
-		var documents = code.Media;
+		Media documents = code.Media;
 
 		// get the pdf path
 		try {
-			var pdfPath = await GetPdfPath(code.FolderPath, false);
+			string? pdfPath = await GetPdfPath(code.FolderPath, false);
 			if (pdfPath != null) { documents.Pdf = GetRelativePath(pdfPath); }
 		}
 		catch (Exception e) {
@@ -110,7 +110,7 @@ public class DirectoryService : IDirectoryService
 
 		// get the video path
 		try {
-			var videoPath = await GetVideoPath(code.FolderPath);
+			string? videoPath = await GetVideoPath(code.FolderPath);
 			if (videoPath != null) { documents.Video = GetRelativePath(videoPath); }
 		}
 		catch (Exception e) {
@@ -120,7 +120,7 @@ public class DirectoryService : IDirectoryService
 
 		// get the refMedia path
 		try {
-			var refMediaPath = await GetRefMediaPath(code.FolderPath);
+			string? refMediaPath = await GetRefMediaPath(code.FolderPath);
 			if (refMediaPath != null) { documents.ReferenceFolder = GetRelativePath(refMediaPath); }
 		}
 		catch (Exception e) {
@@ -130,25 +130,25 @@ public class DirectoryService : IDirectoryService
 		return code;
 	}
 	private Task<string?> GetPdfPath(string folder, bool relative) {
-		var pdfPath = Directory.EnumerateFiles(folder).FirstOrDefault(f => f.EndsWith(".pdf"));
+		string? pdfPath = Directory.EnumerateFiles(folder).FirstOrDefault(f => f.EndsWith(".pdf"));
 		if (relative && pdfPath != null) { pdfPath = Path.GetRelativePath(_rootDirectory, pdfPath); }
 		return Task.FromResult(pdfPath);
 	}
 	private static Task<string?> GetVideoPath(string? folder) {
 		if (folder == null) { return Task.FromResult<string?>(null); }
-		var platformVideoFolder = Path.Combine(AppConfig.BasePath, "TrainingVideos", "Unsorted");
-		var videos = Directory.EnumerateFiles(platformVideoFolder).Where(f => f.EndsWith(".mp4")).ToArray();
+		string platformVideoFolder = Path.Combine(AppConfig.BasePath, "TrainingVideos", "Unsorted");
+		string[] videos = Directory.EnumerateFiles(platformVideoFolder).Where(f => f.EndsWith(".mp4")).ToArray();
 		var random = new Random();
-		for (var i = videos.Length - 1; i > 0; i--) {
-			var j = random.Next(i + 1);
+		for (int i = videos.Length - 1; i > 0; i--) {
+			int j = random.Next(i + 1);
 			(videos[i], videos[j]) = (videos[j], videos[i]);
 		}
-		var randomNumber = random.Next(videos.Length);
-		var videoPath = videos[randomNumber];
+		int randomNumber = random.Next(videos.Length);
+		string videoPath = videos[randomNumber];
 		return Task.FromResult(videoPath)!;
 	}
 	private static Task<string?> GetRefMediaPath(string folder) {
-		var refMediaPath = Directory.EnumerateDirectories(folder).FirstOrDefault(f => f.Contains("Ref", StringComparison.OrdinalIgnoreCase));
+		string? refMediaPath = Directory.EnumerateDirectories(folder).FirstOrDefault(f => f.Contains("Ref", StringComparison.OrdinalIgnoreCase));
 		return Task.FromResult(refMediaPath);
 	}
 	public Task<string[]> GetFoldersInPath(string? path = null) {
@@ -163,7 +163,7 @@ public class DirectoryService : IDirectoryService
 	}
 	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
 		var windingCodesList = windingCodes.ToList();
-		var json = JsonSerializer.Serialize(windingCodesList, new JsonSerializerOptions {
+		string json = JsonSerializer.Serialize(windingCodesList, new JsonSerializerOptions {
 			WriteIndented = true,
 			Converters = {
 				new JsonStringEnumConverter()
@@ -183,9 +183,9 @@ public class DirectoryService : IDirectoryService
 	}
 	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
 		try {
-			var filePath = path ?? _windingCodesJsonPath;
-			var json = await File.ReadAllTextAsync(filePath);
-			var jObject = JsonDocument.Parse(json).RootElement.GetProperty("WindingCodes");
+			string filePath = path ?? _windingCodesJsonPath;
+			string json = await File.ReadAllTextAsync(filePath);
+			JsonElement jObject = JsonDocument.Parse(json).RootElement.GetProperty("WindingCodes");
 			return JsonSerializer.Deserialize<IEnumerable<WindingCode>>(jObject.GetRawText()) ?? Array.Empty<WindingCode>();
 		}
 		catch (Exception ex) {
@@ -196,12 +196,12 @@ public class DirectoryService : IDirectoryService
 	public async Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes) {
 		var dbWindingCodes = await _dataContext.WindingCodes.ToListAsync();
 		var jsonWindingCodes = windingCodes.ToList();
-		foreach (var jsonWindingCode in jsonWindingCodes) {
+		foreach (WindingCode jsonWindingCode in jsonWindingCodes) {
 			// if the code is not in the database, add it
 			if (dbWindingCodes.All(dbWindingCode => dbWindingCode.Code != jsonWindingCode.Code)) { _dataContext.WindingCodes.Add(jsonWindingCode); }
 			else {
 				// if the code is in the database, update it
-				var dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
+				WindingCode dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
 				dbWindingCode.Code = jsonWindingCode.Code;
 				dbWindingCode.Name = jsonWindingCode.Name;
 				dbWindingCode.FolderPath = jsonWindingCode.FolderPath;
@@ -212,7 +212,7 @@ public class DirectoryService : IDirectoryService
 		}
 
 		// if the code is in the database but not in the json file, delete it
-		foreach (var dbWindingCode in dbWindingCodes.Where(dbWindingCode => jsonWindingCodes.All(jsonWindingCode => jsonWindingCode.Code != dbWindingCode.Code))) { _dataContext.WindingCodes.Remove(dbWindingCode); }
+		foreach (WindingCode dbWindingCode in dbWindingCodes.Where(dbWindingCode => jsonWindingCodes.All(jsonWindingCode => jsonWindingCode.Code != dbWindingCode.Code))) { _dataContext.WindingCodes.Remove(dbWindingCode); }
 		await _dataContext.SaveChangesAsync();
 	}
 	#endregion

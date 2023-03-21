@@ -1,5 +1,4 @@
 ﻿@page "/StopEmulator"
-@using MudBlazorPWA.Client.ViewModels
 @layout DocViewLayout
 @inject HubClientService HubClientService
 <MudScrollbar Selector=""
@@ -76,14 +75,6 @@
     dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
   }
 
-  private async Task HandleFolderSubmitted(Folder folder) {
-    if (_items != null && _items.All(x => x.Name != folder.Name))
-      _items.Add(new DropItem() {
-        Name = folder.Name,
-        Identifier = "Drop Zone 0"
-      });
-    await InvokeAsync(StateHasChanged);
-  }
 
   private Task HandleFoldersSubmitted(Folder[]? folders) {
     if (_items is null)

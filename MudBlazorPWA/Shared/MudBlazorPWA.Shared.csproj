@@ -12,21 +12,21 @@
 
     <ItemGroup>
         <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.4.3" />
-        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.3" />
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.4.4" />
+        <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.4" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.3" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.3" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" PrivateAssets="All" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.3" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.3">
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.4" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="7.0.4" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.4" PrivateAssets="All" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.4" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.4">
 
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.3" />
-        <PackageReference Include="MudBlazor" Version="6.1.10-dev1" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+        <PackageReference Include="MudBlazor" Version="6.2.0" />
     </ItemGroup>
     
 </Project>
