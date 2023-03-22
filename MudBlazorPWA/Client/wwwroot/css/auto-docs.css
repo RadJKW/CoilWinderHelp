@@ -70,12 +70,13 @@
 }
 
 .data-grid-border{
-    padding: 16px;
+    padding: 12px;
     width: clamp(50%, 100%, 90%);
 }
 
 #winding-codes-data-grid{
     margin-inline:auto;
+    height: 100%;
 }
 #winding-codes-data-grid .mud-table-container{
     z-index: 2;
