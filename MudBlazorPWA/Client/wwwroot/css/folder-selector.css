@@ -10,60 +10,112 @@
     height: 91vh;
     background-color: var(--mud-palette-dark);
     border-radius: 8px;
+    overflow-y: hidden;
+}
+#folder-selector .folder-list-item{
+    background-color: var(--mud-palette-surface);
+    box-shadow: var(--mud-elevation-2);
+    border-radius: 8px;
+    border-style: solid;
+    border-width: 0 3px 2px 3px;
+    border-color: var(--mud-palette-lines-default);
+    padding-block: 4px;
+    padding-inline: 16px;
+}
+
+#folder-selector .folder-item-flex-container{
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+    width: 100%;
+    padding-inline: 4px;
+    padding-block: 4px 8px;
+}
+
+#folder-selector .mud-list-extended.mud-nested-list{
+   /* max-height: 74vh;
+    overflow-y: auto;*/
+}
+
+#folder-selector .mud-list-drop-content{
+    object-fit: contain;
+    height: auto;
+    max-height: 81vh;
+    overflow: hidden auto;
+    margin-inline: -2px -6px;
+
 }
 
 #folder-selector .folder-list {
-    max-height: 91vh;
+    height: 91vh;
     overflow-y: hidden;
     overflow-x: hidden;
 }
-
+#folder-selector .drop-zone-wrapper{
+    padding-inline: 0 4px;
+    background-color: var(--mud-palette-background-grey);
+}
 #folder-selector .drop-zone-gallery {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     gap: 4px;
     justify-content: center;
-    align-items: center;
-    justify-items: stretch;
+    align-items: stretch;
     background-color: var(--mud-palette-background-grey);
-    padding-block: 12px;
+    padding-block: 2rem;
     border-width: 2px;
     border-style: solid;
-    border-radius: 8px;
-    border-color: var(--mud-palette-lines-default);
+    border-color: transparent;
 }
 
-#folder-selector .drop-zone-wrapper{
-    max-block-size: 78vh;
-    padding: 0;
-    overflow-y: scroll;
-    overflow-anchor: auto;
-}
 
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
-    width: 70%;
+    width: calc(10rem - 4px);
 }
 
 #folder-selector .drop-zone-item {
     min-height: 30px;
+    height: auto;
     width: 100%;
     margin: auto;
     padding-inline-end: 4px;
-    height: auto;
+    cursor: grab;
+}
+
+#folder-selector .overflowing.drop-zone-item:hover::after{
+    content: attr(data-path);
+    cursor: default;
+    position: absolute;
+    min-height: 1rem;
+    bottom: 1.9rem;
+    margin: auto;
+    left: 0;
+    right: 0;
+    text-align: center;
+    padding: 4px 4px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: var(--mud-palette-text-primary);
+    white-space: pre-line;
 }
 
 #folder-selector .drop-zone-item > span {
     width: 100%;
+    min-height: 1rem;
     padding-inline: 10px 4px;
-    white-space: pre-line;
-    word-break: break-all;
+    overflow: hidden;
 }
 
 #folder-selector .drop-zone-item > * p {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
     margin-block: 4px;
     margin-inline: auto;
 }
+
+
 
 #folder-selector .drop-zone-item.folder-item {
     background-color: rgb(255 64 129 / 0.3);
