@@ -271,6 +271,8 @@
 
     RootFolder = SelectedValue;
     _breadCrumbs.Add(SelectedValue);
+    SelectableFolders!.Clear();
+    SelectedValue = null;
     await SubmitSelectedFolders();
   }
   private async Task SetFolderAsRoot(Folder newRoot) {

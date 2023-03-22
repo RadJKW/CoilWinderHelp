@@ -55,6 +55,7 @@
 #folder-selector .drop-zone-wrapper{
     padding-inline: 0 4px;
     background-color: var(--mud-palette-background-grey);
+    padding-bottom: 2px;
 }
 #folder-selector .drop-zone-gallery {
     display: flex;
@@ -66,8 +67,9 @@
     background-color: var(--mud-palette-background-grey);
     padding-block: 2rem;
     border-width: 2px;
+    border-radius: 4px;
     border-style: solid;
-    border-color: transparent;
+    border-color: var(--mud-palette-lines-default);
 }
 
 
