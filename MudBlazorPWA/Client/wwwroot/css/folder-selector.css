@@ -5,9 +5,10 @@
     border-radius: 8px;
 }
 #folder-selector {
-    width:100%;
-    max-width: 25vw;
+    /* width: 100%; */
+    /* max-width: 25vw; */
     height: 91vh;
+    flex: 1 0 25%;
     background-color: var(--mud-palette-dark);
     border-radius: 8px;
     overflow-y: hidden;
@@ -21,6 +22,11 @@
     border-color: var(--mud-palette-lines-default);
     padding-block: 4px;
     padding-inline: 16px;
+}
+#folder-selector .folder-list {
+    height: 91vh;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 #folder-selector .folder-item-flex-container{
@@ -43,17 +49,11 @@
     height: auto;
     max-height: 81vh;
     overflow: hidden auto;
-    margin-inline: -2px -6px;
+    margin-inline: -1px 0;
 
 }
 
-#folder-selector .folder-list {
-    height: 91vh;
-    overflow-y: hidden;
-    overflow-x: hidden;
-}
 #folder-selector .drop-zone-wrapper{
-    padding-inline: 0 4px;
     background-color: var(--mud-palette-background-grey);
     padding-bottom: 2px;
 }

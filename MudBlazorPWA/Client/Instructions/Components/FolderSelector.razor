@@ -5,7 +5,6 @@
     Spacing="0"
     Class="mud-height-full">
   <MudPaper>
-
     <MudListExtended T="Folder"
         @ref="SelectableFolders"
         Dense
@@ -16,7 +15,7 @@
         @bind-SelectedItem="SelectedItem"
         @bind-SelectedValue="SelectedValue">
       <MudListSubheaderExtended T="Folder"
-          Class="mud-width-full py-2 border-b border-solid mud-border-lines-default"
+          Class="border-b border-solid mud-border-lines-default mud-width-full py-2"
           Sticky="true"
           SecondaryBackground="true">
         @if (_breadCrumbs.Count >= 1) {
@@ -41,7 +40,6 @@
               Folder? parentFolder = _breadCrumbs[currentFolderIndex - 1];
               if (parentFolder == null)
                 return;
-
               <strong>/</strong>
               <MudTooltip Text="@($"{parentFolder.Name}")"
                   Arrow
@@ -64,7 +62,7 @@
           </MudStack>
         }
       </MudListSubheaderExtended>
-      <div class="mud-background-gray mud-width-full pa-1"
+      <div class="mud-background-gray mud-width-full"
           style="height: 91vh;">
         @if (RootFolder != null) {
           var hasSubFolders = false;
@@ -99,9 +97,10 @@
 
             </MudListItemExtended>
           }
-          <div class="mud-list-drop-content" style="background-color:var(--mud-palette-surface);">
+          <div class="mud-list-drop-content"
+              style="background-color:var(--mud-palette-surface);">
             <MudListSubheaderExtended T="string"
-                Class="py-2 border-t border-solid mud-border-lines-default"
+                Class="border-solid border-t mud-border-lines-default py-2"
                 Style="top: 0;"
                 Sticky="true"
                 Inset="false"
@@ -118,7 +117,7 @@
 
             @if (_breadCrumbs.Count > 1 && RootFolder.SubFolders.Any()) {
               <MudListItemExtended T="string"
-                  Style="position: sticky; top: 0; z-index: 2;"
+                  Style="position: sticky; top: 1px; z-index: 2;"
                   InitiallyExpanded="true"
                   Dense="true">
                 <ChildContent>
@@ -131,26 +130,26 @@
                 </ChildContent>
                 <NestedList>
                   <div class="drop-zone-wrapper">
-                  <MudDropZone T="DropItem"
-                      Identifier="@FolderDropZoneId"
-                      Class="drop-zone-gallery">
-                    <ItemRenderer>
-                      <MudChip Class="drop-zone-item folder-item"
-                          UserAttributes="@(new() {{ "data-path", context.Name }})"
-                          Icon="@Icons.Material.Outlined.Folder"
-                          Size="Size.Small"
-                          Label="true">
-                        <p>@context.Name</p>
-                      </MudChip>
-                    </ItemRenderer>
-                  </MudDropZone>
+                    <MudDropZone T="DropItem"
+                        Identifier="@FolderDropZoneId"
+                        Class="drop-zone-gallery">
+                      <ItemRenderer>
+                        <MudChip Class="drop-zone-item folder-item"
+                            UserAttributes="@(new() {{ "data-path", context.Name }})"
+                            Icon="@Icons.Material.Outlined.Folder"
+                            Size="Size.Small"
+                            Label="true">
+                          <p>@context.Name</p>
+                        </MudChip>
+                      </ItemRenderer>
+                    </MudDropZone>
                   </div>
                 </NestedList>
               </MudListItemExtended>
             }
             @if (RootFolder.MediaFiles.PdfFiles != null && RootFolder.MediaFiles.PdfFiles.Any()) {
               <MudListItemExtended T="string"
-                  Style="position: sticky; top: 0; z-index: 2;"
+                  Style="position: sticky; top: 1px; z-index: 2;"
                   InitiallyExpanded="true"
                   Dense="true">
                 <ChildContent>
@@ -163,21 +162,21 @@
                 </ChildContent>
                 <NestedList>
                   <div class="drop-zone-wrapper">
-                  <MudDropZone T="DropItem"
-                      Identifier="@PdfDropZoneId"
-                      CanDrop="CanDropPdf"
-                      ApplyDropClassesOnDragStarted="true"
-                      Class="drop-zone-gallery">
-                    <ItemRenderer>
-                      <MudChip Class="drop-zone-item pdf-item"
-                          UserAttributes="@(new() {{ "data-path", context.Name }})"
-                          Icon="@Icons.Material.Outlined.PictureAsPdf"
-                          Size="Size.Small"
-                          Label="true">
-                        <p>@context.Name</p>
-                      </MudChip>
-                    </ItemRenderer>
-                  </MudDropZone>
+                    <MudDropZone T="DropItem"
+                        Identifier="@PdfDropZoneId"
+                        CanDrop="CanDropPdf"
+                        ApplyDropClassesOnDragStarted="true"
+                        Class="drop-zone-gallery">
+                      <ItemRenderer>
+                        <MudChip Class="drop-zone-item pdf-item"
+                            UserAttributes="@(new() {{ "data-path", context.Name }})"
+                            Icon="@Icons.Material.Outlined.PictureAsPdf"
+                            Size="Size.Small"
+                            Label="true">
+                          <p>@context.Name</p>
+                        </MudChip>
+                      </ItemRenderer>
+                    </MudDropZone>
                   </div>
                 </NestedList>
               </MudListItemExtended>
@@ -185,7 +184,7 @@
 
             @if (RootFolder.MediaFiles.VideoFiles != null && RootFolder.MediaFiles.VideoFiles.Any()) {
               <MudListItemExtended T="string"
-                  Style="position: sticky; top: 0; z-index: 2;;"
+                  Style="position: sticky; top: 1px; z-index: 2;;"
                   InitiallyExpanded="true"
                   Dense="true">
                 <ChildContent>
@@ -199,19 +198,19 @@
                 <NestedList>
                   <div class="drop-zone-wrapper">
                     <MudDropZone T="DropItem"
-                      Identifier="@VideoDropZoneId"
-                      CanDrop="CanDropVideo"
-                      Class="drop-zone-gallery">
-                    <ItemRenderer>
-                      <MudChip Class="drop-zone-item video-item"
-                          UserAttributes="@(new() {{ "data-path", context.Name }})"
-                          Icon="@Icons.Material.Outlined.Movie"
-                          Size="Size.Small"
-                          Label="true">
-                        <p>@context.Name</p>
-                      </MudChip>
-                    </ItemRenderer>
-                  </MudDropZone>
+                        Identifier="@VideoDropZoneId"
+                        CanDrop="CanDropVideo"
+                        Class="drop-zone-gallery">
+                      <ItemRenderer>
+                        <MudChip Class="drop-zone-item video-item"
+                            UserAttributes="@(new() {{ "data-path", context.Name }})"
+                            Icon="@Icons.Material.Outlined.Movie"
+                            Size="Size.Small"
+                            Label="true">
+                          <p>@context.Name</p>
+                        </MudChip>
+                      </ItemRenderer>
+                    </MudDropZone>
                   </div>
                 </NestedList>
               </MudListItemExtended>
