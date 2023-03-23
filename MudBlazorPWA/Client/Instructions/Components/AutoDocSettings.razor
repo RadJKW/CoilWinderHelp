@@ -52,7 +52,7 @@
     DrawerOpenOnHover
   }
 
-  private AppSettings _appSettings = new AppSettings();
+  private AppSettings _appSettings = new();
 
   protected override async Task OnInitializedAsync() {
     DocViewSettings.MajorUpdateOccured +=  DocViewSettingsOnMajorUpdateOccured;
