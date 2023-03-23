@@ -90,13 +90,14 @@
                   Value="@folder"
                   OnClick="SetFolderAsRoot"/>
             }
-          </div>
-          if (!hasSubFolders && !hasPdfs && !hasVideos) {
+          @if (!hasSubFolders && !hasPdfs && !hasVideos) {
             <MudListItemExtended T="string"
+                Style="background-color: var(--mud-palette-surface);"
                 SecondaryText="End of Directory Tree">
 
             </MudListItemExtended>
           }
+          </div>
           <div class="mud-list-drop-content"
               style="background-color:var(--mud-palette-surface);">
             <MudListSubheaderExtended T="string"
@@ -132,6 +133,7 @@
                   <div class="drop-zone-wrapper">
                     <MudDropZone T="DropItem"
                         Identifier="@FolderDropZoneId"
+                        CanDrop="CanDropFolder"
                         Class="drop-zone-gallery">
                       <ItemRenderer>
                         <MudChip Class="drop-zone-item folder-item"
@@ -202,8 +204,9 @@
                         CanDrop="CanDropVideo"
                         Class="drop-zone-gallery">
                       <ItemRenderer>
-                        <MudChip Class="drop-zone-item video-item"
-                            UserAttributes="@(new() {{ "data-path", context.Name }})"
+                        <MudChip Class="drop-zone-item video-item border border-solid"
+                            Style="border-color: transparent !important"
+                            UserAttributes="GetDropItemAttributes(context)"
                             Icon="@Icons.Material.Outlined.Movie"
                             Size="Size.Small"
                             Label="true">
@@ -353,7 +356,6 @@
   }
 
   private async Task ConvertMediaFilesToDropItems(Folder rootFolder) {
-    Logger.LogInformation("ConvertMediaFilesToDropItems Started");
     var (pdfFiles, videoFiles) = await DirectoryHub.ListMediaFiles(rootFolder.Path);
     rootFolder.MediaFiles.PdfFiles = pdfFiles;
     rootFolder.MediaFiles.VideoFiles = videoFiles;
@@ -376,7 +378,6 @@
         Type = DropItemType.Video,
         Identifier = VideoDropZoneId
       }));
-    Logger.LogInformation("Calling ConvertMediaFilesToDropItems Recursive");
     foreach (Folder subFolder in rootFolder.SubFolders) {
       await ConvertMediaFilesToDropItems(subFolder);
     }
@@ -386,5 +387,26 @@
   }
   private bool CanDropPdf(DropItem arg) {
     return arg.Type == DropItemType.Pdf && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
+  }
+  private bool CanDropFolder(DropItem arg) {
+    return arg.Type == DropItemType.Folder && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
+  }
+  private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
+
+    // always return a dictionary with { 'data-path' : context.Path }
+    // if the dropItem.IsCopy is true, then get the Identifier string from each dropItem in the RootFolder.DropItems list that is a copy
+    // and add it to the dictionary with the key 'title' and the concatenated string of each copies identifier
+    // the concatenated string should have a break after each identifier so that they are on separate lines
+
+    var attributes = new Dictionary<string, object> {
+      { "data-path", context.Name! }
+    };
+
+    var identifiers = RootFolder?.DropItems.Where(d => d.IsCopy).Select(d => d.Identifier).ToList();
+    if (identifiers != null) {
+      attributes.Add("data-title", string.Join("&#10", identifiers));
+    }
+
+    return attributes;
   }
 }

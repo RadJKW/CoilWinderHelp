@@ -4,16 +4,18 @@
 #code-drop-container > *:not(table tr td th thead tbody tfoot tr) {
     border-radius: 8px;
 }
+
 #folder-selector {
     /* width: 100%; */
-    /* max-width: 25vw; */
+     /*max-width: 25vw;*/
     height: 91vh;
-    flex: 1 0 25%;
+    flex: 1 0 350px;
     background-color: var(--mud-palette-dark);
     border-radius: 8px;
     overflow-y: hidden;
 }
-#folder-selector .folder-list-item{
+
+#folder-selector .folder-list-item {
     background-color: var(--mud-palette-surface);
     box-shadow: var(--mud-elevation-2);
     border-radius: 8px;
@@ -23,28 +25,28 @@
     padding-block: 4px;
     padding-inline: 16px;
 }
+
 #folder-selector .folder-list {
     height: 91vh;
     overflow-y: hidden;
     overflow-x: hidden;
 }
 
-#folder-selector .folder-item-flex-container{
+#folder-selector .folder-item-flex-container {
     display: flex;
     flex-direction: column;
     gap: 4px;
     align-items: center;
     width: 100%;
-    padding-inline: 4px;
-    padding-block: 4px 8px;
+    padding: 4px;
 }
 
-#folder-selector .mud-list-extended.mud-nested-list{
-   /* max-height: 74vh;
-    overflow-y: auto;*/
+#folder-selector .mud-list-extended.mud-nested-list {
+    /* max-height: 74vh;
+     overflow-y: auto;*/
 }
 
-#folder-selector .mud-list-drop-content{
+#folder-selector .mud-list-drop-content {
     object-fit: contain;
     height: auto;
     max-height: 81vh;
@@ -53,10 +55,11 @@
 
 }
 
-#folder-selector .drop-zone-wrapper{
+#folder-selector .drop-zone-wrapper {
     background-color: var(--mud-palette-background-grey);
     padding-bottom: 2px;
 }
+
 #folder-selector .drop-zone-gallery {
     display: flex;
     flex-direction: row;
@@ -74,7 +77,7 @@
 
 
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
-    width: calc(10rem - 4px);
+    width: calc(9rem - 4px);
 }
 
 #folder-selector .drop-zone-item {
@@ -86,18 +89,36 @@
     cursor: grab;
 }
 
-#folder-selector .overflowing.drop-zone-item:hover::after{
+#folder-selector .overflowing.drop-zone-item:hover::after {
     content: attr(data-path);
     cursor: default;
     position: absolute;
     min-height: 1rem;
     bottom: 1.9rem;
     margin: auto;
-    left: 0;
-    right: 0;
+    left: -2px;
+    right: -2px;
     text-align: center;
     padding: 4px 4px;
     background-color: rgba(0, 0, 0, 0.9);
+    color: var(--mud-palette-text-primary);
+    white-space: pre-line;
+}
+#folder-selector .drop-zone-item [data-title]:hover:after {
+    visibility: visible;
+}
+#folder-selector .drop-zone-item [data-title]:after {
+    content: attr(data-title);
+    cursor: default;
+    position: absolute;
+    min-height: 1rem;
+    top: 0.9rem;
+    left: -2px;
+    right: -2px;
+    text-align: center;
+    padding: 4px 4px;
+    margin: auto;
+    background-color: rgba(255, 55, 55, 0.2);
     color: var(--mud-palette-text-primary);
     white-space: pre-line;
 }
@@ -105,7 +126,7 @@
 #folder-selector .drop-zone-item > span {
     width: 100%;
     min-height: 1rem;
-    padding-inline: 10px 4px;
+    padding-inline: 4px;
     overflow: hidden;
 }
 
@@ -114,9 +135,8 @@
     text-overflow: ellipsis;
     overflow: hidden;
     margin-block: 4px;
-    margin-inline: auto;
+    margin-inline: 12px 8px;
 }
-
 
 
 #folder-selector .drop-zone-item.folder-item {
