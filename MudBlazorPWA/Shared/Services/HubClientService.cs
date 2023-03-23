@@ -90,7 +90,6 @@ public sealed class HubClientService: IAsyncDisposable
 	}
 
 	public async Task<(List<string>, List<string>)> ListMediaFiles(string? path = null) {
-		_logger.LogInformation("ListMediaFiles @ {Path}", path ?? "null");
 		var pdfFiles = await DirectoryHub.InvokeAsync<List<string>>("ListPdfFiles", path);
 		var videoFiles = await DirectoryHub.InvokeAsync<List<string>>("ListVideoFiles", path);
 		return (pdfFiles, videoFiles);

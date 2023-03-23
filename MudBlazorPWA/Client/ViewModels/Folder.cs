@@ -12,6 +12,7 @@ public class Folder {
 	public Folder? RefMediaFiles { get; set; } = null;
 	public List<Folder> SubFolders { get; } = new();
 
+	// TODO: make DropItems sorted by name
 	public List<DropItem> DropItems { get; } = new();
 	public char SplitChar { get; }
 }

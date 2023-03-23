@@ -1,4 +1,5 @@
-﻿using Blazored.LocalStorage;
+﻿using System.Reflection;
+using Blazored.LocalStorage;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Shared.Services;
@@ -6,7 +7,6 @@ public class DocViewService
 {
 	public event Action MajorUpdateOccured = default!;
 	private void OnMajorUpdateOccured() => MajorUpdateOccured.Invoke();
-
 
 	public AppSettings Settings { get; private set; } = new();
 
@@ -18,22 +18,24 @@ public class DocViewService
 	public T GetAppSetting<T>(Enum property) => GetAppSetting<T>(property.ToString());
 
 	private T GetAppSetting<T>(string propertyName) {
-		var property = Settings.GetType().GetProperty(propertyName);
+		PropertyInfo? property = Settings.GetType().GetProperty(propertyName);
 		return (T)property?.GetValue(Settings)!;
 	}
 
 	public void SetAppSetting<T>(Enum property, T value) => SetAppSetting(property.ToString(), value);
 
 	private void SetAppSetting<T>(string propertyName, T value) {
-		var settingsType = Settings.GetType();
-		var property = settingsType.GetProperty(propertyName);
+		Type settingsType = Settings.GetType();
+		PropertyInfo? property = settingsType.GetProperty(propertyName);
 		if (property is null)
 			return;
-		// if property is AppSettings.DrawerOpenOnHover and its value is true, set DrawerOpen to false
+		var valueAsBool = (bool)(object)value!;
+
+		// toggles 'drawerOpen' when 'drawerOpenOnHover' is toggled
+		// this avoids hover from being stuck open if the user toggles the setting
 		if (property.Name == nameof(AppSettings.DrawerOpenOnHover)) {
-			// set the DrawerOpen property to opposite of its current value
-			var drawerOpenProperty = settingsType.GetProperty(nameof(AppSettings.DrawerOpen));
-			drawerOpenProperty?.SetValue(Settings, !(bool)drawerOpenProperty.GetValue(Settings)!);
+			PropertyInfo? drawerOpenProperty = settingsType.GetProperty(nameof(AppSettings.DrawerOpen));
+			drawerOpenProperty!.SetValue(Settings, !valueAsBool);
 		}
 
 		property.SetValue(Settings, value);
@@ -48,7 +50,7 @@ public class DocViewService
 	}
 
 	public async Task LoadSettingsAsync() {
-		foreach (var property in Settings.GetType().GetProperties()) {
+		foreach (PropertyInfo property in Settings.GetType().GetProperties()) {
 			if ( await LocalStorageService.ContainKeyAsync(property.Name) == false) {
 				// set the property to its default value
 				property.SetValue(Settings, property.GetValue(Settings));
@@ -62,8 +64,8 @@ public class DocViewService
 	}
 
 	public async void SaveSettingsAsync() {
-		foreach (var property in Settings.GetType().GetProperties()) {
-			var value = property.GetValue(Settings);
+		foreach (PropertyInfo property in Settings.GetType().GetProperties()) {
+			object? value = property.GetValue(Settings);
 			if (value is not null) {
 				await LocalStorageService.SetItemAsync(property.Name, value);
 			}
