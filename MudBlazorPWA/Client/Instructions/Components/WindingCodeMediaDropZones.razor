@@ -17,19 +17,50 @@
           Class="mud-width-full"
           Justify="Justify.Center">
         <MudItem xs="12">
-          <MudStack Spacing="2" Class="mud-width-full">
-            <MudStack Row
-                Spacing="1"
-                Justify="Justify.SpaceEvenly"
-                AlignItems="AlignItems.Stretch">
-              <MudDropZone T="DropItem"
-                  Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-success mud-width-full"
-                  Identifier="WindingCode.Folder">
-                <ChildContent>
-                  <div class="mud-width-full d-flex justify-start">
+          <MudStack Spacing="2"
+              Class="mud-width-full">
+            <div class="d-flex flex-wrap gap-2">
+              @foreach (var config in _dropZoneConfigs) {
+                <MudDropZone T="DropItem"
+                    Style="@config.Style"
+                    Class="@config.Class"
+                    CanDrop="@config.CanDropFunc"
+                    Identifier="@($"{config.Identifier}-{WindingCode.Id}")">
+                  <ChildContent>
+                    <div class="d-flex justify-start mud-width-full">
+                      <MudText Typo="Typo.button"
+                          Align="Align.Left">
+                        <strong>@config.HeaderText</strong>
+                      </MudText>
+                    </div>
+                  </ChildContent>
+                  <ItemRenderer>
+                    <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
+                      <MudChip Icon="@config.Icon"
+                          Class="align-center cursor-grab justify-start py-2"
+                          Variant="Variant.Filled"
+                          Size="Size.Medium">
+                        <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
+                      </MudChip>
+                    </div>
+                  </ItemRenderer>
+                </MudDropZone>
+              }
 
+              @*@{
+                // create a class for a dropzone with properties that allow it to be customized for each dropzone
+                // iterate through a list of drop zones and create a dropzone for each
+                <MudDropZone T="DropItem"
+                  Style="width: 45%;"
+                  Class="border border-solid flex-grow-1 mud-alert-text-success mud-border-lines-default pa-4 rounded-lg"
+                  CanDrop="CanDropFolder"
+                  Identifier="@($"{DzCodeFolder}-{WindingCode.Id}")">
+                <ChildContent>
+                  <div class="d-flex justify-start mud-width-full">
                     <MudText Typo="Typo.button"
-                        Align="Align.Left"><strong>Folder Path</strong></MudText>
+                        Align="Align.Left">
+                      <strong>Folder Path</strong>
+                    </MudText>
                   </div>
                 </ChildContent>
                 <ItemRenderer>
@@ -44,13 +75,16 @@
                 </ItemRenderer>
               </MudDropZone>
               <MudDropZone T="DropItem"
-                  Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-warning mud-width-full"
-                  Identifier="WindingCode.Media.Pdf">
+                  Style="width: 45%;"
+                  Class="border border-solid flex-grow-1 mud-alert-text-warning mud-border-lines-default pa-4 rounded-lg"
+                  CanDrop="CanDropPdf"
+                  Identifier="@($"{DzCodePdf}-{WindingCode.Id}")">
                 <ChildContent>
-                  <div class="mud-width-full d-flex justify-start">
-
+                  <div class="d-flex justify-start mud-width-full">
                     <MudText Typo="Typo.button"
-                        Align="Align.Left"><strong>PDF</strong></MudText>
+                        Align="Align.Left">
+                      <strong>PDF</strong>
+                    </MudText>
                   </div>
                 </ChildContent>
                 <ItemRenderer>
@@ -65,13 +99,16 @@
                 </ItemRenderer>
               </MudDropZone>
               <MudDropZone T="DropItem"
-                  Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-info mud-width-full"
-                  Identifier="WindingCode.Media.Video">
+                  Style="width: 45%;"
+                  Class="border border-solid flex-1 mud-alert-text-info mud-border-lines-default pa-4 rounded-lg"
+                  CanDrop="CanDropVideo"
+                  Identifier="@($"{DzCodeVideo}-{WindingCode.Id}")">
                 <ChildContent>
-                  <div class="mud-width-full d-flex justify-start">
-
+                  <div class="d-flex justify-start mud-width-full">
                     <MudText Typo="Typo.button"
-                        Align="Align.Left"><strong>Video</strong></MudText>
+                        Align="Align.Left">
+                      <strong>Video</strong>
+                    </MudText>
                   </div>
                 </ChildContent>
                 <ItemRenderer>
@@ -85,29 +122,31 @@
                   </div>
                 </ItemRenderer>
               </MudDropZone>
-            </MudStack>
-             <MudDropZone T="DropItem"
-                              Class="rounded-lg pa-4 flex-grow-1 mud-alert-text-warning mud-width-full"
-                              Identifier="WindingCode.Media.RefMedia">
-               <ChildContent>
-                 <div class="mud-width-full d-flex justify-start">
-
-                   <MudText Typo="Typo.button"
-                       Align="Align.Left"><strong>Reference Media</strong></MudText>
-                 </div>
-               </ChildContent>
-                 <ItemRenderer>
-                                             <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
-                                               <MudChip Icon="@Icons.Material.Outlined.Folder"
-                                                   Class="align-center cursor-grab justify-start py-2"
-                                                   Variant="Variant.Filled"
-                                                   Size="Size.Medium">
-                                                 <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
-                                               </MudChip>
-                                             </div>
-                                           </ItemRenderer>
-
-                          </MudDropZone>
+                <MudDropZone T="DropItem"
+                    Style="width: 45%;"
+                    Class="border border-solid flex-1 mud-alert-text-secondary mud-border-lines-default pa-4 rounded-lg"
+                    Identifier="@($"{DzCodeReferenceMedia}-{WindingCode.Id}")">
+                  <ChildContent>
+                    <div class="d-flex justify-start mud-width-full">
+                      <MudText Typo="Typo.button"
+                          Align="Align.Left">
+                        <strong>Reference Media</strong>
+                      </MudText>
+                    </div>
+                  </ChildContent>
+                  <ItemRenderer>
+                    <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
+                      <MudChip Icon="@Icons.Material.Outlined.Folder"
+                          Class="align-center cursor-grab justify-start py-2"
+                          Variant="Variant.Filled"
+                          Size="Size.Medium">
+                        <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
+                      </MudChip>
+                    </div>
+                  </ItemRenderer>
+                </MudDropZone>
+              }*@
+            </div>
           </MudStack>
         </MudItem>
       </MudGrid>
@@ -122,3 +161,114 @@
     </MudCardActions>
   </MudCard>
 </div>
+
+@code{
+
+    private const string DzCodeFolder = "DZ-Code-Folder";
+    private const string DzCodePdf = "DZ-Code-Pdf";
+    private const string DzCodeVideo = "DZ-Code-Video";
+    private const string DzCodeReferenceMedia = "DZ-Code-Reference";
+
+  [Parameter, EditorRequired]
+  public List<DropItem>? DropItems { get; set; }
+
+  [Parameter, EditorRequired]
+  public required CellContext<WindingCode> Context { get; set; }
+
+  [Parameter, EditorRequired]
+  public required WindingCode WindingCode { get; set; }
+
+  [Parameter]
+  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
+
+  public class DropZoneConfig
+  {
+    private string _style = "width: 45%;";
+    private string _class = "border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg";
+
+    public string Style
+    {
+      get => _style;
+      init => _style = $"{_style}{(value.EndsWith(";") ? value : value + ";")}";
+    }
+
+    public string Class
+    {
+      get => _class;
+      init => _class = $"{_class} {value}";
+    }
+
+    public required string Identifier { get; init; }
+    public required string HeaderText { get; init; }
+    public required string Icon { get; init; }
+    public Func<DropItem, bool>? CanDropFunc { get; init; }
+  }
+
+  private List<DropZoneConfig> _dropZoneConfigs = new();
+
+  protected override void OnInitialized() {
+    base.OnInitialized();
+    _dropZoneConfigs = new() {
+      new() {
+        Class = "mud-alert-text-success",
+        Identifier = DzCodeFolder,
+        HeaderText = "Folder Path",
+        Icon = Icons.Material.Outlined.Folder,
+        CanDropFunc = CanDropFolder
+      },
+      new() {
+        Class = "mud-alert-text-warning",
+        Identifier = DzCodePdf,
+        HeaderText = "PDF",
+        Icon = Icons.Material.Outlined.PictureAsPdf,
+        CanDropFunc = CanDropPdf
+      },
+      new() {
+        Class = "mud-alert-text-info",
+        Identifier = DzCodeVideo,
+        HeaderText = "Video",
+        Icon = Icons.Material.Filled.Movie,
+        CanDropFunc = CanDropVideo
+      },
+      new() {
+        Class = "mud-alert-text-secondary",
+        Identifier = DzCodeReferenceMedia,
+        HeaderText = "Reference Media",
+        Icon = Icons.Material.Outlined.Folder,
+        CanDropFunc = CanDropReferenceMedia
+      }
+    };
+  }
+
+
+
+
+  private async Task CommittedItemChanges(WindingCode contextItem) {
+    await OnCommittedItemChanges.InvokeAsync(contextItem);
+  }
+
+  private  bool CanDropVideo(DropItem arg) {
+    if (DropItems == null) return false;
+
+    return arg.Type == DropItemType.Video && DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
+  }
+  private bool CanDropPdf(DropItem arg) {
+    if (DropItems == null) return false;
+
+    return arg.Type == DropItemType.Pdf && DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
+  }
+  private bool CanDropFolder(DropItem arg) {
+    if (DropItems == null) return false;
+
+    return arg.Type == DropItemType.Folder && DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
+  }
+  private bool CanDropReferenceMedia(DropItem arg) {
+    if (DropItems == null) return false;
+  // return true if the following conditions are met:
+  // 1. the item is a folder
+  // 2. the item is not already in the list
+  // 3. the item is not the same as the current item
+  // 4. only one item can be in the list
+    return arg.Type == DropItemType.Folder && DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
+  }
+}
