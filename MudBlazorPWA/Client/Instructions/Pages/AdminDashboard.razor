@@ -12,6 +12,7 @@
 
 <MudDropContainer T="DropItem"
     id="code-drop-container"
+    @ref="_dropContainer"
     Items="@(_selectedFolder?.DropItems)"
     Class="mud-width-full"
     CanDropClass="mud-border-success cursor-cell"
@@ -221,10 +222,43 @@
       </MudStack>
     </div>
   </ChildContent>
+  <ItemRenderer>
+    @{
+      var chipClass = "border border-solid drop-zone-item";
+      string chipIcon;
+      switch (context.Type) {
+        case DropItemType.Folder:
+          chipClass += " " + "folder-item";
+          chipIcon = @Icons.Material.Filled.Folder;
+          break;
+        case DropItemType.Pdf:
+          chipClass += " " + "pdf-item";
+          chipIcon = @Icons.Material.Filled.PictureAsPdf;
+          break;
+        case DropItemType.Video:
+          chipClass += " " + "video-item";
+          chipIcon = @Icons.Material.Filled.VideoLibrary;
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
+      }
+
+      <MudChip Class="@chipClass"
+          Style="border-color: transparent !important"
+          UserAttributes="GetDropItemAttributes(context)"
+          Icon="@chipIcon"
+          Size="Size.Small"
+          Label="true">
+        <p>@context.Name</p>
+
+      </MudChip>
+    }
+  </ItemRenderer>
 
 </MudDropContainer>
 
 @code {
+  private MudDropContainer<DropItem> _dropContainer = default!;
   // private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
@@ -384,57 +418,104 @@
     }
     return Task.CompletedTask;
   }
-  private void ItemUpdated(MudItemDropInfo<DropItem> targetDropZone) {
-    if (_selectedFolder == null) {
+  private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
+    DropItem? dropItem = dropInfo.Item;
+    string? targetZoneId = dropInfo.DropzoneIdentifier;
+
+    var dropItemListWithCopies = _selectedFolder?.DropItems.Where(x => x.Name == dropItem.Name).ToList();
+
+
+  // If the item can't be dropped, just return
+    if (!CanDropItem(dropInfo))
       return;
-    }
 
-    DropItem? dropItem = targetDropZone.Item;
-
-    if (targetDropZone.DropzoneIdentifier == dropItem.Identifier) {
-      Logger.LogInformation("ItemUpdated -> returned: DropzoneIdentifier == Item.Identifier");
+    if (targetZoneId == dropItem.Identifier)
       return;
-    }
 
-  // get a list of all instances of the dropItem in _selectedFolder.DropItems where the Name == dropItem.Item.Name
-    var dropItemInstances = _selectedFolder.DropItems.Where(x => x.Name == dropItem.Name).ToList();
+    if (dropItemListWithCopies == null)
+      return;
 
     switch (dropItem.IsCopy) {
-      case true when targetDropZone.DropzoneIdentifier == dropItem.OriginalIdentifier:
-        _selectedFolder.DropItems.Remove(dropItem);
-        Logger.LogInformation("ItemUpdated Switch -> 1");
+      case true when targetZoneId == dropItem.OriginalIdentifier:
+        _selectedFolder?.DropItems.Remove(dropItem);
         return;
-      case true when targetDropZone.DropzoneIdentifier != dropItem.OriginalIdentifier:
-        dropItem.Identifier = targetDropZone.DropzoneIdentifier;
-        Logger.LogInformation("ItemUpdated Switch -> 2");
+      case true when targetZoneId != dropItem.OriginalIdentifier:
+        dropItem.Identifier = targetZoneId;
         return;
-      case true when dropItemInstances.Any(x => x.Identifier == targetDropZone.DropzoneIdentifier):
-        _selectedFolder.DropItems.Remove(dropItem);
-        Logger.LogInformation("ItemUpdated Switch -> 3");
+      case true when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
+        _selectedFolder?.DropItems.Remove(dropItem);
         return;
-      case false when dropItemInstances.Any(x => x.Identifier == targetDropZone.DropzoneIdentifier):
-        Logger.LogInformation("ItemUpdated Switch -> 4");
+      case false when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
         return;
+
       default:
-        // BUG: when the item is copied, the original re-renders at end of original dropzone
         var dropItemCopy = new DropItem {
           Name = dropItem.Name,
-          Identifier = targetDropZone.DropzoneIdentifier,
           Path = dropItem.Path,
           Type = dropItem.Type,
-          IsCopy = true,
-          OriginalIdentifier = dropItem.Identifier
+          Identifier = dropInfo.DropzoneIdentifier,
+          OriginalIdentifier = dropItem.Identifier,
+          IsCopy = true
         };
-        _selectedFolder.DropItems.Add(dropItemCopy);
-        Logger.LogInformation("ItemUpdated Switch -> Default");
+        DropItem? originalDropItem = _selectedFolder?.DropItems.FirstOrDefault(x => !x.IsCopy && x.Name == dropItem.Name);
+
+
+        if (originalDropItem != null) {
+          _selectedFolder?.DropItems.Insert(_selectedFolder.DropItems.IndexOf(originalDropItem), dropItemCopy);
+        } else {
+          _selectedFolder?.DropItems.Add(dropItemCopy);
+        }
+        StateHasChanged();
+        _dropContainer.Refresh();
         break;
     }
   }
 
 
+  private bool CanDropItem(MudItemDropInfo<DropItem> dropInfo) {
+    DropItem? dropItem = dropInfo.Item;
+    string? targetZoneId = dropInfo.DropzoneIdentifier;
+
+  // If the item is going back to its original destination
+    if (dropItem.OriginalIdentifier == targetZoneId)
+      return true;
+
+  // If the item is a copy and is being dragged to another list where that item already exists
+    return !dropItem.IsCopy || _selectedFolder?.DropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;
+  }
+
+
+
   private Task HandleFolderSelected(Folder arg) {
     _selectedFolder = arg;
     return Task.CompletedTask;
+  }
+
+  private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
+  // always return a dictionary with { 'data-path' : context.Path }
+  // if the dropItem.IsCopy is true, then get the Identifier string from each dropItem in the RootFolder.DropItems list that is a copy
+  // and add it to the dictionary with the key 'title' and the concatenated string of each copies identifier
+  // the concatenated string should have a break after each identifier so that they are on separate lines
+
+    var attributes = new Dictionary<string, object> {
+      {
+        "data-path", context.Name!
+      }
+    };
+
+  // first get a list of all the dropItems that have the same name as the context
+  // then if the list contains any items that are copies, get the identifiers from those items and join them with a break
+  // then add the joined string to the dictionary with the key 'data-title'
+
+    var copies = _selectedFolder?.DropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
+    if (copies == null || !copies.Any())
+      return attributes;
+
+    string identifiers = string.Join("<br />", copies.Select(c => c.Identifier));
+    attributes.Add("data-title", identifiers);
+
+
+    return attributes;
   }
 
 }

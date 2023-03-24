@@ -40,6 +40,7 @@
               Folder? parentFolder = _breadCrumbs[currentFolderIndex - 1];
               if (parentFolder == null)
                 return;
+
               <strong>/</strong>
               <MudTooltip Text="@($"{parentFolder.Name}")"
                   Arrow
@@ -90,13 +91,13 @@
                   Value="@folder"
                   OnClick="SetFolderAsRoot"/>
             }
-          @if (!hasSubFolders && !hasPdfs && !hasVideos) {
-            <MudListItemExtended T="string"
-                Style="background-color: var(--mud-palette-surface);"
-                SecondaryText="End of Directory Tree">
+            @if (!hasSubFolders && !hasPdfs && !hasVideos) {
+              <MudListItemExtended T="string"
+                  Style="background-color: var(--mud-palette-surface);"
+                  SecondaryText="End of Directory Tree">
 
-            </MudListItemExtended>
-          }
+              </MudListItemExtended>
+            }
           </div>
           <div class="mud-list-drop-content"
               style="background-color:var(--mud-palette-surface);">
@@ -130,22 +131,10 @@
                   </MudText>
                 </ChildContent>
                 <NestedList>
-                  <div class="drop-zone-wrapper">
-                    <MudDropZone T="DropItem"
-                        Identifier="@FolderDropZoneId"
-                        CanDrop="CanDropFolder"
-                        Class="drop-zone-gallery">
-                      <ItemRenderer>
-                        <MudChip Class="drop-zone-item folder-item"
-                            UserAttributes="@(new() {{ "data-path", context.Name }})"
-                            Icon="@Icons.Material.Outlined.Folder"
-                            Size="Size.Small"
-                            Label="true">
-                          <p>@context.Name</p>
-                        </MudChip>
-                      </ItemRenderer>
-                    </MudDropZone>
-                  </div>
+                  <MudDropZone T="DropItem"
+                      Identifier="@FolderDropZoneId"
+                      CanDrop="CanDropFolder"
+                      Class="drop-zone-gallery"/>
                 </NestedList>
               </MudListItemExtended>
             }
@@ -168,17 +157,8 @@
                         Identifier="@PdfDropZoneId"
                         CanDrop="CanDropPdf"
                         ApplyDropClassesOnDragStarted="true"
-                        Class="drop-zone-gallery">
-                      <ItemRenderer>
-                        <MudChip Class="drop-zone-item pdf-item"
-                            UserAttributes="@(new() {{ "data-path", context.Name }})"
-                            Icon="@Icons.Material.Outlined.PictureAsPdf"
-                            Size="Size.Small"
-                            Label="true">
-                          <p>@context.Name</p>
-                        </MudChip>
-                      </ItemRenderer>
-                    </MudDropZone>
+                        Class="drop-zone-gallery"/>
+
                   </div>
                 </NestedList>
               </MudListItemExtended>
@@ -199,21 +179,10 @@
                 </ChildContent>
                 <NestedList>
                   <div class="drop-zone-wrapper">
-                    <MudDropZone T="DropItem"
-                        Identifier="@VideoDropZoneId"
-                        CanDrop="CanDropVideo"
-                        Class="drop-zone-gallery">
-                      <ItemRenderer>
-                        <MudChip Class="drop-zone-item video-item border border-solid"
-                            Style="border-color: transparent !important"
-                            UserAttributes="GetDropItemAttributes(context)"
-                            Icon="@Icons.Material.Outlined.Movie"
-                            Size="Size.Small"
-                            Label="true">
-                          <p>@context.Name</p>
-                        </MudChip>
-                      </ItemRenderer>
-                    </MudDropZone>
+                  <MudDropZone T="DropItem"
+                      Identifier="@VideoDropZoneId"
+                      CanDrop="CanDropVideo"
+                      Class="drop-zone-gallery"/>
                   </div>
                 </NestedList>
               </MudListItemExtended>
@@ -254,8 +223,10 @@
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
-    await JSRuntime.InvokeVoidAsync("checkOverflowingElements");
     await base.OnAfterRenderAsync(firstRender);
+    if (firstRender)
+      await JSRuntime.InvokeVoidAsync("createCustomTooltip");
+    await JSRuntime.InvokeVoidAsync("checkOverflowingElements");
   }
 
   private async Task OnReceiveAllFolders(IEnumerable<string> folders) {
@@ -392,20 +363,28 @@
     return arg.Type == DropItemType.Folder && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
   }
   private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
-
-    // always return a dictionary with { 'data-path' : context.Path }
-    // if the dropItem.IsCopy is true, then get the Identifier string from each dropItem in the RootFolder.DropItems list that is a copy
-    // and add it to the dictionary with the key 'title' and the concatenated string of each copies identifier
-    // the concatenated string should have a break after each identifier so that they are on separate lines
+  // always return a dictionary with { 'data-path' : context.Path }
+  // if the dropItem.IsCopy is true, then get the Identifier string from each dropItem in the RootFolder.DropItems list that is a copy
+  // and add it to the dictionary with the key 'title' and the concatenated string of each copies identifier
+  // the concatenated string should have a break after each identifier so that they are on separate lines
 
     var attributes = new Dictionary<string, object> {
-      { "data-path", context.Name! }
+      {
+        "data-path", context.Name!
+      }
     };
 
-    var identifiers = RootFolder?.DropItems.Where(d => d.IsCopy).Select(d => d.Identifier).ToList();
-    if (identifiers != null) {
-      attributes.Add("data-title", string.Join("&#10", identifiers));
-    }
+  // first get a list of all the dropItems that have the same name as the context
+  // then if the list contains any items that are copies, get the identifiers from those items and join them with a break
+  // then add the joined string to the dictionary with the key 'data-title'
+
+    var copies = RootFolder?.DropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
+    if (copies == null || !copies.Any())
+      return attributes;
+
+    string identifiers = string.Join("<br />", copies.Select(c => c.Identifier));
+    attributes.Add("data-title", identifiers);
+
 
     return attributes;
   }
