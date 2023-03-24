@@ -56,7 +56,6 @@
 }
 
 #folder-selector .drop-zone-wrapper {
-    background-color: var(--mud-palette-background-grey);
     padding-bottom: 2px;
 }
 
@@ -73,14 +72,16 @@
     border-radius: 4px;
     border-style: solid;
     border-color: var(--mud-palette-lines-default);
+    z-index: 0;
 }
 
 
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
     width: calc(9rem - 4px);
+    z-index: 1;
 }
 
-#folder-selector .drop-zone-item {
+.drop-zone-item {
     min-height: 30px;
     height: auto;
     width: 100%;
@@ -89,7 +90,7 @@
     cursor: grab;
 }
 
-#folder-selector .overflowing.drop-zone-item:hover::after {
+.overflowing.drop-zone-item:hover::after {
     content: attr(data-path);
     cursor: default;
     position: absolute;
@@ -104,33 +105,28 @@
     color: var(--mud-palette-text-primary);
     white-space: pre-line;
 }
-#folder-selector .drop-zone-item [data-title]:hover:after {
-    visibility: visible;
-}
-#folder-selector .drop-zone-item [data-title]:after {
-    content: attr(data-title);
-    cursor: default;
-    position: absolute;
-    min-height: 1rem;
-    top: 0.9rem;
-    left: -2px;
-    right: -2px;
+body .custom-tooltip {
+    /* position: absolute; Remove this line */
+    position: fixed;
     text-align: center;
     padding: 4px 4px;
-    margin: auto;
-    background-color: rgba(255, 55, 55, 0.2);
+    background-color: rgb(30 30 30 / 0.9);
+    border: 2px solid var(--mud-palette-lines-default);
     color: var(--mud-palette-text-primary);
     white-space: pre-line;
+    visibility: hidden;
+    z-index: 10;
 }
 
-#folder-selector .drop-zone-item > span {
+
+.drop-zone-item > span {
     width: 100%;
     min-height: 1rem;
     padding-inline: 4px;
     overflow: hidden;
 }
 
-#folder-selector .drop-zone-item > * p {
+.drop-zone-item > * p {
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
@@ -139,27 +135,27 @@
 }
 
 
-#folder-selector .drop-zone-item.folder-item {
+ .drop-zone-item.folder-item {
     background-color: rgb(255 64 129 / 0.3);
 
 }
 
-#folder-selector .drop-zone-item.folder-item:hover {
+ .drop-zone-item.folder-item:hover {
     background-color: rgb(255 64 129 / 0.5);
 }
 
-#folder-selector .drop-zone-item.video-item {
+ .drop-zone-item.video-item {
     background-color: rgb(50 153 255 / 0.3);
 }
 
-#folder-selector .drop-zone-item.video-item:hover {
+ .drop-zone-item.video-item:hover {
     background-color: rgb(50 153 255 / 0.5);
 }
 
-#folder-selector .drop-zone-item.pdf-item {
+ .drop-zone-item.pdf-item {
     background-color: rgb(9 154 80 / 0.3);
 }
 
-#folder-selector .drop-zone-item.pdf-item:hover {
+ .drop-zone-item.pdf-item:hover {
     background-color: rgb(9 154 80 / 0.5);
 }
