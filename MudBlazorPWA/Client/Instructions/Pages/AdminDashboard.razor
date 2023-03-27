@@ -29,7 +29,8 @@
           Class="mud-width-full"
           AlignItems="AlignItems.Stretch"
           Justify="Justify.FlexStart">
-        <FolderSelector OnFoldersSubmitted="@HandleFoldersSubmitted"
+        <FolderSelector WindingCodes="_windingCodesList"
+            OnFoldersSubmitted="@HandleFoldersSubmitted"
             OnFolderSelected="HandleFolderSelected"/>
         @switch (_windingCodesList.Count == 0) {
           case true:
@@ -54,7 +55,7 @@
                   EditTrigger="DataGridEditTrigger.OnRowClick"
                   StartedEditingItem="@StartedEditingItem"
                   CanceledEditingItem="@CanceledEditingItem"
-                  CommittedItemChanges="@CommittedItemChanges"
+                  CommittedItemChanges="@CommitItemChanges"
                   HorizontalScrollbar="false"
                   FixedHeader="true"
                   FilterMode="DataGridFilterMode.Simple"
@@ -209,8 +210,9 @@
                 </Columns>
                 <ChildRowContent>
                   <WindingCodeMediaDropZones Context="@context"
-                      DropItems="@_selectedFolder?.DropItems"
-                      WindingCode="@context.Item"/>
+                      FolderDropItems="@_selectedFolder?.DropItems"
+                      WindingCode="@context.Item"
+                      OnCommittedItemChanges="CommitItemChanges"/>
                 </ChildRowContent>
               </MudDataGrid>
             </div>
@@ -357,8 +359,8 @@
     Snackbar.Add($"Canceled editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
   }
 
-  private async Task CommittedItemChanges(WindingCode item) {
-    bool result = await HubClientService.UpdateWindingCode(item);
+  private async Task CommitItemChanges(WindingCode item) {
+    bool result = await HubClientService.UpdateWindingCodeDb(item);
     if (!result) {
       Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(item)}", Severity.Error);
       return;
@@ -444,9 +446,10 @@
         return;
 
       default:
+        string? itemPathWithoutServer = dropItem.Path?.Replace(HubClientService.WindingDocsFolder, "");
         var dropItemCopy = new DropItem {
           Name = dropItem.Name,
-          Path = dropItem.Path,
+          Path = itemPathWithoutServer ?? dropItem.Path,
           Type = dropItem.Type,
           Identifier = dropInfo.DropzoneIdentifier,
           OriginalIdentifier = dropItem.Identifier,
@@ -466,7 +469,6 @@
     }
   }
 
-
   private bool CanDropItem(MudItemDropInfo<DropItem> dropInfo) {
     DropItem? dropItem = dropInfo.Item;
     string? targetZoneId = dropInfo.DropzoneIdentifier;
@@ -478,8 +480,6 @@
   // If the item is a copy and is being dragged to another list where that item already exists
     return !dropItem.IsCopy || _selectedFolder?.DropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;
   }
-
-
 
   private Task HandleFolderSelected(Folder arg) {
     _selectedFolder = arg;
@@ -501,5 +501,4 @@
 
     return attributes;
   }
-
 }
