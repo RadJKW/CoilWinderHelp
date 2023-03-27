@@ -84,7 +84,7 @@
 
     if (folders != null) {
       _items.AddRange(folders.Where(x => _items.All(y => y.Name != x.Name))
-        .Select(x => new DropItem() {
+        .Select(x => new DropItem {
           Name = x.Name,
           Identifier = "Drop Zone 0"
         }));

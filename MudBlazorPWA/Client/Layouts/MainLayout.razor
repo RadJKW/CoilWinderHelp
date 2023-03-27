@@ -1,7 +1,6 @@
 @inherits LayoutComponentBase
 @inject LayoutService LayoutService
 @inject ILocalStorageService LocalStorage
-
 @using Blazored.LocalStorage
 @implements IDisposable
 
@@ -40,7 +39,7 @@
     if (firstRender) {
       LayoutService.SetBaseTheme(new());
       var themePalette = await LocalStorage.GetItemAsync<string>("theme.palette");
-      var darkMode = themePalette is "dark" or null;
+      bool darkMode = themePalette is "dark" or null;
 
       LayoutService.SetDarkMode(darkMode );
     }

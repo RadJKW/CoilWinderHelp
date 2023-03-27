@@ -1,9 +1,8 @@
-﻿@implements IDisposable
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@implements IDisposable
 @inject ISnackbar Snackbar
 @inject HubClientService DirectoryHub
 @inject ILogger<StopsEditor> Logger
-@using Microsoft.AspNetCore.SignalR.Client
-@using MudBlazorPWA.Client.ViewModels
 
 <MudScrollbar Selector=""
     Width="4"
@@ -105,7 +104,7 @@
                               Delay="500"
                               Placement="Placement.Top"
                               ShowOnHover="true"
-                              Text="@($"Notify Server: CurrentStop = {@windingCode.Code}")">
+                              Text="@($"Notify Server: CurrentStop = {windingCode.Code}")">
                             <MudIconButton Variant="Variant.Text"
                                 Color="Color.Info"
                                 Icon="@Icons.Material.Outlined.Bolt"

@@ -1,25 +1,12 @@
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MudBlazorPWA.Shared.Data;
-using MudBlazorPWA.Shared.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using MudBlazorPWA.Shared.Data;
+using MudBlazorPWA.Shared.Interfaces;
+using MudBlazorPWA.Shared.Models;
 
-namespace MudBlazorPWA.Shared.Services;
-public interface IDirectoryService
-{
-	Task<(string, string[], string[])> GetFolderContent(string? path = null);
-	Task<string[]> GetFoldersInPath(string? path = null);
-	Task<List<string>> ListPdfFiles(string? path = null);
-	Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase);
-	Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null);
-	Task<WindingCode> GetWindingCodeDocuments(WindingCode code);
-	Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes);
-	Task<List<string>> ListVideoFiles(string? path = null);
-	public string GetRelativePath(string fullPath);
-}
-
+namespace MudBlazorPWA.Server.Services;
 public class DirectoryServiceOptions
 {
 	public string RootDirectoryPath { get; set; } = string.Empty;

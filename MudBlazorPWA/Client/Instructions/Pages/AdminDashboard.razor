@@ -3,6 +3,7 @@
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
 @inject ILogger<AdminDashboard> Logger
+@using System.Text.Json
 @implements IDisposable
 
 <MudScrollbar Selector=""
@@ -30,14 +31,11 @@
           Justify="Justify.FlexStart">
         <FolderSelector OnFoldersSubmitted="@HandleFoldersSubmitted"
             OnFolderSelected="HandleFolderSelected"/>
-
         @switch (_windingCodesList.Count == 0) {
           case true:
             <MudProgressLinear Indeterminate="true"/>
             break;
           case false:
-
-
             <div class="data-grid-border mud-background-gray">
               <MudDataGrid T="WindingCode"
                   id="winding-codes-data-grid"
@@ -46,7 +44,7 @@
                   Items="@_windingCodesList"
                   QuickFilter="@DataGridQuickFilter"
                   Height="80vh"
-                  EditDialogOptions="@(new DialogOptions() { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
+                  EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
                   Virtualize="true"
                   OverscanCount="5"
                   ShowMenuIcon="true"
@@ -184,14 +182,14 @@
                           Variant="Variant.Filled"
                           Clearable="true"
                           CloseIcon="true"
-                          OnClearButtonClick="@(() => @context.Item.FolderPath = null)"
+                          OnClearButtonClick="@(() => context.Item.FolderPath = null)"
                           Color="Color.Dark"
                           Label="Assigned Folder"
                           Placeholder="Select a folder"
                           PopoverClass="folder-select-popover"
                           ForceShrink="true"
                           SearchBox="true"
-                          SearchBoxPlaceholder="@($"\"{@context.Item.Name}\"")"
+                          SearchBoxPlaceholder="@($"\"{context.Item.Name}\"")"
                           SearchBoxAutoFocus="true"
                           LockScroll="true"
                           DisablePopoverPadding="true">
@@ -218,7 +216,6 @@
             </div>
             break;
         }
-
       </MudStack>
     </div>
   </ChildContent>
@@ -229,15 +226,15 @@
       switch (context.Type) {
         case DropItemType.Folder:
           chipClass += " " + "folder-item";
-          chipIcon = @Icons.Material.Filled.Folder;
+          chipIcon = Icons.Material.Filled.Folder;
           break;
         case DropItemType.Pdf:
           chipClass += " " + "pdf-item";
-          chipIcon = @Icons.Material.Filled.PictureAsPdf;
+          chipIcon = Icons.Material.Filled.PictureAsPdf;
           break;
         case DropItemType.Video:
           chipClass += " " + "video-item";
-          chipIcon = @Icons.Material.Filled.VideoLibrary;
+          chipIcon = Icons.Material.Filled.VideoLibrary;
           break;
         default:
           throw new ArgumentOutOfRangeException();
@@ -259,10 +256,8 @@
 
 @code {
   private MudDropContainer<DropItem> _dropContainer = default!;
-  // private readonly List<string> _pdfPathsCollection = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
-  // private readonly List<string> _videoPathsCollection = new();
   private readonly List<Division> _selectedDivisions = new();
   private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
   private Folder? _selectedFolder;
@@ -342,9 +337,8 @@
     return true;
   };
   #endregion
-
   #region DataGrid Methods
-  private readonly Func<WindingCode, bool> _assignedMediaDisabled = (windingCode) => windingCode.FolderPath == null;
+  private readonly Func<WindingCode, bool> _assignedMediaDisabled = windingCode => windingCode.FolderPath == null;
   private async Task RefreshWindingCodes() {
     var windingCodesList = await HubClientService.GetCodeList();
     if (windingCodesList != null) {
@@ -356,19 +350,19 @@
 
 
   private void StartedEditingItem(WindingCode item) {
-    Snackbar.Add($"Started editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
+    Snackbar.Add($"Started editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
   }
   private void CanceledEditingItem(WindingCode item) {
-    Snackbar.Add($"Canceled editing, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Info);
+    Snackbar.Add($"Canceled editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
   }
 
   private async Task CommittedItemChanges(WindingCode item) {
     bool result = await HubClientService.UpdateWindingCode(item);
     if (!result) {
-      Snackbar.Add($"Failed to commit changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Error);
+      Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(item)}", Severity.Error);
       return;
     }
-    Snackbar.Add($"Committed changes, Data = {System.Text.Json.JsonSerializer.Serialize(item)}", Severity.Success);
+    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(item)}", Severity.Success);
     WindingCode? updatedItem = await HubClientService.GetWindingCode(item.Id);
     if (updatedItem != null) {
       int index = _windingCodesList.FindIndex(x => x.Id == updatedItem.Id);
@@ -386,7 +380,7 @@
 
     _dataGridFilter.Clear();
     _dataGridFilter.Add(new() {
-      FilterFunction = (x) => { return enumerable.Any(d => d == x.Division); }
+      FilterFunction = x => { return enumerable.Any(d => d == x.Division); }
     });
 
     _selectedDivisions.Clear();
@@ -492,20 +486,11 @@
   }
 
   private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
-  // always return a dictionary with { 'data-path' : context.Path }
-  // if the dropItem.IsCopy is true, then get the Identifier string from each dropItem in the RootFolder.DropItems list that is a copy
-  // and add it to the dictionary with the key 'title' and the concatenated string of each copies identifier
-  // the concatenated string should have a break after each identifier so that they are on separate lines
-
     var attributes = new Dictionary<string, object> {
       {
         "data-path", context.Name!
       }
     };
-
-  // first get a list of all the dropItems that have the same name as the context
-  // then if the list contains any items that are copies, get the identifiers from those items and join them with a break
-  // then add the joined string to the dictionary with the key 'data-title'
 
     var copies = _selectedFolder?.DropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
     if (copies == null || !copies.Any())
@@ -513,7 +498,6 @@
 
     string identifiers = string.Join("<br />", copies.Select(c => c.Identifier));
     attributes.Add("data-title", identifiers);
-
 
     return attributes;
   }

@@ -24,7 +24,7 @@
     </div>
 
     @if (_messages != null && _newNotificationsAvailable) {
-      @foreach (var (message, _) in _messages.Take(5)) {
+      @foreach ((string? message, bool _) in _messages.Take(5)) {
         <MudMenuItem Class="px-2 py-0 rounded">
           <MudText Typo="Typo.body2">
             @message

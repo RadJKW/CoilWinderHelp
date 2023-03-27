@@ -42,7 +42,7 @@
     <div
         class="mx-6">
 
-      @foreach (var item in _todoList!) {
+      @foreach (TodoItem? item in _todoList!) {
         // if this is not the first item, add a divider
         if (item != _todoList.First()) {
           <MudDivider
@@ -98,7 +98,7 @@
 
   private static List<TodoItem> GetTodoList() {
 
-    var todoList = new List<TodoItem>() {
+    var todoList = new List<TodoItem> {
       new(
         title: "AdminPage",
         description: "Add a new page for Admin Stuff",

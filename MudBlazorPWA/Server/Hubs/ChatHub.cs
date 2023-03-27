@@ -1,17 +1,12 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Logging;
+using MudBlazorPWA.Server.Extensions;
+using MudBlazorPWA.Shared.Interfaces;
 
+namespace MudBlazorPWA.Server.Hubs;
 // ReSharper disable UnusedMember.Global
 
-namespace MudBlazorPWA.Shared.Hubs;
-public interface IChatHub
-{
-	Task NewMessage(string user, string message);
-}
-
-/// <inheritdoc />
 public class ChatHub : Hub<IChatHub>
 {
 	#region Constructor
@@ -23,14 +18,14 @@ public class ChatHub : Hub<IChatHub>
 
 	#region Hub Overrides
 	public override async Task OnConnectedAsync() {
-		var clientIp = HubExtensions.GetConnectionIp(Context);
+		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		if (clientIp is null) {
 			_logger.LogWarning("Client IP is null");
 			return;
 		}
 
 		// Get the name of this hub using reflection
-		var hubName = this.GetType().Name;
+		string hubName = GetType().Name;
 
 		// Add the connection to the group
 		await Groups.AddToGroupAsync(Context.ConnectionId, groupName: clientIp);
@@ -44,9 +39,9 @@ public class ChatHub : Hub<IChatHub>
 
 		_logger.LogInformation("Client {ClientId} connected to group {GroupName}", Context.ConnectionId, clientIp);
 	}
-	public override async Task OnDisconnectedAsync(Exception exception) {
-		var clientIp = HubExtensions.GetConnectionIp(Context);
-		var hubName = GetType().Name;
+	public override async Task OnDisconnectedAsync(Exception? exception) {
+		string? clientIp = HubExtensions.GetConnectionIp(Context);
+		string hubName = GetType().Name;
 		if (clientIp is null) {
 			_logger.LogWarning("Client IP is null");
 			return;
@@ -60,17 +55,17 @@ public class ChatHub : Hub<IChatHub>
 
 	public Task<List<string>> GetConnectedClients() {
 		// var clientIp = HubExtensions.GetConnectionIp(Context);
-		var hubName = GetType().Name;
+		string hubName = GetType().Name;
 		var clients = HubExtensions.ActiveConnections[hubName].Select(x => x.ip).ToList();
 		// use console write line to see each entry in the dictionary in the console
-		foreach (var ip in clients) {
+		foreach (string ip in clients) {
 			Console.WriteLine($"IP: {ip}");
 		}
 		return Task.FromResult(clients);
 	}
 
 	public async Task<List<string>> GetCallbackMethods() {
-		var hubType = GetType();
+		Type hubType = GetType();
 		var methods = hubType.GetMethods()
 			.Where(m =>
 				(m.Attributes & MethodAttributes.Virtual) == 0 && // exclude overridden methods
@@ -84,14 +79,14 @@ public class ChatHub : Hub<IChatHub>
 	}
 
 	public async Task SendMessage(string user, string message, string? groupIp = null) {
-		var clientIp = HubExtensions.GetConnectionIp(Context);
+		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		_logger.LogInformation("Sending message to group {GroupIp}", groupIp);
 		switch (groupIp) {
 			case null:
 				await Clients.All.NewMessage(user, message);
 				break;
 			default:
-				await Clients.Groups(groupIp, clientIp).NewMessage(user, message);
+				await Clients.Groups(groupIp, clientIp!).NewMessage(user, message);
 				break;
 		}
 

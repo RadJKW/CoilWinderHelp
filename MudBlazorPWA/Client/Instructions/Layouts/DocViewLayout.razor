@@ -70,7 +70,7 @@
     ToggleDrawerEvent.Invoke();
   }
   protected virtual async void DocViewSettings_OnMajorUpdateOccured() {
-    var jsFunction = DocViewSettings.Settings.AppBarIsVisible ? "restoreAppBar" : "removeAppBar";
+    string jsFunction = DocViewSettings.Settings.AppBarIsVisible ? "restoreAppBar" : "removeAppBar";
     await _module.InvokeVoidAsync(jsFunction);
     await InvokeAsync(StateHasChanged);
   }

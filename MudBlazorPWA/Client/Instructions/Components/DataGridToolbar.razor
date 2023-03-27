@@ -30,7 +30,7 @@
       Variant="Variant.Outlined">
     <div class="pt-1 px-2">
       <MudStack Spacing="1">
-        @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
+        @foreach (Division divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
           <div class="border d-flex flex-column mud-width-full px-2">
             <MudCheckBox Checked="@SelectedDivisions.Contains(divEnum)"
                 CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"

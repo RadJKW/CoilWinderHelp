@@ -158,7 +158,6 @@
                         CanDrop="CanDropPdf"
                         ApplyDropClassesOnDragStarted="true"
                         Class="drop-zone-gallery"/>
-
                   </div>
                 </NestedList>
               </MudListItemExtended>
@@ -221,14 +220,12 @@
     var enumerable = await DirectoryHub.GetFoldersInPath();
     await OnReceiveAllFolders(enumerable);
   }
-
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     await base.OnAfterRenderAsync(firstRender);
     if (firstRender)
       await JSRuntime.InvokeVoidAsync("createCustomTooltip");
     await JSRuntime.InvokeVoidAsync("checkOverflowingElements");
   }
-
   private async Task OnReceiveAllFolders(IEnumerable<string> folders) {
     _folders = folders.Select(f => f.Insert(0, DirectoryHub.WindingDocsFolder)).ToArray();
     RootFolder = BuildDirectoryTree(_folders);
@@ -284,7 +281,6 @@
       AddRemainingParts(root, splitPath, commonParts);
     return root;
   }
-
   private static int FindCommonParts(IEnumerable<string[]> splitPaths) {
     var commonParts = int.MaxValue;
     var stringsEnumerable = splitPaths.ToList();
@@ -301,7 +297,6 @@
     }
     return commonParts;
   }
-
   private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
     Folder? current = root;
     for (int i = commonParts + 1; i < splitPath.Count; i++) {
@@ -363,20 +358,12 @@
     return arg.Type == DropItemType.Folder && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
   }
   private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
-  // always return a dictionary with { 'data-path' : context.Path }
-  // if the dropItem.IsCopy is true, then get the Identifier string from each dropItem in the RootFolder.DropItems list that is a copy
-  // and add it to the dictionary with the key 'title' and the concatenated string of each copies identifier
-  // the concatenated string should have a break after each identifier so that they are on separate lines
 
     var attributes = new Dictionary<string, object> {
       {
         "data-path", context.Name!
       }
     };
-
-  // first get a list of all the dropItems that have the same name as the context
-  // then if the list contains any items that are copies, get the identifiers from those items and join them with a break
-  // then add the joined string to the dictionary with the key 'data-title'
 
     var copies = RootFolder?.DropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
     if (copies == null || !copies.Any())

@@ -19,9 +19,9 @@ public static class AppConfig
 
 	private static string GetJsonDataSeedFile()
 	{
-		var projectDir = Directory.GetParent(Directory.GetCurrentDirectory());
-		var solutionDir = projectDir?.Parent?.FullName!;
-		var jsonFile = Path.Combine(solutionDir, "WindingCodes.json");
+		DirectoryInfo? projectDir = Directory.GetParent(Directory.GetCurrentDirectory());
+		string solutionDir = projectDir?.Parent?.FullName!;
+		string jsonFile = Path.Combine(solutionDir, "WindingCodes.json");
 		Console.WriteLine("JSON File: " + jsonFile);
 		return jsonFile;
 	}

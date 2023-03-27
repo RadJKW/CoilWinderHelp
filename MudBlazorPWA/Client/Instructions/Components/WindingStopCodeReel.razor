@@ -11,7 +11,7 @@
           var colors = new[] { Color.Primary, Color.Secondary, Color.Success };
           var colorIndex = 0;
 
-          foreach (var stopCode in WindingStopCodes) {
+          foreach (WindingCode? stopCode in WindingStopCodes) {
               i++;
 
               if (i % 3 == 1) {

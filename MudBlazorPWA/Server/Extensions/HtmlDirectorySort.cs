@@ -1,10 +1,8 @@
 using System.Text.Encodings.Web;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.FileProviders;
 
-
-namespace MudBlazorPWA.Shared;
+namespace MudBlazorPWA.Server.Extensions;
 public class HtmlDirectorySort : HtmlDirectoryFormatter
 {
     public HtmlDirectorySort(HtmlEncoder encoder) : base(encoder) {}

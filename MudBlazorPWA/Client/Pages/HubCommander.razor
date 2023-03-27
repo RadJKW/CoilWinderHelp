@@ -45,7 +45,7 @@
         Disabled="CheckForValidHubConnection"
         @bind-Value="_selectedCallbackMethod">
       @if (CallbackMethods != null) {
-        foreach (var method in CallbackMethods) {
+        foreach (string? method in CallbackMethods) {
           <MudSelectItem Value="@method"/>
         }
       }
@@ -55,7 +55,7 @@
         Disabled="CheckForValidHubConnection"
         Label="Connected Clients"
         @bind-Value="_selectedGroup">
-      @foreach (var client in _connectedClients) {
+      @foreach (string? client in _connectedClients) {
         <MudSelectItem T="string"
             Value="@client">
           @client

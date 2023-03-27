@@ -1,8 +1,8 @@
 ﻿@page "/messengerHub"
-@using Microsoft.AspNetCore.SignalR.Client
 @layout DocViewLayout
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
+@using Microsoft.AspNetCore.SignalR.Client
 @implements IDisposable
 
 <MudGrid Class="align-center align-stretch d-flex justify-center pa-6">
@@ -36,14 +36,14 @@
           <MudGrid>
             <MudItem xs="12">
               @{
-                var allMessagesCount = _messages.Count;
+                int allMessagesCount = _messages.Count;
               }
               <MudText Class="mud-width-full"
                   Typo="Typo.subtitle2">
                 @($"Messages : ({allMessagesCount})")
               </MudText>
             </MudItem>
-            @foreach (var entry in _messages) {
+            @foreach ((string user, string message) entry in _messages) {
 
               <MudItem xs="12">
                 <MudPaper Class="pa-4 mud-background-gray">

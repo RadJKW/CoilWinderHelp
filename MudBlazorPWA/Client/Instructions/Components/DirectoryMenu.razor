@@ -1,6 +1,4 @@
 ﻿@inject HubClientService DirectoryHub
-@using Microsoft.AspNetCore.SignalR.Client
-@using MudBlazorPWA.Client.ViewModels
 @implements IDisposable
 
 <div class="align-center d-flex flex-row flex-shrink-1 flex-wrap justify-start ">
@@ -119,7 +117,7 @@
   // after the filter, replace the root folder path with "../" or "..\" depending on the OS
     string splitChar = RootFolder!.Path!.Contains('\\') ? @"\" : @"/";
     var subFolders = _folders!.Where(f => f.StartsWith(RootFolder!.Path! + splitChar)).ToList();
-    subFolders = subFolders.Select(f => f.Replace(RootFolder!.Path!, $"..")).ToList();
+    subFolders = subFolders.Select(f => f.Replace(RootFolder!.Path!, "..")).ToList();
     await OnRootFolderChange.InvokeAsync(new() {
       Folder = RootFolder,
       SubFolders = subFolders

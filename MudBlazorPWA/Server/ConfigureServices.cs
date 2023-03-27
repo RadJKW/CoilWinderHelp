@@ -1,20 +1,9 @@
-using Blazored.LocalStorage;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using MudBlazorPWA.Shared.Services;
-using Microsoft.Extensions.DependencyInjection;
 using MudBlazorPWA.Shared.Data;
 
-namespace MudBlazorPWA.Shared.Extensions;
+namespace MudBlazorPWA.Server;
 public static class ConfigureServices
 {
-    public static void AddClientServices(this IServiceCollection services)
-    {
-        services.AddBlazoredLocalStorage();
-        services.AddScoped<LayoutService>();
-        services.AddScoped<DocViewService>();
-        services.AddScoped<HubClientService>();
-    }
     public static void AddHostServices(this IServiceCollection services, IConfiguration configuration)
     {
 
@@ -39,6 +28,7 @@ public static class ConfigureServices
         services.AddScoped<IDataContext, DataContext>(provider => provider.GetRequiredService<DataContext>());
         services.AddScoped<DataContextInitializer>();
     }
+
 
 
 }

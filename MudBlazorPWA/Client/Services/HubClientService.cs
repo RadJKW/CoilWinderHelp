@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
+using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
-using MudBlazorPWA.Shared.Hubs;
 
-
-namespace MudBlazorPWA.Shared.Services;
+namespace MudBlazorPWA.Client.Services;
 public enum HubServers
 {
 	DirectoryHub,
@@ -110,7 +108,7 @@ public sealed class HubClientService: IAsyncDisposable
 		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
 	}
 	public async Task SendChatMessage(string user, string message) {
-		await ChatHub.InvokeAsync(HubInfo.Actions.SendMessage, user, message, null);
+		await ChatHub.InvokeAsync("SendMessage", user, message, null);
 	}
 	public async void SetCurrentCoilWinderStop(WindingCode code) {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);

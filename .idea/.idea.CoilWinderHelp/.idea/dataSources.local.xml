@@ -24,17 +24,15 @@
         </introspection-scope>
       </schema-mapping>
     </data-source>
-    <data-source name="CoilWinderHelp.db" uuid="c6de67a4-7c67-4bd0-8791-828b69396373">
+    <data-source name="CoilWinderHelp" uuid="80051e51-3b23-4c87-8be5-c945e3321037">
       <database-info product="SQLite" version="3.40.1" jdbc-version="4.2" driver-name="SQLite JDBC" driver-version="3.40.1.0" dbms="SQLITE" exact-version="3.40.1" exact-driver-version="3.40">
         <identifier-quote-string>&quot;</identifier-quote-string>
       </database-info>
       <case-sensitivity plain-identifiers="mixed" quoted-identifiers="mixed" />
+      <auth-provider>no-auth</auth-provider>
       <schema-mapping>
         <introspection-scope>
-          <node kind="schema">
-            <name qname="@" />
-            <name qname="main" />
-          </node>
+          <node kind="schema" qname="@" />
         </introspection-scope>
       </schema-mapping>
     </data-source>
