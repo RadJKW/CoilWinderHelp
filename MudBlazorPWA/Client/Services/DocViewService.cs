@@ -2,7 +2,7 @@
 using Blazored.LocalStorage;
 using MudBlazorPWA.Shared.Models;
 
-namespace MudBlazorPWA.Shared.Services;
+namespace MudBlazorPWA.Client.Services;
 public class DocViewService
 {
 	public event Action MajorUpdateOccured = default!;

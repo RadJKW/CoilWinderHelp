@@ -1,17 +1,17 @@
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.FileProviders;
-
 using MudBlazor.Services;
-using MudBlazorPWA.Shared;
+using MudBlazorPWA.Server;
+using MudBlazorPWA.Server.Extensions;
+using MudBlazorPWA.Server.Hubs;
+using MudBlazorPWA.Server.Services;
 using MudBlazorPWA.Shared.Data;
-using MudBlazorPWA.Shared.Extensions;
-using MudBlazorPWA.Shared.Hubs;
+using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
-using MudBlazorPWA.Shared.Services;
 using MudExtensions.Services;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
@@ -41,17 +41,17 @@ builder.Services.Configure<DirectoryServiceOptions>(options => {
 
 builder.Services.AddScoped<IDirectoryService, DirectoryService>();
 
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
-    using var scope = app.Services.CreateScope();
+    using IServiceScope scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
     await dbContext.InitialiseAsync();
-    var useInMemoryDatabase = AppConfig.UseInMemoryDatabase;
-    var runtimeIsWindows = AppConfig.IsWindows;
+    bool useInMemoryDatabase = AppConfig.UseInMemoryDatabase;
+    bool runtimeIsWindows = AppConfig.IsWindows;
     switch (useInMemoryDatabase)
     {
         case true when runtimeIsWindows:

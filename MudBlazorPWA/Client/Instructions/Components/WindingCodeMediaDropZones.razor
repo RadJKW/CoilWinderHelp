@@ -1,5 +1,4 @@
-﻿@using MudBlazorPWA.Client.Instructions.Pages
-<div class="d-flex justify-center mud-width-full">
+﻿<div class="d-flex justify-center mud-width-full">
   <MudCard Elevation="4"
       Class="mud-width-full"
       Style="background-color: transparent"
@@ -20,7 +19,7 @@
           <MudStack Spacing="2"
               Class="mud-width-full">
             <div class="d-flex flex-wrap gap-2">
-              @foreach (var config in _dropZoneConfigs) {
+              @foreach (DropZoneConfig? config in _dropZoneConfigs) {
                 <MudDropZone T="DropItem"
                     Style="@config.Style"
                     Class="@config.Class"

@@ -1,15 +1,14 @@
+// ReSharper disable UnusedMember.Global
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using MudBlazorPWA.Server.Extensions;
 using MudBlazorPWA.Shared.Data;
+using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
-using MudBlazorPWA.Shared.Services;
 
-// ReSharper disable UnusedMember.Global
-
-namespace MudBlazorPWA.Shared.Hubs;
+namespace MudBlazorPWA.Server.Hubs;
 public interface IHubClient
 {
 	Task ReceiveFolderContent(string currentPath, string[] files, string[] folders);
@@ -59,7 +58,7 @@ public class DirectoryHub : Hub<IHubClient>
 
 		_logger.LogInformation("Client {ClientId} connected to group {GroupName}", Context.ConnectionId, clientIp);
 	}
-	public override async Task OnDisconnectedAsync(Exception exception) {
+	public override async Task OnDisconnectedAsync(Exception? exception) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		string hubName = GetType().Name;
 		if (clientIp is null) {
@@ -113,17 +112,18 @@ public class DirectoryHub : Hub<IHubClient>
 	public async Task GetFolderContent(string? path = null) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		(string currentPath, string[] files, string[] folders) = await _directoryService.GetFolderContent(path);
-		await Clients.Group(clientIp).ReceiveFolderContent(currentPath, files, folders);
+		if (clientIp != null)
+			await Clients.Group(clientIp).ReceiveFolderContent(currentPath, files, folders);
 	}
 	public async Task FileSelected(string path) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		string relativePath = _directoryService.GetRelativePath(path);
-		await Clients.Group(clientIp).FileSelected(relativePath);
+		await Clients.Group(clientIp!).FileSelected(relativePath);
 	}
 	public async Task<IEnumerable<string>> GetAllFolders(string? path){
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		string[] folders = await _directoryService.GetFoldersInPath(path);
-		await Clients.Group(clientIp).ReceiveAllFolders(folders.ToArray());
+		await Clients.Group(clientIp!).ReceiveAllFolders(folders.ToArray());
 		return folders;
 	}
 	public async Task<string> SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
@@ -132,7 +132,8 @@ public class DirectoryHub : Hub<IHubClient>
 		if (syncDatabase)
 			await _directoryService.UpdateDatabaseWindingCodes(windingCodes);
 
-		await Clients.Group(clientIp).WindingCodesDbUpdated();
+		if (clientIp != null)
+			await Clients.Group(clientIp).WindingCodesDbUpdated();
 		return "From server: WindingCodes.json saved.";
 	}
  #pragma warning disable CA1822
@@ -193,7 +194,8 @@ public class DirectoryHub : Hub<IHubClient>
 			code.FolderPath = AppConfig.BasePath + code.FolderPath;
 			WindingCode windingCode = await _directoryService.GetWindingCodeDocuments(code);
 			_currentWindingStop = windingCode;
-			await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
+			if (clientIp != null)
+				await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
 			//await Clients.All.CurrentWindingStopUpdated(windingCode);
 		}
 		catch (Exception e) {

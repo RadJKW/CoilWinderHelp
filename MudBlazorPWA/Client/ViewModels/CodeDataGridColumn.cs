@@ -41,7 +41,7 @@ public class CodeDataGridColumn<TItem, TProperty> where TItem : class
       Title = "Name",
       EditTemplate = (x) =>
         @<MudTextField T="string"
-             @bind-Value="@x.Name"
+             bind-Value="@x.Name"
              Variant="Variant.Outlined"
              Margin="Margin.Dense"
              Label="Name"
@@ -57,7 +57,7 @@ public class CodeDataGridColumn<TItem, TProperty> where TItem : class
              Class="mt-4"
              RelativeWidth="true"
              ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
-             @bind-Value="@x.CodeTypeId"
+             bind-Value="@x.CodeTypeId"
              Margin="Margin.Dense"
              Dense="true"
              Variant="Variant.Outlined"
@@ -71,7 +71,7 @@ public class CodeDataGridColumn<TItem, TProperty> where TItem : class
         @<MudSelectExtended T="string"
              Context="selectContext"
              ItemCollection="@(FolderPathsCollection.OrderByDirection(SortDirection.Ascending, item => item).ToList())"
-             @bind-Value="@x.FolderPath"
+             bind-Value="@x.FolderPath"
              Variant="Variant.Filled"
              Clearable="true"
              OnClearButtonClick="@(() => x.FolderPath = null)"
@@ -83,7 +83,7 @@ public class CodeDataGridColumn<TItem, TProperty> where TItem : class
              SearchBoxAutoFocus="true"
              DisablePopoverPadding="true">
           <ItemTemplate>
-            <MudText Typo="Typo.button"> @selectContext.Value</MudText>
+            <MudText Typo="Typo.button"> selectContext.Value</MudText>
           </ItemTemplate>
         </MudSelectExtended>
 

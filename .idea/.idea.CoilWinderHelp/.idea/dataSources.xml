@@ -8,15 +8,17 @@
       <jdbc-url>Server=PYDEV-001</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="CoilWinderHelp.db" uuid="c6de67a4-7c67-4bd0-8791-828b69396373">
+    <data-source source="LOCAL" name="CoilWinderHelp" uuid="80051e51-3b23-4c87-8be5-c945e3321037">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/MudBlazorPWA/Server/CoilWinderHelp.db</jdbc-url>
-      <jdbc-additional-properties>
-        <property name="EXTERNAL_DATA_PATH" value="C:\Users\jwest\source\RiderProjects\CoilWinderHelp\external-data.xml" />
-      </jdbc-additional-properties>
+      <jdbc-url>jdbc:sqlite:C:\Users\jwest\source\RiderProjects\CoilWinderHelp\MudBlazorPWA\SqliteDb\CoilWinderHelp.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
+      <libraries>
+        <library>
+          <url>file://$APPLICATION_CONFIG_DIR$/jdbc-drivers/Xerial SQLiteJDBC/3.40.1/sqlite-jdbc-3.40.1.jar</url>
+        </library>
+      </libraries>
     </data-source>
   </component>
 </project>

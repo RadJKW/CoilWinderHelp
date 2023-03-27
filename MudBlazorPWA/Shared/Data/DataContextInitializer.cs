@@ -47,7 +47,7 @@ public class DataContextInitializer
 	}
 
 	private async Task TrySeedAsync(bool removeRecords, string? jsonFilePath = null) {
-		var dbHasData = await _dbContext.WindingCodes.AnyAsync();
+		bool dbHasData = await _dbContext.WindingCodes.AnyAsync();
 
 		// create a switch for the different possible states using the combination of
 		// the removeRecords flag, and whether the database has data or not
@@ -83,13 +83,13 @@ public class DataContextInitializer
 			return;
 		}
 
-		var json = await File.ReadAllTextAsync(jsonFilePath);
-		var rootElement = JsonDocument.Parse(json).RootElement;
+		string json = await File.ReadAllTextAsync(jsonFilePath);
+		JsonElement rootElement = JsonDocument.Parse(json).RootElement;
 
-		if (rootElement.TryGetProperty("WindingCodes", out var d1WindingCodesElement)) {
+		if (rootElement.TryGetProperty("WindingCodes", out JsonElement d1WindingCodesElement)) {
 			var d1WindingCodes = JsonSerializer.Deserialize<List<WindingCode>>(d1WindingCodesElement.GetRawText());
 			if (d1WindingCodes != null) {
-				foreach (var windingCode in d1WindingCodes) {
+				foreach (WindingCode? windingCode in d1WindingCodes) {
 					Console.WriteLine("WindingCode" + windingCode.Name);
 				}
 				await _dbContext.WindingCodes.AddRangeAsync(d1WindingCodes);

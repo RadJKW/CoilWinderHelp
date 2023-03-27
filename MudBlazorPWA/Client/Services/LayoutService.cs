@@ -1,6 +1,6 @@
 using MudBlazor;
 
-namespace MudBlazorPWA.Shared.Services;
+namespace MudBlazorPWA.Client.Services;
 public class LayoutService
 {
 	public bool IsDarkMode { get; private set; }
