@@ -28,7 +28,8 @@ public class DirectoryHub : Hub<IHubClient>
 	private readonly ILogger<DirectoryHub> _logger;
 	private readonly IDataContext _dataContext;
 	private WindingCode? _currentWindingStop;
-	public DirectoryHub(IDirectoryService directoryService, ILogger<DirectoryHub> logger, IDataContext dataContext) {
+	public DirectoryHub(IDirectoryService directoryService,
+		ILogger<DirectoryHub> logger, IDataContext dataContext) {
 		_directoryService = directoryService;
 		_logger = logger;
 		_dataContext = dataContext;

@@ -135,7 +135,7 @@ public sealed class HubClientService: IAsyncDisposable
 	public async Task<bool> AddWindingCode(WindingCode code) {
 		return await DirectoryHub.InvokeAsync<bool>("CreateWindingCode", code);
 	}
-	public async Task<bool> UpdateWindingCode(WindingCode code) {
+	public async Task<bool> UpdateWindingCodeDb(WindingCode code) {
 		return await DirectoryHub.InvokeAsync<bool>("UpdateWindingCode", code);
 	}
 	public async Task<WindingCode?> DeleteWindingCode(WindingCode code) {
