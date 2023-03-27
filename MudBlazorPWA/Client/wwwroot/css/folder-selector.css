@@ -51,7 +51,7 @@
     height: auto;
     max-height: 81vh;
     overflow: hidden auto;
-    margin-inline: -1px 0;
+    /*margin-inline: -1px 0;*/
 
 }
 
@@ -77,16 +77,17 @@
 
 
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
-    width: calc(9rem - 4px);
+    width: 45%;
+    padding: 1px;
     z-index: 1;
 }
 
-.drop-zone-item {
+#drop-zone-chip {
     min-height: 30px;
     height: auto;
     width: 100%;
     margin: auto;
-    padding-inline-end: 4px;
+    padding-inline-end: 8px;
     cursor: grab;
 }
 

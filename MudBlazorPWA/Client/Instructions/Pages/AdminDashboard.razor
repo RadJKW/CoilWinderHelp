@@ -240,7 +240,8 @@
           throw new ArgumentOutOfRangeException();
       }
 
-      <MudChip Class="@chipClass"
+      <MudChip
+          Class="@chipClass"
           Style="border-color: transparent !important"
           UserAttributes="GetDropItemAttributes(context)"
           Icon="@chipIcon"
@@ -487,9 +488,8 @@
 
   private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
     var attributes = new Dictionary<string, object> {
-      {
-        "data-path", context.Name!
-      }
+      {"id", "drop-zone-chip"},
+      {"data-path", context.Name!}
     };
 
     var copies = _selectedFolder?.DropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
