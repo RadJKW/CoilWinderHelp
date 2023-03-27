@@ -8,7 +8,7 @@ public class DocViewService
 	public event Action MajorUpdateOccured = default!;
 	private void OnMajorUpdateOccured() => MajorUpdateOccured.Invoke();
 
-	public AppSettings Settings { get; private set; } = new();
+	public AppSettings Settings { get; private set; } = new(false, true, true);
 
 	public void SetAppSettings(AppSettings appSettings) {
 		Settings = appSettings;
@@ -62,7 +62,6 @@ public class DocViewService
 			property.SetValue(Settings, value);
 		}
 	}
-
 	public async void SaveSettingsAsync() {
 		foreach (PropertyInfo property in Settings.GetType().GetProperties()) {
 			object? value = property.GetValue(Settings);
