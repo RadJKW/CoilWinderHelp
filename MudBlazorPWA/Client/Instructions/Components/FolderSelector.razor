@@ -20,12 +20,14 @@
           Sticky="true"
           SecondaryBackground="true">
         @if (_breadCrumbs.Count >= 1) {
-          Folder? baseFolder = _breadCrumbs.First();
+          Folder? baseFolder = _breadCrumbs.FirstOrDefault();
+          if (baseFolder == null)
+            return;
           <MudStack Row
               Spacing="1"
               Justify="Justify.FlexStart"
               AlignItems="AlignItems.Center">
-            <MudTooltip Text="@($"{baseFolder?.Name}")"
+            <MudTooltip Text="@($"{baseFolder.Name}")"
                 Arrow="true"
                 Placement="Placement.Top">
               @* disable icon button if the baseFolder is the only folder in _breadcrumbs*@
@@ -34,7 +36,7 @@
                   Color="Color.Primary"
                   Size="Size.Small"
                   Variant="Variant.Text"
-                  OnClick="@(() => SetFolderAsRoot(baseFolder!))"/>
+                  OnClick="@(() => SetFolderAsRoot(baseFolder))"/>
             </MudTooltip>
             @if (_breadCrumbs.Count >= 3) {
               int currentFolderIndex = _breadCrumbs.IndexOf(_breadCrumbs.Last());
@@ -59,7 +61,7 @@
             @if (_breadCrumbs.Any()) {
               Folder? currentFolder = _breadCrumbs.Last();
               <strong class="px-1">/</strong>
-              <strong>@currentFolder?.Name</strong>
+              <strong>@(currentFolder?.Name)</strong>
             }
           </MudStack>
         }
@@ -88,8 +90,8 @@
                   Dense="true"
                   IconSize="@Size.Small"
                   Icon="@Icons.Material.Filled.Folder"
-                  Text="@folder.Name"
-                  Value="@folder"
+                  Text="@(folder.Name)"
+                  Value="folder"
                   OnClick="SetFolderAsRoot"/>
             }
             @if (!hasSubFolders && !hasPdfs && !hasVideos) {
@@ -128,13 +130,12 @@
                       Color="Color.Surface"
                       Align="Align.Center"
                       Inline="true">
-                    Folders
+                    Folders : @RootFolder.Id
                   </MudText>
                 </ChildContent>
                 <NestedList>
                   <MudDropZone T="DropItem"
-                      Identifier="@FolderDropZoneId"
-                      CanDrop="CanDropFolder"
+                      Identifier="@($"{FolderDropZoneId}-{RootFolder.Id}")"
                       Class="drop-zone-gallery"/>
                 </NestedList>
               </MudListItemExtended>
@@ -149,14 +150,13 @@
                       Color="Color.Surface"
                       Align="Align.Center"
                       Inline="true">
-                    PDF Media
+                    PDF Media : @RootFolder.Id
                   </MudText>
                 </ChildContent>
                 <NestedList>
                   <div class="drop-zone-wrapper">
                     <MudDropZone T="DropItem"
-                        Identifier="@PdfDropZoneId"
-                        CanDrop="CanDropPdf"
+                        Identifier="@($"{PdfDropZoneId}-{RootFolder.Id}")"
                         ApplyDropClassesOnDragStarted="true"
                         Class="drop-zone-gallery"/>
                   </div>
@@ -174,14 +174,14 @@
                       Color="Color.Surface"
                       Align="Align.Center"
                       Inline="true">
-                    MP4 Media
+                    MP4 Media : @RootFolder.Id
                   </MudText>
                 </ChildContent>
                 <NestedList>
                   <div class="drop-zone-wrapper">
                     <MudDropZone T="DropItem"
-                        Identifier="@VideoDropZoneId"
-                        CanDrop="CanDropVideo"
+                        Identifier="@($"{VideoDropZoneId}-{RootFolder.Id}")"
+
                         Class="drop-zone-gallery"/>
                   </div>
                 </NestedList>
@@ -220,64 +220,53 @@
   private Folder? RootFolder { get; set; }
   private List<WindingCode> _windingCodesWithFolders = default!;
   private List<DropItem> _dropItems = new();
-  private string[]? _folders;
+  private IEnumerable<string> _folders = default!;
+  private bool _rootFolderChanged = false;
   #endregion
 
   protected override async Task OnInitializedAsync() {
-    await base.OnInitializedAsync();
-    var enumerable = await DirectoryHub.GetFoldersInPath();
-    await OnReceiveAllFolders(enumerable);
-  }
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
-    await base.OnAfterRenderAsync(firstRender);
-    if (firstRender)
-      await JSRuntime.InvokeVoidAsync("createCustomTooltip");
-    await JSRuntime.InvokeVoidAsync("checkOverflowingElements");
-  }
-
-  protected override void OnParametersSet() {
-    base.OnParametersSet();
     if (WindingCodes != null)
       _windingCodesWithFolders = WindingCodes.Where(w => w.FolderPath != null).ToList();
+    Logger.LogInformation("WindingCodesWithFolders: {@WindingCodesWithFolders}", _windingCodesWithFolders.Count);
+    _folders = await DirectoryHub.GetFoldersInPath();
+    await OnReceiveAllFolders();
   }
-  private async Task OnReceiveAllFolders(IEnumerable<string> folders) {
-    _folders = folders.Select(f => f.Insert(0, DirectoryHub.WindingDocsFolder)).ToArray();
-    RootFolder = BuildDirectoryTree(_folders);
-    _breadCrumbs.Add(RootFolder);
-    if (RootFolder != null) {
-      await ConvertDirectoryToDropItems(RootFolder);
-      await SubmitSelectedFolders();
+  // OnAfterRenderAsync to call JS Interop
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    // only invoke the js FUnction if the RootFolder has changed since the last render
+    if (_rootFolderChanged) {
+      await JSRuntime.InvokeVoidAsync("checkOverflowingElements");
+      _rootFolderChanged = false;
     }
   }
-  private async Task SetFolderAsRoot() {
+  private async Task OnReceiveAllFolders() {
+     string[] folders = _folders.Select(f => f.Insert(0, DirectoryHub.WindingDocsFolder)).ToArray();
+    RootFolder = BuildDirectoryTree(folders);
+    if (RootFolder == null) return;
+    _breadCrumbs.Add(RootFolder);
+    _rootFolderChanged = true;
+    await ConvertDirectoryToDropItems(RootFolder);
+    await OnDropItemsUpdated.InvokeAsync(_dropItems);
+  }
+  private void SetFolderAsRoot() {
     if (SelectedValue == null)
       return;
 
     RootFolder = SelectedValue;
+    _rootFolderChanged = true;
     _breadCrumbs.Add(SelectedValue);
     SelectableFolders!.Clear();
     SelectedValue = null;
-    await SubmitSelectedFolders();
   }
-  private async Task SetFolderAsRoot(Folder newRoot) {
+  private void SetFolderAsRoot(Folder newRoot) {
     if (newRoot != RootFolder) {
       int index = _breadCrumbs.IndexOf(newRoot);
       _breadCrumbs.RemoveRange(index, _breadCrumbs.Count - index);
       RootFolder = newRoot;
+      _rootFolderChanged = true;
     }
     _breadCrumbs.Add(newRoot);
     SelectableFolders!.Clear();
-    await SubmitSelectedFolders();
-    StateHasChanged();
-  }
-  private Task NavigateToFolder(Folder folder) {
-    RootFolder = folder;
-    _breadCrumbs.Add(folder);
-    return SubmitSelectedFolders();
-  }
-  private async Task SubmitSelectedFolders() {
-    await OnFolderSelected.InvokeAsync(_breadCrumbs.Last());
-  // await OnFoldersSubmitted.InvokeAsync(_breadCrumbs.Last()?.SubFolders.ToArray());
   }
 
   #region Static Methods
@@ -324,17 +313,6 @@
   }
   #endregion
 
-  private string GetNameWithParent(string folderName) {
-    string? path = _folders?.FirstOrDefault(f => f.EndsWith(folderName));
-    if (path == null)
-      return folderName;
-
-    char splitChar = path.Contains('\\') ? '\\' : '/';
-    string[] splitPath = path.Split(splitChar);
-    string parent = splitPath[^2];
-    return $"{parent}{splitChar}{folderName}";
-  }
-
   private async Task ConvertDirectoryToDropItems(Folder rootFolder) {
     var (pdfFiles, videoFiles) = await DirectoryHub.ListMediaFiles(rootFolder.Path);
     rootFolder.MediaFiles.PdfFiles = pdfFiles;
@@ -344,113 +322,100 @@
   // then add each item to the list as many times as needed depending on if it should
   // appear in multiple drop-zones.
     var dropItemFolders = rootFolder.SubFolders
-      .Where(f =>
-        rootFolder.DropItems.All(di =>
-          di.Name != f.Name
-          ||
-          di.Path != f.Path))
       .ToList();
 
   // iterate over dropItemFolders and call AddFolderDropItem for each folder
     foreach (Folder folder in dropItemFolders) {
-      AddFolderDropItem(rootFolder.DropItems, folder);
+      AddFolderDropItem(folder, rootFolder.Id);
     }
 
     var dropItemPdfs = rootFolder.MediaFiles.PdfFiles
-      .Where(pdf => rootFolder.DropItems.All(di =>
-        di.Name != pdf.Split("/").Last()
-        ||
-        di.Path != pdf))
       .ToList();
 
     foreach (string pdf in dropItemPdfs) {
-      AddPdfDropItem(rootFolder.DropItems ,pdf);
+      AddPdfDropItem(pdf, rootFolder.Id);
     }
 
-    var dropItemVideos = rootFolder.MediaFiles.VideoFiles
-      .Where(video => rootFolder.DropItems.All(di =>
-        di.Name != video.Split("/").Last()
-        ||
-        di.Path != video))
-      .ToList();
+    var dropItemVideos = rootFolder.MediaFiles.VideoFiles.ToList();
 
     foreach (string video in dropItemVideos) {
-      AddVideoDropItem(rootFolder.DropItems ,video);
+      AddVideoDropItem(video, rootFolder.Id);
     }
 
     foreach (Folder subFolder in rootFolder.SubFolders) {
       await ConvertDirectoryToDropItems(subFolder);
     }
-
-    // await OnDropItemsUpdated.InvokeAsync(_dropItems);
   }
-  private void AddVideoDropItem(List<DropItem> dropItems, string video) {
+  private void AddVideoDropItem(string video, string folderId) {
     video = video.Replace(DirectoryHub.WindingDocsFolder, "");
-    dropItems.Add(new() {
+    var dropZoneId = $"{VideoDropZoneId}-{folderId}";
+    _dropItems.Add(new() {
       Name = video.Split("/").Last(),
       Path = video,
       Type = DropItemType.Video,
-      Identifier = VideoDropZoneId
+      Identifier = dropZoneId
     });
-
-
-    dropItems.AddRange(_windingCodesWithFolders
+    _dropItems.AddRange(_windingCodesWithFolders
       .Where(w => w.Media.Video == video)
       .Select(windingCode => new DropItem() {
         Name = video.Split("/").Last(),
         Path = video,
         Type = DropItemType.Video,
-        Identifier = $"DZ-Code-Video-{windingCode.Id}"
+        Identifier = $"DZ-Code-Video-{windingCode.Id}",
+        OriginalIdentifier = dropZoneId,
+        IsCopy = true
       }));
   }
-  private void AddPdfDropItem(List<DropItem> dropItems, string pdf) {
+  private void AddPdfDropItem(string pdf, string folderId) {
     pdf = pdf.Replace(DirectoryHub.WindingDocsFolder, "");
-    dropItems.Add(new() {
+    var dropZoneId = $"{PdfDropZoneId}-{folderId}";
+    _dropItems.Add(new() {
       Name = pdf.Split("/").Last(),
       Path = pdf,
       Type = DropItemType.Pdf,
-      Identifier = PdfDropZoneId
+      Identifier = dropZoneId
     });
-
-    dropItems.AddRange(_windingCodesWithFolders
+    _dropItems.AddRange(_windingCodesWithFolders
       .Where(w => w.Media.Pdf == pdf)
       .Select(windingCode => new DropItem() {
         Name = pdf.Split("/").Last(),
         Path = pdf,
         Type = DropItemType.Pdf,
-        Identifier = $"DZ-Code-Pdf-{windingCode.Id}"
+        Identifier = $"DZ-Code-Pdf-{windingCode.Id}",
+        OriginalIdentifier = dropZoneId,
+        IsCopy = true
       }));
   }
-  private void AddFolderDropItem(List<DropItem> dropItems, Folder folder) {
+  private void AddFolderDropItem(Folder folder, string folderId) {
     string? folderPath = folder.Path?.Replace(DirectoryHub.WindingDocsFolder, "");
-    dropItems.Add(new() {
+    var dropZoneId = $"{FolderDropZoneId}-{folderId}";
+    _dropItems.Add(new() {
       Name = folder.Name,
       Path = folderPath,
       Type = DropItemType.Folder,
-      Identifier = FolderDropZoneId
+      Identifier = dropZoneId
     });
-
-  // if any items in _windingCodesWIthFolders matches the folder path,
-  // then foreach item that matches, then add a new drop item with identifier = DZ-Code-Folder-{windingCode.Id}
-    dropItems.AddRange(_windingCodesWithFolders
+    _dropItems.AddRange(_windingCodesWithFolders
       .Where(w =>
         w.FolderPath == folderPath || w.Media.ReferenceFolder == folderPath)
       .Select(windingCode => new DropItem() {
         Name = folder.Name,
         Path = folder.Path,
         Type = DropItemType.Folder,
-        Identifier = $"DZ-Code-Folder-{windingCode.Id}"
+        Identifier = $"DZ-Code-Folder-{windingCode.Id}",
+        OriginalIdentifier = dropZoneId,
+        IsCopy = true
       }));
   }
 
   private bool CanDropVideo(DropItem arg) {
-    return arg.Type == DropItemType.Video && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
+    return arg.Type == DropItemType.Video && _dropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
   private bool CanDropPdf(DropItem arg) {
-    return arg.Type == DropItemType.Pdf && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
+    return arg.Type == DropItemType.Pdf && _dropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
   private bool CanDropFolder(DropItem arg) {
-    return arg.Type == DropItemType.Folder && RootFolder?.DropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name) == true;
+    return arg.Type == DropItemType.Folder && _dropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
   private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
     var attributes = new Dictionary<string, object> {

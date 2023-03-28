@@ -2,6 +2,7 @@
 @layout DocViewLayout
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 @inject ILogger<AdminDashboard> Logger
 @using System.Text.Json
 @implements IDisposable
@@ -14,13 +15,13 @@
 <MudDropContainer T="DropItem"
     id="code-drop-container"
     @ref="_dropContainer"
-    Items="@_selectedFolder?.DropItems.OrderBy(f => f.Name)"
+    Items="_dropItems.OrderBy(f => f.Name)"
     Class="mud-width-full"
     CanDropClass="mud-border-success cursor-cell"
     NoDropClass="mud-border-error cursor-not-allowed"
     DraggingClass="item-dragging"
     ApplyDropClassesOnDragStarted="true"
-    ItemsSelector="(item, dropzone) => item.Identifier == dropzone"
+    ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
     ItemDropped="ItemUpdated">
   <ChildContent>
 
@@ -29,14 +30,13 @@
           Class="mud-width-full"
           AlignItems="AlignItems.Stretch"
           Justify="Justify.FlexStart">
-        <FolderSelector WindingCodes="_windingCodesList"
-            OnFolderSelected="HandleFolderSelected"
-            OnDropItemsUpdated="@((list) => _dropItems = list)"/>
         @switch (_windingCodesList.Count == 0) {
           case true:
             <MudProgressLinear Indeterminate="true"/>
             break;
           case false:
+            <FolderSelector WindingCodes="_windingCodesList"
+                OnDropItemsUpdated="DropItemsUpdated"/>
             <div class="data-grid-border mud-background-gray">
               <MudDataGrid T="WindingCode"
                   id="winding-codes-data-grid"
@@ -209,9 +209,9 @@
                   </PropertyColumn>
                 </Columns>
                 <ChildRowContent>
-                  <WindingCodeMediaDropZones Context="@context"
-                      FolderDropItems="@_selectedFolder?.DropItems"
-                      WindingCode="@context.Item"
+                  <WindingCodeMediaDropZones Context="context"
+                      FolderDropItems="_dropItems.ToList()"
+                      WindingCode="context.Item"
                       OnCommittedItemChanges="CommitItemChanges"/>
                 </ChildRowContent>
               </MudDataGrid>
@@ -242,16 +242,18 @@
           throw new ArgumentOutOfRangeException();
       }
 
-      <MudChip
-          Class="@chipClass"
-          Style="border-color: transparent !important"
-          UserAttributes="GetDropItemAttributes(context)"
-          Icon="@chipIcon"
-          Size="Size.Small"
-          Label="true">
-        <p>@context.Name</p>
+      string? chipCloseIcon = context.IsCopy ? null : " ";
 
-      </MudChip>
+          <MudChip Class="@chipClass"
+              Style="border-color: transparent !important"
+              UserAttributes="GetDropItemAttributes(context)"
+              Icon="@chipIcon"
+              Size="Size.Small"
+              CloseIcon="@chipCloseIcon"
+              OnClose="@(() => _dropItems.Remove(context))"
+              Label="true">
+            <p>@context.Name</p>
+          </MudChip>
     }
   </ItemRenderer>
 
@@ -259,44 +261,41 @@
 
 @code {
   private MudDropContainer<DropItem> _dropContainer = default!;
-  private List<DropItem> _dropItems = new();
+  private readonly List<DropItem> _dropItems = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
   private readonly List<Division> _selectedDivisions = new();
   private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
-  private Folder? _selectedFolder;
   private bool _enableEdit;
   private string? _searchString;
 
-  protected override Task OnInitializedAsync() {
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
     HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
-    return base.OnInitializedAsync();
+    var getWindingCodesTask = HubClientService.GetCodeList();
+    var getFolderPathsTask = HubClientService.GetFoldersInPath();
+    var getPdfFilesTask = HubClientService.ListPdfFiles();
+    var getVideoFilesTask = HubClientService.ListVideoFiles();
+
+    await Task.WhenAll(getWindingCodesTask, getFolderPathsTask, getPdfFilesTask, getVideoFilesTask);
+
+    if (getWindingCodesTask.Result != null) {
+      _windingCodesList.AddRange(getWindingCodesTask.Result);
+      _folderPathsCollection.AddRange(getFolderPathsTask.Result);
+    }
+  }
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    await base.OnAfterRenderAsync(firstRender);
+    if (firstRender) {
+      await JSRuntime.InvokeVoidAsync("createCustomTooltip");
+    }
+  }
+  void IDisposable.Dispose() {
+    Snackbar.Dispose();
   }
   private async Task OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success);
     await RefreshWindingCodes();
-  }
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (firstRender) {
-      var getWindingCodesTask = HubClientService.GetCodeList();
-      var getFolderPathsTask = HubClientService.GetFoldersInPath();
-      var getPdfFilesTask = HubClientService.ListPdfFiles();
-      var getVideoFilesTask = HubClientService.ListVideoFiles();
-
-      await Task.WhenAll(getWindingCodesTask, getFolderPathsTask, getPdfFilesTask, getVideoFilesTask);
-
-      if (getWindingCodesTask.Result != null) {
-        _windingCodesList.AddRange(getWindingCodesTask.Result);
-        _folderPathsCollection.AddRange(getFolderPathsTask.Result);
-  /*_pdfPathsCollection.AddRange(getPdfFilesTask.Result);
-        _videoPathsCollection.AddRange(getVideoFilesTask.Result);*/
-        StateHasChanged();
-      }
-    }
-    await base.OnAfterRenderAsync(firstRender);
-  }
-  void IDisposable.Dispose() {
-    Snackbar.Dispose();
   }
 
   #region QuickFilterSearch
@@ -341,6 +340,7 @@
     return true;
   };
   #endregion
+
   #region DataGrid Methods
   private readonly Func<WindingCode, bool> _assignedMediaDisabled = windingCode => windingCode.FolderPath == null;
   private async Task RefreshWindingCodes() {
@@ -407,7 +407,7 @@
     DropItem? dropItem = dropInfo.Item;
     string? targetZoneId = dropInfo.DropzoneIdentifier;
 
-    var dropItemListWithCopies = _selectedFolder?.DropItems.Where(x => x.Name == dropItem.Name).ToList();
+    var dropItemListWithCopies = _dropItems.Where(x => x.Name == dropItem.Name && x.IsCopy).ToList();
 
 
   // If the item can't be dropped, just return
@@ -417,18 +417,15 @@
     if (targetZoneId == dropItem.Identifier)
       return;
 
-    if (dropItemListWithCopies == null)
-      return;
-
     switch (dropItem.IsCopy) {
       case true when targetZoneId == dropItem.OriginalIdentifier:
-        _selectedFolder?.DropItems.Remove(dropItem);
+        _dropItems.Remove(dropItem);
         return;
       case true when targetZoneId != dropItem.OriginalIdentifier:
         dropItem.Identifier = targetZoneId;
         return;
       case true when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
-        _selectedFolder?.DropItems.Remove(dropItem);
+        _dropItems.Remove(dropItem);
         return;
       case false when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
         return;
@@ -443,16 +440,14 @@
           OriginalIdentifier = dropItem.Identifier,
           IsCopy = true
         };
-        DropItem? originalDropItem = _selectedFolder?.DropItems.FirstOrDefault(x => !x.IsCopy && x.Name == dropItem.Name);
+        DropItem? originalDropItem = _dropItems.FirstOrDefault(x => !x.IsCopy && x.Name == dropItem.Name);
 
 
         if (originalDropItem != null) {
-          _selectedFolder?.DropItems.Insert(_selectedFolder.DropItems.IndexOf(originalDropItem), dropItemCopy);
+          _dropItems.Insert(_dropItems.IndexOf(originalDropItem), dropItemCopy);
         } else {
-          _selectedFolder?.DropItems.Add(dropItemCopy);
+          _dropItems.Add(dropItemCopy);
         }
-        StateHasChanged();
-        _dropContainer.Refresh();
         break;
     }
   }
@@ -466,27 +461,40 @@
       return true;
 
   // If the item is a copy and is being dragged to another list where that item already exists
-    return !dropItem.IsCopy || _selectedFolder?.DropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;
-  }
-
-  private Task HandleFolderSelected(Folder arg) {
-    _selectedFolder = arg;
-    return Task.CompletedTask;
+    return !dropItem.IsCopy || _dropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;
   }
 
   private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
     var attributes = new Dictionary<string, object> {
-      {"id", "drop-zone-chip"},
-      {"data-path", context.Name!}
+      {
+        "id", "drop-zone-chip"
+      }, {
+        "data-name", context.Name!
+      }, {
+        "data-path", context.Path!
+      }
+  // ,
+  // {"data-type", context.Type!},
+  // {"data-identifier", context.Identifier!},
+  // {"data-original-identifier", context.OriginalIdentifier!},
+  // {"data-is-copy", context.IsCopy.ToString()}
     };
 
-    var copies = _selectedFolder?.DropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
-    if (copies == null || !copies.Any())
+    var copies = _dropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
+    if (!copies.Any())
       return attributes;
 
     string identifiers = string.Join("<br />", copies.Select(c => c.Identifier));
     attributes.Add("data-title", identifiers);
 
     return attributes;
+  }
+  private Task DropItemsUpdated(List<DropItem> arg) {
+    if (_dropItems.Any()) {
+      _dropItems.Clear();
+    }
+
+    _dropItems.AddRange(arg);
+    return Task.CompletedTask;
   }
 }

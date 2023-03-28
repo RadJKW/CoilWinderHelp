@@ -75,6 +75,33 @@
     z-index: 0;
 }
 
+#media-card .drop-zone-gallery{
+/*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*/
+    display: flex;
+    gap: 4px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    min-height: 50px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 8px;
+}
+/* select each child but with an offset so that the first child is not selected */
+#media-card .drop-zone-gallery > :nth-child(n) {
+    flex: 0 1 auto;
+    width: fit-content;
+}#media-card .drop-zone-gallery > :nth-child(n):only-child {
+    max-width: 80%;
+}#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) {
+    max-width: 45%;
+}
+
+#media-card #drop-zone-chip.drop-zone-item{
+    margin: unset;
+}
+
 
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
     width: 45%;
@@ -82,16 +109,32 @@
     z-index: 1;
 }
 
-#drop-zone-chip {
+#drop-zone-chip.drop-zone-item {
     min-height: 30px;
-    height: auto;
     width: 100%;
+    height: auto;
     margin: auto;
     padding-inline-end: 8px;
     cursor: grab;
 }
 
+
 .overflowing.drop-zone-item:hover::after {
+    content: attr(data-name);
+    cursor: default;
+    position: absolute;
+    min-height: 1rem;
+    bottom: 1.9rem;
+    margin: auto;
+    left: -2px;
+    right: -2px;
+    text-align: center;
+    padding: 4px 4px;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: var(--mud-palette-text-primary);
+    white-space: pre-line;
+}
+.drop-zone-item:not(.overflowing):hover::after {
     content: attr(data-path);
     cursor: default;
     position: absolute;
@@ -125,12 +168,15 @@ body .custom-tooltip {
     min-height: 1rem;
     padding-inline: 4px;
     overflow: hidden;
+
 }
 
 .drop-zone-item > * p {
     white-space: nowrap;
+    width: 100%;
     text-overflow: ellipsis;
     overflow: hidden;
+    text-align: start;
     margin-block: 4px;
     margin-inline: 12px 8px;
 }
