@@ -1,10 +1,15 @@
 namespace MudBlazorPWA.Client.ViewModels;
-public class Folder {
+public class Folder
+{
+	private static int _counter;
 	public Folder(string name, string? path, char splitChar) {
 		Name = name;
 		Path = path;
 		SplitChar = splitChar;
+		Id = GenerateUniqueId();
 	}
+
+	public string Id { get; }
 	public string Name { get; }
 	public string? Path { get; }
 	public bool IsDisabled { get; set; }
@@ -15,6 +20,11 @@ public class Folder {
 	// TODO: make DropItems sorted by name
 	public List<DropItem> DropItems { get; } = new();
 	public char SplitChar { get; }
+
+	private static string GenerateUniqueId() {
+		// return the incremented value of _counter as two hex digits
+		return _counter++.ToString("X2");
+	}
 }
 
 public class MediaFiles

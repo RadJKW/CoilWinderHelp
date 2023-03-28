@@ -7,7 +7,7 @@ function openFilePreview (url) {
 
 function checkOverflowingElements () {
   console.log('checkOverflowingElements')
-  const selector = '#folder-selector .drop-zone-item > * p'
+  const selector = '#drop-zone-chip > * p'
   const elements = document.querySelectorAll(selector)
 
   elements.forEach((element) => {
@@ -19,7 +19,7 @@ function checkOverflowingElements () {
 }
 
 function addAttributeToElements () {
-  const selector = '#folder-selector .drop-zone-item'
+  const selector = '#folder-selector .drop-zone-gallery #drop-zone-chip'
   const elements = document.querySelectorAll(selector)
 
   elements.forEach((element) => {

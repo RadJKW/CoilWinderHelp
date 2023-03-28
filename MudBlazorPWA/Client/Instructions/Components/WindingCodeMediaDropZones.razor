@@ -1,4 +1,5 @@
-﻿<div class="d-flex justify-center mud-width-full">
+﻿<div id="media-card"
+    class="d-flex justify-center mud-width-full">
   <MudCard Elevation="4"
       Class="mud-width-full"
       Style="background-color: transparent"
@@ -12,42 +13,26 @@
     </MudCardHeader>
     <MudDivider/>
     <MudCardContent>
-      <MudGrid Spacing="1"
-          Class="mud-width-full"
+      <MudGrid Spacing="2"
           Justify="Justify.Center">
-        <MudItem xs="12">
-          <MudStack Spacing="2"
-              Class="mud-width-full">
-            <div class="d-flex flex-wrap gap-2">
-              @foreach (DropZoneConfig? config in _dropZoneConfigs) {
-                <MudDropZone T="DropItem"
-                    Style="@config.Style"
-                    Class="@config.Class"
-                    CanDrop="@config.CanDropFunc"
-                    Identifier="@($"{config.Identifier}-{WindingCode.Id}")">
-                  <ChildContent>
-                    <div class="d-flex justify-start mud-width-full">
-                      <MudText Typo="Typo.button"
-                          Align="Align.Left">
-                        <strong>@config.HeaderText</strong>
-                      </MudText>
-                    </div>
-                  </ChildContent>
-                  <ItemRenderer>
-                    <div class="align-center cursor-default d-flex flex-wrap justify-center mud-width-full py-1">
-                      <MudChip Icon="@config.Icon"
-                          Class="align-center cursor-grab justify-start py-2"
-                          Variant="Variant.Filled"
-                          Size="Size.Medium">
-                        <p style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-inline-end: 5px">@context.Name</p>
-                      </MudChip>
-                    </div>
-                  </ItemRenderer>
-                </MudDropZone>
-              }
+        @foreach (DropZoneConfig? config in _dropZoneConfigs) {
+          <MudItem xs="12"
+              lg="6">
+            <div class="@config.ContainerClass">
+              <div class="d-flex justify-flex-start mud-width-full">
+                <MudText Typo="Typo.button"
+                    Align="Align.Left">
+                  <strong>@config.HeaderText</strong>
+                </MudText>
+              </div>
+              <MudDropZone T="DropItem"
+                  Style="@config.Style"
+                  Class="@config.DropZoneClass"
+                  CanDrop="@config.CanDropFunc"
+                  Identifier="@($"{config.Identifier}-{WindingCode.Id}")"/>
             </div>
-          </MudStack>
-        </MudItem>
+          </MudItem>
+        }
       </MudGrid>
     </MudCardContent>
     <MudCardActions>
@@ -72,7 +57,7 @@
   /// <summary>
   ///  Used to validate the if items can be dropped into the drop zones
   ///</summary>
-[Parameter, EditorRequired]
+  [Parameter, EditorRequired]
   public List<DropItem>? FolderDropItems { get; set; }
 
   [Parameter, EditorRequired]
@@ -84,21 +69,20 @@
   [Parameter]
   public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
 
-  public class DropZoneConfig
-  {
-    private string _style = "width: 45%;";
-    private string _class = "border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg";
+  public class DropZoneConfig {
+    private string _style = string.Empty;
 
-    public string Style
-    {
+    private string _containerClass = "pa-2";
+
+    public string Style {
       get => _style;
       init => _style = $"{_style}{(value.EndsWith(";") ? value : value + ";")}";
     }
 
-    public string Class
-    {
-      get => _class;
-      init => _class = $"{_class} {value}";
+    public string DropZoneClass { get; init; } = "drop-zone-gallery";
+    public string ContainerClass {
+      get => _containerClass;
+      init => _containerClass = $"{_containerClass} {value}";
     }
 
     public required string Identifier { get; init; }
@@ -113,28 +97,28 @@
     base.OnInitialized();
     _dropZoneConfigs = new() {
       new() {
-        Class = "mud-alert-text-success",
+        ContainerClass = "mud-alert-text-success",
         Identifier = DzCodeFolder,
         HeaderText = "Folder Path",
         Icon = Icons.Material.Outlined.Folder,
         CanDropFunc = CanDropFolder
       },
       new() {
-        Class = "mud-alert-text-warning",
+        ContainerClass = "mud-alert-text-warning",
         Identifier = DzCodePdf,
         HeaderText = "PDF",
         Icon = Icons.Material.Outlined.PictureAsPdf,
         CanDropFunc = CanDropPdf
       },
       new() {
-        Class = "mud-alert-text-info",
+        ContainerClass = "mud-alert-text-info",
         Identifier = DzCodeVideo,
         HeaderText = "Video",
         Icon = Icons.Material.Filled.Movie,
         CanDropFunc = CanDropVideo
       },
       new() {
-        Class = "mud-alert-text-secondary",
+        ContainerClass = "mud-alert-text-secondary",
         Identifier = DzCodeReferenceMedia,
         HeaderText = "Reference Media",
         Icon = Icons.Material.Outlined.Folder,
@@ -149,8 +133,7 @@
     if (hasNewDropItems)
       await OnCommittedItemChanges.InvokeAsync(contextItem);
   }
-  private bool MapDropZoneItemsToWindingCode(WindingCode contextItem)
-  {
+  private bool MapDropZoneItemsToWindingCode(WindingCode contextItem) {
     int id = contextItem.Id;
     string[] dropZoneNames = _dropZoneConfigs.Select(d => d.Identifier + "-" + id).ToArray();
 
@@ -162,11 +145,9 @@
     if (dropZoneItems.Length == 0)
       return false;
 
-    foreach (DropItem item in dropZoneItems)
-    {
+    foreach (DropItem item in dropZoneItems) {
       string? dropZonePrefix = item.Identifier?[..item.Identifier.LastIndexOf('-')];
-      switch (dropZonePrefix)
-      {
+      switch (dropZonePrefix) {
         case DzCodeFolder:
           contextItem.FolderPath = item.Path;
           break;
@@ -184,20 +165,24 @@
     return true;
   }
 
-  private  bool CanDropVideo(DropItem arg) {
+  private bool CanDropVideo(DropItem arg) {
     if (FolderDropItems == null) return false;
+
     return arg.Type == DropItemType.Video && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
   private bool CanDropPdf(DropItem arg) {
     if (FolderDropItems == null) return false;
+
     return arg.Type == DropItemType.Pdf && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
   private bool CanDropFolder(DropItem arg) {
     if (FolderDropItems == null) return false;
+
     return arg.Type == DropItemType.Folder && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
   private bool CanDropReferenceMedia(DropItem arg) {
     if (FolderDropItems == null) return false;
+
     return arg.Type == DropItemType.Folder && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
 }
