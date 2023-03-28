@@ -24,7 +24,7 @@
         </introspection-scope>
       </schema-mapping>
     </data-source>
-    <data-source name="CoilWinderHelp" uuid="80051e51-3b23-4c87-8be5-c945e3321037">
+    <data-source name="CoilWinderHelp" uuid="375fc145-164e-4978-ab3d-592635ed1354">
       <database-info product="SQLite" version="3.40.1" jdbc-version="4.2" driver-name="SQLite JDBC" driver-version="3.40.1.0" dbms="SQLITE" exact-version="3.40.1" exact-driver-version="3.40">
         <identifier-quote-string>&quot;</identifier-quote-string>
       </database-info>
