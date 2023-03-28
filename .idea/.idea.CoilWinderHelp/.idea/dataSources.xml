@@ -8,11 +8,11 @@
       <jdbc-url>Server=PYDEV-001</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="CoilWinderHelp" uuid="80051e51-3b23-4c87-8be5-c945e3321037">
+    <data-source source="LOCAL" name="CoilWinderHelp" uuid="375fc145-164e-4978-ab3d-592635ed1354">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:C:\Users\jwest\source\RiderProjects\CoilWinderHelp\MudBlazorPWA\SqliteDb\CoilWinderHelp.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/MudBlazorPWA/SqliteDb/CoilWinderHelp.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>

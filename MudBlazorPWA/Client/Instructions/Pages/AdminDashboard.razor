@@ -14,13 +14,13 @@
 <MudDropContainer T="DropItem"
     id="code-drop-container"
     @ref="_dropContainer"
-    Items="@(_selectedFolder?.DropItems)"
+    Items="@_selectedFolder?.DropItems.OrderBy(f => f.Name)"
     Class="mud-width-full"
     CanDropClass="mud-border-success cursor-cell"
     NoDropClass="mud-border-error cursor-not-allowed"
     DraggingClass="item-dragging"
     ApplyDropClassesOnDragStarted="true"
-    ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
+    ItemsSelector="(item, dropzone) => item.Identifier == dropzone"
     ItemDropped="ItemUpdated">
   <ChildContent>
 
@@ -30,8 +30,8 @@
           AlignItems="AlignItems.Stretch"
           Justify="Justify.FlexStart">
         <FolderSelector WindingCodes="_windingCodesList"
-            OnFoldersSubmitted="@HandleFoldersSubmitted"
-            OnFolderSelected="HandleFolderSelected"/>
+            OnFolderSelected="HandleFolderSelected"
+            OnDropItemsUpdated="@((list) => _dropItems = list)"/>
         @switch (_windingCodesList.Count == 0) {
           case true:
             <MudProgressLinear Indeterminate="true"/>
@@ -259,6 +259,7 @@
 
 @code {
   private MudDropContainer<DropItem> _dropContainer = default!;
+  private List<DropItem> _dropItems = new();
   private readonly List<WindingCode> _windingCodesList = new();
   private readonly List<string> _folderPathsCollection = new();
   private readonly List<Division> _selectedDivisions = new();
@@ -402,19 +403,6 @@
   }
   #endregion
 
-  private Task HandleFoldersSubmitted(Folder[]? folders) {
-    if (folders != null && _selectedFolder != null) {
-  // if the DropItem is already in the list, dont add it again
-      _selectedFolder.DropItems.AddRange(folders.Where(x => _selectedFolder.DropItems.All(y => y.Path != x.Path))
-        .Select(x => new DropItem {
-          Name = x.Name,
-          Identifier = "DZ-Folder",
-          Path = x.Path,
-          Type = DropItemType.Folder,
-        }));
-    }
-    return Task.CompletedTask;
-  }
   private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
     DropItem? dropItem = dropInfo.Item;
     string? targetZoneId = dropInfo.DropzoneIdentifier;
