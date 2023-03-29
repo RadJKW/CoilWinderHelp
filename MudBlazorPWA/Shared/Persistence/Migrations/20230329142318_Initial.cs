@@ -1,13 +1,13 @@
-﻿#nullable disable
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-using Microsoft.EntityFrameworkCore.Migrations;
+#nullable disable
 
 #pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
-namespace MudBlazorPWA.Shared.Migrations
+namespace MudBlazorPWA.Shared.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class Mac_InitialSqLite : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace MudBlazorPWA.Shared.Migrations
                 columns: table => new
                 {
                     CodeTypeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    CodeType = table.Column<string>(type: "TEXT", nullable: true)
+                    CodeType = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,15 +29,14 @@ namespace MudBlazorPWA.Shared.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false),
-                    Code = table.Column<string>(type: "TEXT", maxLength: 10, nullable: true),
-                    Name = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    D1FolderPath = table.Column<string>(type: "TEXT", nullable: true),
-                    D2FolderPath = table.Column<string>(type: "TEXT", nullable: true),
-                    D3FolderPath = table.Column<string>(type: "TEXT", nullable: true),
+                    Code = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    Division = table.Column<int>(type: "INTEGER", nullable: false),
+                    Stop = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    FolderPath = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
                     CodeTypeId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Media_Video = table.Column<string>(type: "TEXT", nullable: true),
-                    Media_Pdf = table.Column<string>(type: "TEXT", nullable: true),
-                    Media_ReferenceFolder = table.Column<string>(type: "TEXT", nullable: true)
+                    Video = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    Pdf = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    RefMedia = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -62,6 +61,12 @@ namespace MudBlazorPWA.Shared.Migrations
                     { 4, "Material" },
                     { 5, "None" }
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WindingCodes_Code_Division",
+                table: "WindingCodes",
+                columns: new[] { "Code", "Division" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_WindingCodes_CodeTypeId",
