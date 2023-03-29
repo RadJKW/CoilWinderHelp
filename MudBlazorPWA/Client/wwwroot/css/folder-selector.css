@@ -1,14 +1,18 @@
 /*private const string DropZoneClass = "align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-elevation-2 py-1";*/
 /*private const string DropZoneSmallStyle = "max-height: 30vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);";*/
 /*private const string DropZoneLargeStyle = "max-height: 76vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);"*/
-#code-drop-container > *:not(table tr td th thead tbody tfoot tr) {
+#admin-dashboard > *:not(table tr td th thead tbody tfoot tr) {
     border-radius: 8px;
 }
 
+#admin-dashboard .dashboard-content {
+    height: calc(100vh - 84px);
+    overflow: hidden;
+    margin: 24px 16px;
+    width: 100%;
+}
+
 #folder-selector {
-    /* width: 100%; */
-     /*max-width: 25vw;*/
-    height: 91vh;
     flex: 1 0 350px;
     background-color: var(--mud-palette-dark);
     border-radius: 8px;
@@ -27,9 +31,8 @@
 }
 
 #folder-selector .folder-list {
-    height: 91vh;
-    overflow-y: hidden;
-    overflow-x: hidden;
+    height: 100%;
+    overflow: hidden;
 }
 
 #folder-selector .folder-item-flex-container {
@@ -47,16 +50,12 @@
 }
 
 #folder-selector .mud-list-drop-content {
-    object-fit: contain;
+    object-fit: fill;
     height: auto;
-    max-height: 81vh;
+    max-height: calc(100% - 84px);
     overflow: hidden auto;
     /*margin-inline: -1px 0;*/
 
-}
-
-#folder-selector .drop-zone-wrapper {
-    padding-bottom: 2px;
 }
 
 #folder-selector .drop-zone-gallery {
@@ -67,6 +66,7 @@
     justify-content: center;
     align-items: stretch;
     background-color: var(--mud-palette-background-grey);
+    margin-inline: -2px;
     padding-block: 2rem;
     border-width: 2px;
     border-radius: 4px;
@@ -75,8 +75,8 @@
     z-index: 0;
 }
 
-#media-card .drop-zone-gallery{
-/*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*/
+#media-card .drop-zone-gallery {
+    /*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*/
     display: flex;
     gap: 4px;
     flex-direction: row;
@@ -88,19 +88,25 @@
     border: 1px solid var(--mud-palette-lines-default);
     border-radius: 8px;
 }
+
 /* select each child but with an offset so that the first child is not selected */
 #media-card .drop-zone-gallery > :nth-child(n) {
     flex: 0 1 auto;
     width: fit-content;
-}#media-card .drop-zone-gallery > :nth-child(n):only-child {
-    max-width: 80%;
-}#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) {
-    max-width: 45%;
 }
 
-#media-card #drop-zone-chip.drop-zone-item{
-    margin: unset;
+#media-card .drop-zone-gallery > :nth-child(n):only-child {
+    max-width: 80%;
 }
+
+#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) {
+    max-width: 45%;
+    width: 100%;
+}
+#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) .drop-zone-item > span {
+    width: unset;
+}
+
 
 
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
@@ -116,11 +122,15 @@
     margin: auto;
     padding-inline-end: 8px;
     cursor: grab;
+    border-color: transparent !important;
+}
+#media-card #drop-zone-chip.drop-zone-item {
+    margin: unset;
 }
 
 
-.overflowing.drop-zone-item:hover::after {
-    content: attr(data-name);
+/*.overflowing.drop-zone-item:hover::after {
+    content: attr(data-path);
     cursor: default;
     position: absolute;
     min-height: 1rem;
@@ -133,8 +143,9 @@
     background-color: rgba(0, 0, 0, 0.9);
     color: var(--mud-palette-text-primary);
     white-space: pre-line;
-}
-.drop-zone-item:not(.overflowing):hover::after {
+}*/
+
+.drop-zone-item:hover::after {
     content: attr(data-path);
     cursor: default;
     position: absolute;
@@ -149,6 +160,7 @@
     color: var(--mud-palette-text-primary);
     white-space: pre-line;
 }
+
 body .custom-tooltip {
     /* position: absolute; Remove this line */
     position: fixed;
@@ -178,31 +190,36 @@ body .custom-tooltip {
     overflow: hidden;
     text-align: start;
     margin-block: 4px;
-    margin-inline: 12px 8px;
+    font-size: 0.75rem;
+    word-spacing: normal;
+}
+
+#folder-selector .drop-zone-item > * p {
+    margin-inline-end: -16px;
 }
 
 
- .drop-zone-item.folder-item {
+.drop-zone-item.folder-item {
     background-color: rgb(255 64 129 / 0.3);
 
 }
 
- .drop-zone-item.folder-item:hover {
+.drop-zone-item.folder-item:hover {
     background-color: rgb(255 64 129 / 0.5);
 }
 
- .drop-zone-item.video-item {
+.drop-zone-item.video-item {
     background-color: rgb(50 153 255 / 0.3);
 }
 
- .drop-zone-item.video-item:hover {
+.drop-zone-item.video-item:hover {
     background-color: rgb(50 153 255 / 0.5);
 }
 
- .drop-zone-item.pdf-item {
+.drop-zone-item.pdf-item {
     background-color: rgb(9 154 80 / 0.3);
 }
 
- .drop-zone-item.pdf-item:hover {
+.drop-zone-item.pdf-item:hover {
     background-color: rgb(9 154 80 / 0.5);
 }

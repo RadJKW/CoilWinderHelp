@@ -1,4 +1,4 @@
-@page "/"
+  @page "/"
 @layout DocViewLayout
 @inject HubClientService DirectoryHub
 @inherits ComponentBase
@@ -29,8 +29,7 @@
 
         </StartContent>
         <EndContent>
-          <SecondaryContent VideoUrl="@_currentWindingStop?.Media.Video"
-              RefsFolder="@_currentWindingStop?.Media.ReferenceFolder"/>
+          <SecondaryContent VideoUrl="@_currentWindingStop?.Media.Video"/>
         </EndContent>
       </MudSplitter>
     </div>

@@ -261,7 +261,7 @@
   }
   private void OnCurrentWindingStopUpdated(object? obj, WindingCode code) {
     Media media = code.Media;
-    Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.ReferenceFolder}",
+    Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.RefMedia}",
       Severity.Info,
       config => {
         config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;

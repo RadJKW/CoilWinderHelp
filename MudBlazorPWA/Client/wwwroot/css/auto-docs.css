@@ -73,26 +73,3 @@
     padding: 12px;
     width: clamp(50%, 100%, 90%);
 }
-
-#winding-codes-data-grid{
-    margin-inline:auto;
-    height: 100%;
-}
-#winding-codes-data-grid .mud-table-container{
-    z-index: 2;
-    overflow-x: clip;
-}
-
-#winding-codes-data-grid .mud-toolbar.mud-table-toolbar{
-    height: 72px;
-
-}
-
-#winding-codes-data-grid thead tr th{
-    padding: 0.5rem 1rem;
-    text-align: center;
-}
-#winding-codes-data-grid tbody tr td{
-    padding: 0.5rem 1rem;
-    text-align: center;
-}

@@ -54,8 +54,10 @@
 
   protected override async Task OnInitializedAsync() {
     await DocViewSettings.LoadSettingsAsync();
+    PageTitle = DocViewSettings.AppBarTitle;
     DocViewSettings.MajorUpdateOccured += DocViewSettings_OnMajorUpdateOccured;
     NavigationManager.LocationChanged +=  NavigationManager_OnLocationChanged;
+    DocViewSettings.AppBarTitleChanged += () => PageTitle = DocViewSettings.AppBarTitle;
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {

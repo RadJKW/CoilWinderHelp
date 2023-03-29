@@ -1,0 +1,35 @@
+﻿#winding-codes-data-grid{
+    --data-grid-toolbar-height: 72px;
+    margin-inline:auto;
+    height: 100%;
+    overflow: hidden;
+}
+#winding-codes-data-grid .mud-toolbar.mud-table-toolbar{
+    height: var(--data-grid-toolbar-height);
+}
+
+#winding-codes-data-grid .mud-table-container{
+    max-height: calc(100% - var(--data-grid-toolbar-height));
+    overflow: auto;
+}
+
+#winding-codes-data-grid .mud-table-root thead > tr > th{
+    background-color: var(--mud-palette-background-grey);
+}
+#winding-codes-data-grid .mud-table-root thead > tr > th:not(:last-child){
+    border-right: 1px solid var(--mud-palette-table-lines);
+}
+#winding-codes-data-grid .mud-table-root tbody > .mud-table-row:nth-of-type(even){
+    background-color: var(--mud-palette-table-striped);
+
+}
+
+
+#winding-codes-data-grid thead tr th{
+    /*padding: 0.5rem 1rem;*/
+    /*text-align: center;*/
+}
+#winding-codes-data-grid tbody tr td{
+    /*padding: 0.5rem 1rem;*/
+    /*text-align: center;*/
+}

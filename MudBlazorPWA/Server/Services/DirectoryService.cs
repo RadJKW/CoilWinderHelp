@@ -108,7 +108,9 @@ public class DirectoryService : IDirectoryService
 		// get the refMedia path
 		try {
 			string? refMediaPath = await GetRefMediaPath(code.FolderPath);
-			if (refMediaPath != null) { documents.ReferenceFolder = GetRelativePath(refMediaPath); }
+			if (refMediaPath != null) { documents.RefMedia = new() {
+				GetRelativePath(refMediaPath)
+			}; }
 		}
 		catch (Exception e) {
 			Console.WriteLine($"TryRefMediaPath: {e.Message}");

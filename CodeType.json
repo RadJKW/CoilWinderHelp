@@ -1,0 +1,26 @@
+[
+  {
+    "CodeTypeId": 0,
+    "CodeType": "Stop"
+  },
+  {
+    "CodeTypeId": 1,
+    "CodeType": "Almost"
+  },
+  {
+    "CodeTypeId": 2,
+    "CodeType": "Data"
+  },
+  {
+    "CodeTypeId": 3,
+    "CodeType": "Layer"
+  },
+  {
+    "CodeTypeId": 4,
+    "CodeType": "Material"
+  },
+  {
+    "CodeTypeId": 5,
+    "CodeType": "None"
+  }
+]

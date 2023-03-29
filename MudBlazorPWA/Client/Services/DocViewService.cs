@@ -5,6 +5,16 @@ using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
 public class DocViewService
 {
+	private string _appBarTitle = "MudBlazorPWA";
+	public string AppBarTitle {
+		get => _appBarTitle;
+		set {
+			_appBarTitle = value;
+			AppBarTitleChanged.Invoke();
+		}
+	}
+
+	public event Action AppBarTitleChanged = default!;
 	public event Action MajorUpdateOccured = default!;
 	private void OnMajorUpdateOccured() => MajorUpdateOccured.Invoke();
 
