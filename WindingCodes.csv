@@ -1,0 +1,66 @@
+1,AD,1,Annular Duct,D1 Pole/RPI/Stop Instructions/Annular Duct,0,10 GA & LARGER AL WIRE SPLICE.mp4,D1 Pole/RPI/Stop Instructions/Annular Duct/2. POLETYPE DIVISION GENERAL WINDING PRACTICE pages 16-22 _012213 u_break A.Duct.pdf,null
+2,CI,1,Coil Information,null,2,null,null,null
+3,CX,1,Crepe Paper,D1 Pole/RPI/Stop Instructions/Crepe Paper,0,TrainingVideos/Unsorted/CREPE PAPER.mp4,D1 Pole/RPI/Stop Instructions/Crepe Paper/2. POLETYPE DIVISION GENERAL WINDING PRACTICE pages 16-22 _012213 u_break CP_SF.pdf,null
+4,DE,1,Data Entry,D1 Pole/RPI/Setup/01.Computer OPS,2,null,null,null
+5,DS,1,Duct Stop,D1 Pole/RPI/Stop Instructions/End Duct,0,null,D1 Pole/RPI/Stop Instructions/End Duct/2.Poletype Div GWP pages 16 - 22_u_break_ED.pdf,null
+6,FC,1,Finish Coil,null,2,null,null,null
+7,HV,1,High Voltage,D1 Pole/RPI/Overview/High Voltage Winding,3,null,null,null
+8,HVA,1,High Voltage Aluminum,D1 Pole/RPI/Overview/High Voltage Winding/Aluminum Wire,3,null,null,null
+9,HVC,1,High Voltage Copper,D1 Pole/RPI/Overview/High Voltage Winding/Copper Wire,3,null,null,null
+10,LE,1,Layer End,D1 Pole/RPI/Stop Instructions/Layer End,0,null,null,null
+11,LV,1,Low Voltage,D1 Pole/RPI/Overview/Low Voltage Winding,3,null,null,null
+12,NC,1,New Coil,D1 Pole/RPI/Setup,2,null,null,null
+13,NW,1,New Winding,null,2,null,null,null
+14,PA,1,Paper,D1 Pole/RPI/Overview/Barriers,3,null,null,null
+15,PM,1,Paper Material,null,4,null,null,null
+16,PX,1,Paper Extension,D1 Pole/RPI/Stop Instructions/Extension Paper,0,TrainingVideos/D1 Pole/EXTENSION PAPER.mp4,null,null
+17,RS,1,Run Screen,null,2,null,null,null
+18,SC,1,Sheet Conductor,null,4,null,null,null
+19,TB,1,Section Break,D1 Pole/RPI/Stop Instructions/Section Break,0,null,null,null
+20,TS,1,Tap Stop,D1 Pole/RPI/Stop Instructions/Tap Stop,0,null,null,null
+21,WC,1,Wire Conductor,null,4,null,null,null
+22,XP,1,Extra Paper,D1 Pole/RPI/Stop Instructions/Extra Paper,0,null,null,null
+23,AD,2,Annular Duct,D1 Pole/RPI/Stop Instructions/Annular Duct,0,null,null,null
+24,CI,2,Coil Information,null,2,null,null,null
+25,CX,2,Crepe Paper,D1 Pole/RPI/Stop Instructions/Crepe Paper,0,null,null,null
+26,DE,2,Data Entry,D1 Pole/RPI/Setup/01.Computer OPS,2,null,null,null
+27,DS,2,Duct Stop,D1 Pole/RPI/Stop Instructions/End Duct,0,null,null,null
+28,FC,2,Finish Coil,null,2,null,null,null
+29,HV,2,High Voltage,D1 Pole/RPI/Overview/High Voltage Winding,3,null,null,null
+30,HVA,2,High Voltage Aluminum,D1 Pole/RPI/Overview/High Voltage Winding/Aluminum Wire,3,null,null,null
+31,HVC,2,High Voltage Copper,D1 Pole/RPI/Overview/High Voltage Winding/Copper Wire,3,null,null,null
+32,LE,2,Layer End,D1 Pole/RPI/Stop Instructions/Layer End,0,null,null,null
+33,LV,2,Low Voltage,D1 Pole/RPI/Overview/Low Voltage Winding,3,null,null,null
+34,NC,2,New Coil,D1 Pole/RPI/Setup,2,null,null,null
+35,NW,2,New Winding,null,2,null,null,null
+36,PA,2,Paper,D1 Pole/RPI/Overview/Barriers,3,null,null,null
+37,PM,2,Paper Material,null,4,null,null,null
+38,PX,2,Paper Stop,D1 Pole/RPI/Stop Instructions/Extension Paper,0,null,null,null
+39,RS,2,Run Screen,null,2,null,null,null
+40,SC,2,Sheet Conductor,null,4,null,null,null
+41,TB,2,Section Break,D1 Pole/RPI/Stop Instructions/Section Break,0,null,null,null
+42,TS,2,Tap Stop,D1 Pole/RPI/Stop Instructions/Tap Stop,0,null,null,null
+43,WC,2,Wire Conductor,null,4,null,null,null
+44,XP,2,Extra Paper,D1 Pole/RPI/Stop Instructions/Extra Paper,0,null,null,null
+45,AD,3,Annular Duct,D1 Pole/RPI/Stop Instructions/Annular Duct,0,null,null,null
+46,CI,3,Coil Information,null,2,null,null,null
+47,CX,3,Crepe Paper,D1 Pole/RPI/Stop Instructions/Crepe Paper,0,null,null,null
+48,DE,3,Data Entry,D1 Pole/RPI/Setup/01.Computer OPS,2,null,null,null
+49,DS,3,Duct Stop,D1 Pole/RPI/Stop Instructions/End Duct,0,null,null,null
+50,FC,3,Finish Coil,null,2,null,null,null
+51,HV,3,High Voltage,D1 Pole/RPI/Overview/High Voltage Winding,3,null,null,null
+52,HVA,3,High Voltage Aluminum,D1 Pole/RPI/Overview/High Voltage Winding/Aluminum Wire,3,null,null,null
+53,HVC,3,High Voltage Copper,D1 Pole/RPI/Overview/High Voltage Winding/Copper Wire,3,null,null,null
+54,LE,3,Layer End,D1 Pole/RPI/Stop Instructions/Layer End,0,null,null,null
+55,LV,3,Low Voltage,D1 Pole/RPI/Overview/Low Voltage Winding,3,null,null,null
+56,NC,3,New Coil,D1 Pole/RPI/Setup,2,null,null,null
+57,NW,3,New Winding,null,2,null,null,null
+58,PA,3,Paper,D1 Pole/RPI/Overview/Barriers,3,null,null,null
+59,PM,3,Paper Material,null,4,null,null,null
+60,PX,3,Paper Stop,D1 Pole/RPI/Stop Instructions/Extension Paper,0,null,null,null
+61,RS,3,Run Screen,null,2,null,null,null
+62,SC,3,Sheet Conductor,null,4,null,null,null
+63,TB,3,Section Break,D1 Pole/RPI/Stop Instructions/Section Break,0,null,null,null
+64,TS,3,Tap Stop,D1 Pole/RPI/Stop Instructions/Tap Stop,0,null,null,null
+65,WC,3,Wire Conductor,null,4,null,null,null
+66,XP,3,Extra Paper,D1 Pole/RPI/Stop Instructions/Extra Paper,0,null,null,null
