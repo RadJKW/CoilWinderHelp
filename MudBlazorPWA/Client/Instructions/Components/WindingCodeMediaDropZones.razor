@@ -29,7 +29,8 @@
                   Style="@config.Style"
                   Class="@config.DropZoneClass"
                   CanDrop="@config.CanDropFunc"
-                  Identifier="@($"{config.Identifier}-{WindingCode.Id}")"/>
+                  Identifier="@($"{config.Identifier}-{WindingCode.Id}")">
+              </MudDropZone>
             </div>
           </MudItem>
         }
@@ -52,7 +53,7 @@
     private const string DzCodeFolder = "DZ-Code-Folder";
     private const string DzCodePdf = "DZ-Code-Pdf";
     private const string DzCodeVideo = "DZ-Code-Video";
-    private const string DzCodeReferenceMedia = "DZ-Code-Ref";
+    private const string DzCodeRefMedia = "DZ-Code-Ref";
 
   /// <summary>
   ///  Used to validate the if items can be dropped into the drop zones
@@ -87,7 +88,6 @@
 
     public required string Identifier { get; init; }
     public required string HeaderText { get; init; }
-    public required string Icon { get; init; }
     public Func<DropItem, bool>? CanDropFunc { get; init; }
   }
 
@@ -100,28 +100,24 @@
         ContainerClass = "mud-alert-text-success",
         Identifier = DzCodeFolder,
         HeaderText = "Folder Path",
-        Icon = Icons.Material.Outlined.Folder,
         CanDropFunc = CanDropFolder
       },
       new() {
         ContainerClass = "mud-alert-text-warning",
         Identifier = DzCodePdf,
         HeaderText = "PDF",
-        Icon = Icons.Material.Outlined.PictureAsPdf,
         CanDropFunc = CanDropPdf
       },
       new() {
         ContainerClass = "mud-alert-text-info",
         Identifier = DzCodeVideo,
         HeaderText = "Video",
-        Icon = Icons.Material.Filled.Movie,
         CanDropFunc = CanDropVideo
       },
       new() {
         ContainerClass = "mud-alert-text-secondary",
-        Identifier = DzCodeReferenceMedia,
+        Identifier = DzCodeRefMedia,
         HeaderText = "Reference Media",
-        Icon = Icons.Material.Outlined.Folder,
         CanDropFunc = CanDropReferenceMedia
       }
     };
@@ -145,6 +141,8 @@
     if (dropZoneItems.Length == 0)
       return false;
 
+    var refMedia = new List<string>();
+
     foreach (DropItem item in dropZoneItems) {
       string? dropZonePrefix = item.Identifier?[..item.Identifier.LastIndexOf('-')];
       switch (dropZonePrefix) {
@@ -157,11 +155,20 @@
         case DzCodeVideo:
           contextItem.Media.Video = item.Path;
           break;
-        case DzCodeReferenceMedia:
-          contextItem.Media.ReferenceFolder = item.Path;
+        case DzCodeRefMedia: {
+          Console.WriteLine("Case -> DzCodeRefMedia");
+          if (item.Path != null) {
+           Console.WriteLine("Item Path -> " + item.Path);
+            refMedia.Add(item.Path);
+          }
+        }
           break;
       }
     }
+    if (refMedia.Count > 0)
+      contextItem.Media.RefMedia = refMedia;
+    if (contextItem.Media.RefMedia != null)
+      Console.WriteLine("Refs ->" + string.Join(", ", contextItem.Media.RefMedia.ToArray()));
     return true;
   }
 
@@ -183,6 +190,6 @@
   private bool CanDropReferenceMedia(DropItem arg) {
     if (FolderDropItems == null) return false;
 
-    return arg.Type == DropItemType.Folder && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
+    return arg.Type is DropItemType.Pdf or DropItemType.Video && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
   }
 }

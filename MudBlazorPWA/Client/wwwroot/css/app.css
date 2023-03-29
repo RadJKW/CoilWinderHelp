@@ -1,4 +1,5 @@
 @import url('auto-docs.css');
+@import url('admin-dash.css');
 @import url('admin-pages.css');
 @import url('docview-layout.css');
 @import url('folder-selector.css');
@@ -11,6 +12,7 @@
     --mud-drawer-width-mini-left: 50px !important;
 }
 body{
+    height: 100lvh;
     overflow: hidden;
 }
 #blazor-error-ui {

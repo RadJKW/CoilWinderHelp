@@ -26,5 +26,6 @@ public static class AppConfig
 		return jsonFile;
 	}
 
-	public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+	// check to see if the OS is not Mac, then it must be windows
+	public static bool IsWindows => !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 }

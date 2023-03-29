@@ -118,8 +118,12 @@ public sealed class HubClientService: IAsyncDisposable
 			code.Media.Video = FileServerUrl + code.Media.Video;
 		if (code.Media.Pdf != null)
 			code.Media.Pdf = FileServerUrl + code.Media.Pdf;
-		if (code.Media.ReferenceFolder != null)
-			code.Media.ReferenceFolder = FileServerUrl + code.Media.ReferenceFolder;
+		// append 'FileServerUrl' to each item in code.Media.RefMedia list
+		if (code.Media.RefMedia != null && code.Media.RefMedia.Any())
+			// iterate through each item in the list
+			for (var i = 0; i < code.Media.RefMedia.Count; i++)
+				// append 'FileServerUrl' to each item in the list
+				code.Media.RefMedia[i] = FileServerUrl + code.Media.RefMedia[i];
 
 		CurrentWindingStopUpdated?.Invoke(this, code);
 	}
@@ -147,4 +151,5 @@ public sealed class HubClientService: IAsyncDisposable
 		if (DirectoryHub.State == HubConnectionState.Connected)
 			await DirectoryHub.DisposeAsync();
 	}
+
 }

@@ -1,18 +1,28 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MudBlazorPWA.Shared.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MudBlazorPWA.Shared.Persistence.EntityConfigurations;
 public class WindingCodeConfiguration : IEntityTypeConfiguration<WindingCode>
 {
-	public void Configure(EntityTypeBuilder<WindingCode> builder) {
+	private readonly JsonSerializerOptions _jsonSerializerOptions = new() {
+		PropertyNameCaseInsensitive = true,
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+		Converters = {
+			new JsonStringEnumConverter()
+		}
+	};
 
-// Entity Configuration
+	public void Configure(EntityTypeBuilder<WindingCode> builder) {
+		// Entity Configuration
 		builder.HasKey(w => w.Id);
 		builder.HasIndex(w => new {
 			w.Code,
 			w.Division
-			}).IsUnique();
+		}).IsUnique();
 		builder.HasOne(w => w.CodeType)
 			.WithMany()
 			.HasForeignKey(w => w.CodeTypeId);
@@ -22,11 +32,24 @@ public class WindingCodeConfiguration : IEntityTypeConfiguration<WindingCode>
 				.HasMaxLength(255).HasColumnName("Video");
 			mediaBuilder.Property(m => m.Pdf)
 				.HasMaxLength(255).HasColumnName("Pdf");
-			mediaBuilder.Property(m => m.ReferenceFolder)
-				.HasMaxLength(255).HasColumnName("RefMedia");
+			mediaBuilder.Property(m => m.RefMedia)
+				.HasColumnName("RefMedia")
+				.HasConversion(
+				files =>
+					JsonSerializer.Serialize
+							(files, _jsonSerializerOptions),
+				filesJson =>
+					JsonSerializer.Deserialize<List<string>>
+							(filesJson, _jsonSerializerOptions) ?? new List<string>(),
+				new ValueComparer<List<string>>(
+				(c1, c2) =>
+					c2 != null && c1 != null && c1.SequenceEqual(c2),
+				c => c.Aggregate(0, (a, v) =>
+					HashCode.Combine(a, v.GetHashCode())),
+				c => c.ToList()));
 		});
 
-// Property Configuration
+		// Property Configuration
 		// Code
 		builder.Property(w => w.Code)
 			.IsRequired()
@@ -46,6 +69,5 @@ public class WindingCodeConfiguration : IEntityTypeConfiguration<WindingCode>
 			.HasColumnName("Stop");
 
 		builder.Property(w => w.FolderPath).HasMaxLength(255);
-
 	}
 }
