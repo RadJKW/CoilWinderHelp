@@ -1,22 +1,14 @@
 /*private const string DropZoneClass = "align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-elevation-2 py-1";*/
 /*private const string DropZoneSmallStyle = "max-height: 30vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);";*/
 /*private const string DropZoneLargeStyle = "max-height: 76vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);"*/
-#admin-dashboard > *:not(table tr td th thead tbody tfoot tr) {
-    border-radius: 8px;
-}
 
-#admin-dashboard .dashboard-content {
-    height: calc(100vh - 84px);
-    overflow: hidden;
-    margin: 24px 16px;
-    width: 100%;
-}
 
 #folder-selector {
-    flex: 1 0 350px;
+    flex: 1 0;
     background-color: var(--mud-palette-dark);
     border-radius: 8px;
     overflow-y: hidden;
+    min-width: 350px;
 }
 
 #folder-selector .folder-list-item {
