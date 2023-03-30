@@ -1,8 +1,26 @@
-﻿#winding-codes-data-grid{
+﻿#admin-dashboard > *:not(table tr td th thead tbody tfoot tr) {
+    border-radius: 8px;
+}
+
+#admin-dashboard .dashboard-content {
+    height: calc(100vh - 84px);
+    overflow: hidden;
+    margin: 24px 16px;
+
+}
+#admin-dashboard .data-grid-border{
+    padding: 12px;
+    flex: 4 1;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+#winding-codes-data-grid{
     --data-grid-toolbar-height: 72px;
     margin-inline:auto;
     height: 100%;
     overflow: hidden;
+    min-width: 750px;
 }
 #winding-codes-data-grid .mud-toolbar.mud-table-toolbar{
     height: var(--data-grid-toolbar-height);
@@ -21,6 +39,8 @@
 }
 #winding-codes-data-grid .mud-table-root tbody > .mud-table-row:nth-of-type(even){
     background-color: var(--mud-palette-table-striped);
+}
+#winding-codes-data-grid .mud-table-root tbody > .mud-table-row .mud-table-cell{
 
 }
 

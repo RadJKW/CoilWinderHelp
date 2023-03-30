@@ -68,8 +68,3 @@
     padding: 4rem;
     height: 100%;
 }
-
-.data-grid-border{
-    padding: 12px;
-    width: clamp(50%, 100%, 90%);
-}
