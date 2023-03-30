@@ -33,8 +33,11 @@
 #winding-codes-data-grid .mud-table-container{
     max-height: calc(100% - var(--data-grid-toolbar-height));
     overflow: auto;
-    margin-inline: 6px -6px;
-    border: 1px solid var(--mud-palette-table-lines);
+    padding-inline: 8px 2px;
+}
+#winding-codes-data-grid .mud-table-root{
+    border: 1px solid var(--mud-palette-lines-inputs);
+    border-radius: 2px;
 }
 
 #winding-codes-data-grid .mud-table-root thead > tr > th{
