@@ -44,7 +44,6 @@
                 QuickFilter="@DataGridQuickFilter"
                 EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
                 Virtualize="true"
-                RowStyle="text-align: center !important;"
                 OverscanCount="5"
                 ShowMenuIcon="true"
                 Hover="true"
@@ -64,7 +63,9 @@
                 <MudStack Row
                     AlignItems="AlignItems.Center"
                     Justify="Justify.Center">
-                  <MudTooltip @ref="_menuTooltip" UserAttributes="@(new() {{ "duration", 2000}})" Placement="Placement.Top"
+                  <MudTooltip @ref="_menuTooltip"
+                      UserAttributes="@(new() {{ "duration", 2000}})"
+                      Placement="Placement.Top"
                       @bind-IsVisible="@MenuTooltipVisible"
                       Text="Table Settings">
                     <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
@@ -113,15 +114,17 @@
                 </MudStack>
                 <MudSpacer/>
                 <MudTextField @bind-Value="_searchString"
-                    Variant="Variant.Text"
+                    Variant="Variant.Outlined"
                     Placeholder="Search"
                     Adornment="Adornment.Start"
                     Immediate="true"
                     AdornmentIcon="@Icons.Material.Filled.Search"
                     IconSize="Size.Medium"
-                    Class="mt-0">
+                    Margin="Margin.None"
+                    Class="winding-codes-search">
                 </MudTextField>
               </ToolBarContent>
+
               <Columns>
                 <HierarchyColumn T="WindingCode"
                     ButtonDisabledFunc="@_assignedMediaDisabled"/>
@@ -149,7 +152,8 @@
                 <PropertyColumn Property="x => x.Name"
                     T="WindingCode"
                     TProperty="string"
-                    IsEditable/>
+                    IsEditable>
+                </PropertyColumn>
                 <PropertyColumn Property="x => x.CodeTypeId.ToString()"
                     T="WindingCode"
                     TProperty="string"
