@@ -1,0 +1,337 @@
+﻿@using System.Text.Json
+@inject HubClientService HubClientService
+@inject ILogger<WindingCodesTable> Logger
+@inject ISnackbar Snackbar
+<MudDataGrid T="IWindingCode"
+    id="winding-codes-data-grid"
+    Class="mud-elevation-4"
+    Items="@WindingCodes"
+    QuickFilter="@DataGridQuickFilter"
+    EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
+    Virtualize="true"
+    OverscanCount="5"
+    ShowMenuIcon="true"
+    Hover="true"
+    ReadOnly="@(_enableEdit == false)"
+    EditMode="DataGridEditMode.Form"
+    EditTrigger="DataGridEditTrigger.OnRowClick"
+    StartedEditingItem="@StartedEditingItem"
+    CanceledEditingItem="@CanceledEditingItem"
+    CommittedItemChanges="@CommitItemChanges"
+    HorizontalScrollbar="false"
+    FixedHeader="true"
+    FilterMode="DataGridFilterMode.Simple"
+    FilterDefinitions="@_dataGridFilter"
+    Bordered="true"
+    Dense="true">
+  <ToolBarContent>
+    <MudStack Row
+        AlignItems="AlignItems.Center"
+        Justify="Justify.Center">
+      <MudTooltip @ref="_menuTooltip"
+          UserAttributes="@(new() {{ "duration", 2000}})"
+          Placement="Placement.Top"
+          @bind-IsVisible="@MenuTooltipVisible"
+          Text="Table Settings">
+        <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
+            Class="mud-background-gray"
+            AnchorOrigin="Origin.BottomLeft"
+            TransformOrigin="Origin.TopLeft"
+            Variant="Variant.Filled"
+            PopoverClass="py-1 px-2 border border-radius-4"
+            Size="Size.Small">
+          <MudCheckBox Label="Enable Edit"
+              @bind-Checked="_enableEdit"
+              Color="Color.Info"
+              Dense="true"
+              Size="Size.Small"/>
+        </MudMenu>
+      </MudTooltip>
+      <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
+      <MudRadioGroup @bind-SelectedOption="@SelectedDivision" Class="division-radio-group">
+        <MudIconButton Icon="@Icons.Material.Outlined.Refresh"
+            Variant="Variant.Outlined"
+            Disabled="@(SelectedDivision is Division.All)"
+            Color="Color.Tertiary"
+            OnClick="() => SelectedDivision = Division.All"
+            Size="Size.Small"/>
+        @foreach (Division divEnum in Enum.GetValues(typeof(Division)).Cast<Division>().Where(div => div != Division.All))
+        {
+          <MudRadio Option="@divEnum"
+              Color="Color.Secondary"
+              UnCheckedColor="Color.Info"
+              Size="Size.Small">
+            @if (SelectedDivision == divEnum)
+            {
+              <p class="mud-alert-text-secondary">@divEnum.ToString()</p>
+            }
+            else
+            {
+              @divEnum.ToString()
+            }
+          </MudRadio>
+        }
+      </MudRadioGroup>
+
+    </MudStack>
+    <MudSpacer/>
+    <MudTextField @bind-Value="_searchString"
+        Variant="Variant.Text"
+        Placeholder="Search"
+        HelperTextOnFocus="true"
+        HelperText="Search Templates: {column}:{value} or {value},{value} or {value}"
+        Clearable="true"
+        OnClearButtonClick="() => _searchString = string.Empty"
+        Adornment="Adornment.Start"
+        Immediate="true"
+        AdornmentIcon="@Icons.Material.Filled.Search"
+        IconSize="Size.Medium"
+        Margin="Margin.None"
+        Class="winding-codes-search">
+    </MudTextField>
+  </ToolBarContent>
+  <Columns>
+    <HierarchyColumn T="IWindingCode"
+        ButtonDisabledFunc="@_assignedMediaDisabled"
+        IconSize="Size.Small"/>
+    <PropertyColumn Property="x => x.Id"
+        T="IWindingCode"
+        TProperty="int"
+        IsEditable="false"
+        Hideable="true">
+      <EditTemplate/>
+    </PropertyColumn>
+    <PropertyColumn Property="x => x.Division.ToString()"
+        T="IWindingCode"
+        TProperty="string"
+        Title="Dept"
+        IsEditable="false"
+        Hideable="true">
+      <EditTemplate/>
+    </PropertyColumn>
+    <PropertyColumn Property="x => x.Code"
+        TProperty="string"
+        T="IWindingCode"
+        IsEditable="false">
+      <EditTemplate/>
+    </PropertyColumn>
+    <PropertyColumn Property="x => x.Name"
+        T="IWindingCode"
+        TProperty="string"
+        IsEditable>
+    </PropertyColumn>
+    <PropertyColumn Property="x => x.CodeTypeId.ToString()"
+        T="IWindingCode"
+        TProperty="string"
+        Title="CodeType"
+        Hideable="true">
+      <EditTemplate>
+        <MudSelectExtended T="CodeTypeId"
+            Class="mt-4"
+            RelativeWidth="true"
+            ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
+            @bind-Value="@context.Item.CodeTypeId"
+            Margin="Margin.Dense"
+            Dense="true"
+            Variant="Variant.Outlined"
+            Label="CodeType">
+        </MudSelectExtended>
+      </EditTemplate>
+    </PropertyColumn>
+    <PropertyColumn Property="x => x.FolderPath"
+        T="IWindingCode"
+        TProperty="string"
+        Hidden="true">
+      <EditTemplate>
+        <MudSelectExtended T="string"
+            Context="selectContext"
+            ItemCollection="@(FolderPaths.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
+            @bind-Value="@context.Item.FolderPath"
+            Margin="Margin.Dense"
+            Variant="Variant.Filled"
+            Clearable="true"
+            CloseIcon="true"
+            OnClearButtonClick="@(() => context.Item.FolderPath = null)"
+            Color="Color.Dark"
+            Label="Assigned Folder"
+            Placeholder="Select a folder"
+            PopoverClass="folder-select-popover"
+            ForceShrink="true"
+            SearchBox="true"
+            SearchBoxPlaceholder="@($"\"{context.Item.Name}\"")"
+            SearchBoxAutoFocus="true"
+            LockScroll="true"
+            DisablePopoverPadding="true">
+          <ItemTemplate>
+            <MudText Typo="Typo.button"> @selectContext.Value</MudText>
+          </ItemTemplate>
+        </MudSelectExtended>
+      </EditTemplate>
+    </PropertyColumn>
+    <PropertyColumn Property="x => x.Media.Pdf"
+        T="IWindingCode"
+        TProperty="string"
+        IsEditable="false"
+        Hidden="true">
+      <EditTemplate/>
+    </PropertyColumn>
+  </Columns>
+  <ChildRowContent>
+    <WindingCodeMediaDropZones Context="context"
+        FolderDropItems="DropItems.ToList()"
+        WindingCode="context.Item"
+        OnCommittedItemChanges="CommitItemChanges"/>
+  </ChildRowContent>
+</MudDataGrid>
+
+@code {
+  [Parameter, EditorRequired]
+  public required List<IWindingCode> WindingCodes { get; set;}
+  [Parameter, EditorRequired]
+  public required List<string> FolderPaths { get; set; }
+  [Parameter, EditorRequired]
+  public required List<DropItem> DropItems { get; set; }
+
+
+  private Division _selectedDivision = Division.All;
+  private Division SelectedDivision {
+    get => _selectedDivision;
+    set { _selectedDivision = value; UpdateGridFilter();}
+  }
+  private MudTooltip _menuTooltip = default!;
+  private readonly List<FilterDefinition<IWindingCode>> _dataGridFilter = new();
+  private bool _enableEdit;
+  private string? _searchString;
+  private bool MenuTooltipVisible {
+    get => _menuTooltipVisible;
+    set {
+      _menuTooltipVisible = value;
+      if (value) {
+        _ = HideMenuTooltip();
+      } else {
+        _ctsMenuToolTip.Cancel();
+        _ctsMenuToolTip = new();
+      }
+    }
+  }
+  private CancellationTokenSource _ctsMenuToolTip = new();
+  private bool _menuTooltipVisible;
+
+  protected override Task OnInitializedAsync() {
+    HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
+    return base.OnInitializedAsync();
+  }
+
+  #region DataGrid Methods
+  private readonly Func<IWindingCode, bool> _assignedMediaDisabled = windingCode => windingCode.FolderPath == null;
+  private async Task RefreshWindingCodes() {
+    var windingCodesList = await HubClientService.GetCodeList();
+    if (windingCodesList != null) {
+      WindingCodes.Clear();
+      WindingCodes.AddRange(windingCodesList);
+      StateHasChanged();
+    }
+  }
+  private void StartedEditingItem(IWindingCode item) {
+    Snackbar.Add($"Started editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
+  }
+  private void CanceledEditingItem(IWindingCode item) {
+    Snackbar.Add($"Canceled editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
+  }
+
+  private void UpdateGridFilter() {
+    _dataGridFilter.Clear();
+    if (SelectedDivision != Division.All) {
+      _dataGridFilter.Add(new() {
+        FilterFunction = x => x.Division == SelectedDivision
+      });
+    }
+  }
+  #endregion
+
+  private async Task CommitItemChanges(IWindingCode item) {
+    bool result = await HubClientService.UpdateWindingCodeDb(item);
+    if (!result) {
+      Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(item)}", Severity.Error);
+      return;
+    }
+    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(item)}", Severity.Success);
+    IWindingCode? updatedItem = await HubClientService.GetWindingCode(item.Id);
+    if (updatedItem != null) {
+      int index = WindingCodes.FindIndex(x => x.Id == updatedItem.Id);
+      WindingCodes[index] = updatedItem;
+      StateHasChanged();
+    }
+  }
+
+  #region QuickFilterSearch
+  private readonly Dictionary<string, Func<IWindingCode, string>> _columnMap = new() {
+    ["CodeType"] = x => x.CodeTypeId.ToString(),
+    ["CodeTypeId"] = x => x.CodeTypeId.ToString(),
+    ["Code"] = x => x.Code,
+    ["Name"] = x => x.Name,
+    ["Division"] = x => x.Division.ToString(),
+    ["Dept"] = x => x.Division.ToString()
+  };
+
+
+  private Func<IWindingCode, bool> DataGridQuickFilter => x => {
+    if (string.IsNullOrWhiteSpace(_searchString)) {
+      return true;
+    }
+
+    var searchTerms = _searchString.Split(',')
+      .Select(s => s.Trim())
+      .Where(s => !string.IsNullOrEmpty(s));
+
+    foreach (string searchTerm in searchTerms) {
+      int delimiterIndex = searchTerm.IndexOfAny(new[] {
+        '=', ':'
+      });
+
+      if (delimiterIndex < 0) {
+        bool matches = _columnMap.Values.Any(propertySelector =>
+          propertySelector(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        if (!matches) {
+          return false;
+        }
+      } else {
+        string columnName = searchTerm[..delimiterIndex].Trim();
+        string searchTermValue = searchTerm[(delimiterIndex + 1)..].Trim();
+
+  // Ensuring case-insensitive column name comparison
+        var columnEntry = _columnMap.FirstOrDefault(entry =>
+          entry.Key.Equals(columnName, StringComparison.OrdinalIgnoreCase));
+
+        if (columnEntry.Key == null) {
+          continue;
+        }
+
+        string columnValue = columnEntry.Value(x);
+        if (!columnValue.Contains(searchTermValue, StringComparison.OrdinalIgnoreCase)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+  #endregion
+  private async Task OnWindingCodesDbUpdated() {
+    Snackbar.Add("Winding Codes Database Updated", Severity.Success);
+    await RefreshWindingCodes();
+  }
+
+  private async Task HideMenuTooltip() {
+    try {
+      await Task.Delay((int)_menuTooltip.UserAttributes["duration"], _ctsMenuToolTip.Token);
+    }
+    catch (TaskCanceledException) {
+      return;
+    }
+    MenuTooltipVisible = false;
+    StateHasChanged();
+  }
+
+
+}

@@ -25,10 +25,11 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "WindingCodes",
+                name: "PcWindingCodes",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     Code = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
                     Division = table.Column<int>(type: "INTEGER", nullable: false),
                     Stop = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
@@ -40,9 +41,35 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WindingCodes", x => x.Id);
+                    table.PrimaryKey("PK_PcWindingCodes", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WindingCodes_CodeType_CodeTypeId",
+                        name: "FK_PcWindingCodes_CodeType_CodeTypeId",
+                        column: x => x.CodeTypeId,
+                        principalTable: "CodeType",
+                        principalColumn: "CodeTypeId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Z80WindingCodes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Code = table.Column<string>(type: "TEXT", maxLength: 10, nullable: false),
+                    Division = table.Column<int>(type: "INTEGER", nullable: false),
+                    Stop = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
+                    FolderPath = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    CodeTypeId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Video = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    Pdf = table.Column<string>(type: "TEXT", maxLength: 255, nullable: true),
+                    RefMedia = table.Column<string>(type: "TEXT", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Z80WindingCodes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Z80WindingCodes_CodeType_CodeTypeId",
                         column: x => x.CodeTypeId,
                         principalTable: "CodeType",
                         principalColumn: "CodeTypeId",
@@ -63,14 +90,25 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_WindingCodes_Code_Division",
-                table: "WindingCodes",
+                name: "IX_PcWindingCodes_Code_Division",
+                table: "PcWindingCodes",
                 columns: new[] { "Code", "Division" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_WindingCodes_CodeTypeId",
-                table: "WindingCodes",
+                name: "IX_PcWindingCodes_CodeTypeId",
+                table: "PcWindingCodes",
+                column: "CodeTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Z80WindingCodes_Code_Division",
+                table: "Z80WindingCodes",
+                columns: new[] { "Code", "Division" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Z80WindingCodes_CodeTypeId",
+                table: "Z80WindingCodes",
                 column: "CodeTypeId");
         }
 
@@ -78,7 +116,10 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "WindingCodes");
+                name: "PcWindingCodes");
+
+            migrationBuilder.DropTable(
+                name: "Z80WindingCodes");
 
             migrationBuilder.DropTable(
                 name: "CodeType");

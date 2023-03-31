@@ -17,7 +17,7 @@ public interface IHubClient
 	Task ReceiveAllFolders(string[] folders);
 	Task WindingCodesDbUpdated();
 
-	Task CurrentWindingStopUpdated(WindingCode code);
+	Task CurrentWindingStopUpdated(IWindingCode code);
 }
 
 /// <inheritdoc />
@@ -27,13 +27,16 @@ public class DirectoryHub : Hub<IHubClient>
 	private readonly IDirectoryService _directoryService;
 	private readonly ILogger<DirectoryHub> _logger;
 	private readonly IDataContext _dataContext;
-	private WindingCode? _currentWindingStop;
+	private IWindingCode? _currentWindingStop;
 	public DirectoryHub(IDirectoryService directoryService,
-		ILogger<DirectoryHub> logger, IDataContext dataContext) {
+		ILogger<DirectoryHub> logger,
+		IDataContext dataContext) {
 		_directoryService = directoryService;
 		_logger = logger;
 		_dataContext = dataContext;
 	}
+	private DbSet<Z80WindingCode> Z80WindingCodes => _dataContext.Z80WindingCodes;
+	private DbSet<PcWindingCode> PcWindingCodes => _dataContext.PcWindingCodes;
 	#endregion
 
 	#region Hub Overrides
@@ -71,6 +74,7 @@ public class DirectoryHub : Hub<IHubClient>
 		_logger.LogInformation("Client {ClientIpAddress} disconnected from group {GroupName}", clientIp, clientIp);
 	}
 	#endregion
+
 	public Task<List<string>> GetConnectedClients() {
 		// var clientIp = HubExtensions.GetConnectionIp(Context);
 		string hubName = GetType().Name;
@@ -95,7 +99,6 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 
 	#region Directory Methods
-
 	public async Task<List<string>> ListVideoFiles(string? path) {
 		var result = await _directoryService.ListVideoFiles(path);
 		return result;
@@ -121,21 +124,11 @@ public class DirectoryHub : Hub<IHubClient>
 		string relativePath = _directoryService.GetRelativePath(path);
 		await Clients.Group(clientIp!).FileSelected(relativePath);
 	}
-	public async Task<IEnumerable<string>> GetAllFolders(string? path){
+	public async Task<IEnumerable<string>> GetAllFolders(string? path) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		string[] folders = await _directoryService.GetFoldersInPath(path);
 		await Clients.Group(clientIp!).ReceiveAllFolders(folders.ToArray());
 		return folders;
-	}
-	public async Task<string> SaveWindingCodesDb(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
-		string? clientIp = HubExtensions.GetConnectionIp(Context);
-		// await _directoryService.ExportWindingCodesToJson(windingCodes, syncDatabase);
-		if (syncDatabase)
-			await _directoryService.UpdateDatabaseWindingCodes(windingCodes);
-
-		if (clientIp != null)
-			await Clients.Group(clientIp).WindingCodesDbUpdated();
-		return "From server: WindingCodes.json saved.";
 	}
  #pragma warning disable CA1822
 	public string GetServerWindingDocsFolder() => AppConfig.BasePath;
@@ -143,57 +136,131 @@ public class DirectoryHub : Hub<IHubClient>
 	#endregion
 
 	#region DataBase CRUD
-	public async Task<IEnumerable<WindingCode>?> GetWindingCodes(Division? division) {
-		var windingCodes = _dataContext.WindingCodes.AsQueryable();
-		if (division != null) {
-			windingCodes = windingCodes.Where(w => w.Division == division);
+
+	public async Task<IEnumerable<IWindingCode>?> GetWindingCodes(Division? division, WindingCodeType windingCodeType) {
+
+		var windingCodes = windingCodeType switch {
+			WindingCodeType.Z80 => _dataContext.Z80WindingCodes.AsQueryable(),
+			WindingCodeType.Pc => _dataContext.PcWindingCodes.AsQueryable(),
+			_ => new List<IWindingCode>().AsQueryable()
+		};
+		var results = division is null
+			? await windingCodes.ToListAsync()
+			: await windingCodes.Where(w => w.Division == division).ToListAsync();
+		return results.Any() ? results : null;
+	}
+
+	public async Task<IWindingCode?> GetWindingCode(int codeId, WindingCodeType windingCodeType) {
+		IWindingCode? windingCode;
+		switch (windingCodeType) {
+			case WindingCodeType.Z80: {
+				windingCode = await _dataContext.Z80WindingCodes
+					.FirstOrDefaultAsync(w => w.Id == codeId);
+				return windingCode ?? null;
+			}
+			case WindingCodeType.Pc: {
+				windingCode = await _dataContext.PcWindingCodes
+					.FirstOrDefaultAsync(w => w.Id == codeId);
+				return windingCode ?? null;
+			}
+			default:
+				throw new ArgumentOutOfRangeException(nameof(windingCodeType), windingCodeType, null);
 		}
-		var result = await windingCodes.ToListAsync();
-		return result.Any() ? result : null;
 	}
-	public async Task<WindingCode?> GetWindingCode(int codeId) {
-		WindingCode? windingCode = await _dataContext.WindingCodes.FirstOrDefaultAsync(e => e.Id == codeId);
-		return windingCode ?? null;
-	}
-	public async Task<bool> UpdateWindingCode(WindingCode windingCode) {
-		// use the code.Id to check if the code exists in the database
-		if (!WindingCodeExists(windingCode.Id)) {
+
+
+	public async Task<bool> CreateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
+		if (WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;
 		}
-		await using var dbContext = (DataContext)_dataContext;
-		dbContext.Entry(windingCode).State = EntityState.Modified;
-		dbContext.Entry(windingCode.Media).State = EntityState.Modified;
+		switch (windingCodeType) {
+			case WindingCodeType.Z80: {
+				await _dataContext.Z80WindingCodes.AddAsync((Z80WindingCode)windingCode);
+				break;
+			}
+			case WindingCodeType.Pc: {
+				await _dataContext.PcWindingCodes.AddAsync((PcWindingCode)windingCode);
+				break;
+			}
+			default:
+				throw new ArgumentOutOfRangeException(nameof(windingCodeType), windingCodeType, null);
+		}
+		await _dataContext.SaveChangesAsync();
+		return true;
+	}
+
+	public async Task<bool> UpdateWindingCode(WindingCode windingCode, WindingCodeType windingCodeType)
+	{
+		if (!WindingCodeExists(windingCode.Id, windingCodeType))
+		{
+			return false;
+		}
+
+		var dbContext = (DataContext)_dataContext;
+
+		switch (windingCodeType) {
+			case WindingCodeType.Z80: {
+				// TODO: this is not getting the changes from windingCode parameter
+				Z80WindingCode z80WindingCode = (await _dataContext.Z80WindingCodes.FindAsync(windingCode.Id))!;
+				dbContext.Entry(z80WindingCode).State = EntityState.Modified;
+				dbContext.Entry(z80WindingCode.Media).State = EntityState.Modified;
+				break;
+			}
+			case WindingCodeType.Pc: {
+				var pcWindingCode = (PcWindingCode)windingCode;
+				dbContext.Entry(pcWindingCode).State = EntityState.Modified;
+				dbContext.Entry(pcWindingCode.Media).State = EntityState.Modified;
+				break;
+			}
+			default:
+				return false;
+		}
+
 		await dbContext.SaveChangesAsync();
 		await Clients.All.WindingCodesDbUpdated();
 		return true;
 	}
-	public async Task<bool> CreateWindingCode(WindingCode windingCode) {
-		if (WindingCodeExists(windingCode.Id)) {
-			return false;
-		}
-		_dataContext.WindingCodes.Add(windingCode);
-		await _dataContext.SaveChangesAsync();
-		return true;
-	}
-	public async Task DeleteWindingCode(int codeId) {
-		WindingCode? windingCode = await _dataContext.WindingCodes.FindAsync(codeId);
-		if (windingCode == null) {
+
+
+	public async Task DeleteWindingCode(int codeId, WindingCodeType windingCodeType) {
+
+		if (!WindingCodeExists(codeId, windingCodeType)) {
 			return;
 		}
-		_dataContext.WindingCodes.Remove(windingCode);
-		await _dataContext.SaveChangesAsync();
+
+		switch (windingCodeType) {
+			case WindingCodeType.Z80: {
+				Z80WindingCode? windingCode = await _dataContext.Z80WindingCodes.FindAsync(codeId);
+				_dataContext.Z80WindingCodes.Remove(windingCode!);
+				break;
+			}
+			case WindingCodeType.Pc: {
+				PcWindingCode? windingCode = await _dataContext.PcWindingCodes.FindAsync(codeId);
+				_dataContext.PcWindingCodes.Remove(windingCode!);
+				break;
+			}
+			default:
+				throw new ArgumentOutOfRangeException(nameof(windingCodeType), windingCodeType, null);
+		}
 	}
-	private bool WindingCodeExists(int codeId) {
-		return _dataContext.WindingCodes.Any(e => e.Id == codeId);
+	private bool WindingCodeExists(int codeId, WindingCodeType windingCodeType)
+	{
+		return windingCodeType switch
+		{
+			WindingCodeType.Z80 => Z80WindingCodes.Any(e => e.Id == codeId),
+			WindingCodeType.Pc => PcWindingCodes.Any(e => e.Id == codeId),
+			_ => false,
+		};
 	}
+
 	#endregion
 
 	#region WindingStop Tracking
-	public async void UpdateCurrentWindingStop(WindingCode code) {
+	public async void UpdateCurrentWindingStop(IWindingCode code) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		try {
 			code.FolderPath = AppConfig.BasePath + code.FolderPath;
-			WindingCode windingCode = await _directoryService.GetWindingCodeDocuments(code);
+			IWindingCode windingCode = await _directoryService.GetWindingCodeDocuments(code);
 			_currentWindingStop = windingCode;
 			if (clientIp != null)
 				await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
@@ -203,9 +270,8 @@ public class DirectoryHub : Hub<IHubClient>
 			_logger.LogError("Error updating current winding stop => {Exception}", e.Message);
 		}
 	}
-	public Task<WindingCode?> GetCurrentWindingStop() {
+	public Task<IWindingCode?> GetCurrentWindingStop() {
 		return Task.FromResult(_currentWindingStop);
 	}
 	#endregion
-
 }

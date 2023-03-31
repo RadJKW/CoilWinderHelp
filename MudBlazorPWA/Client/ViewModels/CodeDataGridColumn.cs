@@ -7,9 +7,9 @@ public class CodeDataGridColumn<TItem, TProperty> where TItem : class
 {
 	public required Expression<Func<TItem, TProperty>> Property { get; set; }
 	public Func<TProperty, string>? Formatter { get; set; }
-	public RenderFragment<WindingCode>? EditTemplate { get; set; }
+	public RenderFragment<IWindingCode>? EditTemplate { get; set; }
 
-	public Func<WindingCode, bool>? VisibilityFunction { get; set; }
+	public Func<IWindingCode, bool>? VisibilityFunction { get; set; }
 
 	public bool IsEditable { get; set; } = true;
 	public bool Hideable { get; set; }

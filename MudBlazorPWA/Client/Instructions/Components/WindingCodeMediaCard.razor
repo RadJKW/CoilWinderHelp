@@ -24,14 +24,14 @@
                 SearchFunc="@FolderSearchFunc"
                 Placeholder="@Context.Item.FolderPath"
                 MaxItems="25"
-                Label="@(nameof(WindingCode.FolderPath))"
+                Label="@(nameof(IWindingCode.FolderPath))"
                 Margin="Margin.Dense"
                 Variant="Variant.Outlined"/>
             <MudAutocomplete T="string"
                 @bind-Value="Context.Item.Media.Pdf"
                 SearchFunc="@PdfSearchFunc"
                 MaxItems="25"
-                Label="@(nameof(WindingCode.Media.Pdf))"
+                Label="@(nameof(IWindingCode.Media.Pdf))"
                 Margin="Margin.Dense"
                 Adornment="Adornment.Start"
                 AdornmentColor="Color.Secondary"
@@ -44,7 +44,7 @@
                 @bind-Value="Context.Item.Media.Video"
                 SearchFunc="@VideoSearchFunc"
                 MaxItems="25"
-                Label="@(nameof(WindingCode.Media.Video))"
+                Label="@(nameof(IWindingCode.Media.Video))"
                 Adornment="Adornment.Start"
                 AdornmentColor="Color.Secondary"
                 AdornmentIcon="@Icons.Material.Filled.Movie"
@@ -81,7 +81,7 @@
 @code{
 
   [Parameter, EditorRequired]
-  public required CellContext<WindingCode> Context { get; set; }
+  public required CellContext<IWindingCode> Context { get; set; }
   [Parameter, EditorRequired]
   public required List<string> PdfPathsCollection { get; set; }
   [Parameter, EditorRequired]
@@ -89,7 +89,7 @@
   [Parameter, EditorRequired]
   public required List<string> VideoPathsCollection { get; set; }
   [Parameter]
-  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
+  public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
 
 
 
@@ -143,7 +143,7 @@ private List<string> _videoPathsCollection = new();
     }
   }
 
-  private async Task CommittedItemChanges(WindingCode contextItem) {
+  private async Task CommittedItemChanges(IWindingCode contextItem) {
     await OnCommittedItemChanges.InvokeAsync(contextItem);
   }
 }

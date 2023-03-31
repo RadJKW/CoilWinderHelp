@@ -1,8 +1,4 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using MudBlazorPWA.Shared.Data;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
@@ -15,13 +11,10 @@ public class DirectoryServiceOptions
 
 public class DirectoryService : IDirectoryService
 {
-	private readonly string _windingCodesJsonPath;
-
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<DirectoryService> _logger;
 
 	// add the IDataContext to the constructor
-	private readonly IDataContext _dataContext;
 	private readonly string _rootDirectory;
 
 	//TODO: Create an Settings class to hold this and other settings/data
@@ -29,11 +22,9 @@ public class DirectoryService : IDirectoryService
 		".mp4", ".pdf", ".webm"
 	};
 
-	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger, IDataContext dataContext) {
+	public DirectoryService(IOptions<DirectoryServiceOptions> options, ILogger<DirectoryService> logger) {
 		_logger = logger;
-		_dataContext = dataContext;
 		_rootDirectory = options.Value.RootDirectoryPath;
-		_windingCodesJsonPath = options.Value.WindingCodesJsonPath ?? _rootDirectory + "WindingCodes.json";
 	}
 
 	public Task<List<string>> ListPdfFiles(string? path = null) {
@@ -50,6 +41,7 @@ public class DirectoryService : IDirectoryService
 					.Replace(AppConfig.BasePath, "")
 					.Replace("\\", "/"))
 			.ToList());
+
 	}
 
 	public Task<List<string>> ListVideoFiles(string? path = null) {
@@ -81,7 +73,7 @@ public class DirectoryService : IDirectoryService
 		Console.WriteLine($"Root: {_rootDirectory} \n Path: {path} \n Relative: {relativePath}");
 		return relativePath;
 	}
-	public async Task<WindingCode> GetWindingCodeDocuments(WindingCode code) {
+	public async Task<IWindingCode> GetWindingCodeDocuments(IWindingCode code) {
 		if (code.FolderPath == null) { return code; }
 		Media documents = code.Media;
 
@@ -150,59 +142,6 @@ public class DirectoryService : IDirectoryService
 		folders = folders.Select(f => f.Replace(AppConfig.BasePath, "").Replace("\\", "/"));
 		return Task.FromResult(folders.ToArray());
 	}
-	public async Task ExportWindingCodesToJson(IEnumerable<WindingCode> windingCodes, bool syncDatabase) {
-		var windingCodesList = windingCodes.ToList();
-		string json = JsonSerializer.Serialize(windingCodesList, new JsonSerializerOptions {
-			WriteIndented = true,
-			Converters = {
-				new JsonStringEnumConverter()
-			}
-		});
-		Console.WriteLine("_windingCodesJsonPath: " + _windingCodesJsonPath);
-		try {
-			// if the file exists, delete it
-			if (File.Exists(_windingCodesJsonPath)) { File.Delete(_windingCodesJsonPath); }
-			await File.WriteAllTextAsync(_windingCodesJsonPath, json);
-		}
-		catch (Exception ex) {
-			_logger.LogError("An error occurred while exporting the database : {Error}", ex);
-			throw;
-		}
-		if (syncDatabase) { await UpdateDatabaseWindingCodes(windingCodesList); }
-	}
-	public async Task<IEnumerable<WindingCode>> GetWindingCodesJson(string? path = null) {
-		try {
-			string filePath = path ?? _windingCodesJsonPath;
-			string json = await File.ReadAllTextAsync(filePath);
-			JsonElement jObject = JsonDocument.Parse(json).RootElement.GetProperty("WindingCodes");
-			return JsonSerializer.Deserialize<IEnumerable<WindingCode>>(jObject.GetRawText()) ?? Array.Empty<WindingCode>();
-		}
-		catch (Exception ex) {
-			_logger.LogError("An error occurred while getting the json file : {Error}", ex);
-			throw;
-		}
-	}
-	public async Task UpdateDatabaseWindingCodes(IEnumerable<WindingCode> windingCodes) {
-		var dbWindingCodes = await _dataContext.WindingCodes.ToListAsync();
-		var jsonWindingCodes = windingCodes.ToList();
-		foreach (WindingCode jsonWindingCode in jsonWindingCodes) {
-			// if the code is not in the database, add it
-			if (dbWindingCodes.All(dbWindingCode => dbWindingCode.Code != jsonWindingCode.Code)) { _dataContext.WindingCodes.Add(jsonWindingCode); }
-			else {
-				// if the code is in the database, update it
-				WindingCode dbWindingCode = dbWindingCodes.First(dbCode => dbCode.Code == jsonWindingCode.Code);
-				dbWindingCode.Code = jsonWindingCode.Code;
-				dbWindingCode.Name = jsonWindingCode.Name;
-				dbWindingCode.FolderPath = jsonWindingCode.FolderPath;
-				dbWindingCode.CodeType = jsonWindingCode.CodeType;
-				dbWindingCode.CodeTypeId = jsonWindingCode.CodeTypeId;
-				_dataContext.WindingCodes.Update(dbWindingCode);
-			}
-		}
 
-		// if the code is in the database but not in the json file, delete it
-		foreach (WindingCode dbWindingCode in dbWindingCodes.Where(dbWindingCode => jsonWindingCodes.All(jsonWindingCode => jsonWindingCode.Code != dbWindingCode.Code))) { _dataContext.WindingCodes.Remove(dbWindingCode); }
-		await _dataContext.SaveChangesAsync();
-	}
 	#endregion
 }

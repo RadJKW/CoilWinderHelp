@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.SignalR.Client;
+using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
@@ -14,7 +15,7 @@ public sealed class HubClientService: IAsyncDisposable
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
-	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
+	public event EventHandler<IWindingCode>? CurrentWindingStopUpdated;
 	public event Action<string, string>? NewChatMessage;
 	public HubClientService(NavigationManager navigationManager, ILogger<HubClientService> logger) {
 		_navigationManager = navigationManager;
@@ -33,6 +34,9 @@ public sealed class HubClientService: IAsyncDisposable
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
 
+
+	// ReSharper disable once MemberCanBePrivate.Global
+	public WindingCodeType WindingCodeType { get; private set; } = WindingCodeType.Z80;
 	public string WindingDocsFolder { get; private set; } = string.Empty;
 
 	// TODO: GetHubConnection is redundant, remove it
@@ -48,8 +52,12 @@ public sealed class HubClientService: IAsyncDisposable
 	}
 	private async void InitializeDirectoryHub() {
 		DirectoryHub = new HubConnectionBuilder()
-			.WithAutomaticReconnect()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
+			.WithAutomaticReconnect()
+			.AddJsonProtocol(options =>
+			{
+				options.PayloadSerializerOptions.Converters.Add(new WindingCodeJsonConverter());
+			})
 			.Build();
 
 		RegisterHubEvents(DirectoryHub);
@@ -78,7 +86,7 @@ public sealed class HubClientService: IAsyncDisposable
 			ReceiveFolderContent?.Invoke(path, files, folders);
 		});
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
-		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
+		hubConnection.On<IWindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
 	}
 
 	#region DirectoryInfo
@@ -104,16 +112,16 @@ public sealed class HubClientService: IAsyncDisposable
 	}
 	#endregion
 
-	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
-		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
+	public async Task<IWindingCode?> GetCurrentCoilWinderStop() {
+		return await DirectoryHub.InvokeAsync<IWindingCode>("GetCurrentWindingStop");
 	}
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync("SendMessage", user, message, null);
 	}
-	public async void SetCurrentCoilWinderStop(WindingCode code) {
+	public async void SetCurrentCoilWinderStop(IWindingCode code) {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);
 	}
-	private void ParseWindingCodeMedia(WindingCode code) {
+	private void ParseWindingCodeMedia(IWindingCode code) {
 		if (code.Media.Video != null)
 			code.Media.Video = FileServerUrl + code.Media.Video;
 		if (code.Media.Pdf != null)
@@ -129,21 +137,21 @@ public sealed class HubClientService: IAsyncDisposable
 	}
 
 	#region WindingCodeDB Crud
-	public async Task<IEnumerable<WindingCode>?> GetCodeList(Division? division = null) {
-		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", division);
+	public async Task<IEnumerable<IWindingCode>?> GetCodeList(Division? division = null) {
+		var windingCodesList = await DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", division, WindingCodeType);
 		return windingCodesList ?? null;
 	}
-	public async Task<WindingCode?> GetWindingCode(int codeId) {
-		return await DirectoryHub.InvokeAsync<WindingCode>("GetWindingCode", codeId);
+	public async Task<IWindingCode?> GetWindingCode(int codeId) {
+		return await DirectoryHub.InvokeAsync<IWindingCode>("GetWindingCode", codeId, WindingCodeType);
 	}
-	public async Task<bool> AddWindingCode(WindingCode code) {
-		return await DirectoryHub.InvokeAsync<bool>("CreateWindingCode", code);
+	public async Task<bool> AddWindingCode(IWindingCode code) {
+		return await DirectoryHub.InvokeAsync<bool>("CreateWindingCode", code, WindingCodeType);
 	}
-	public async Task<bool> UpdateWindingCodeDb(WindingCode code) {
-		return await DirectoryHub.InvokeAsync<bool>("UpdateWindingCode", code);
+	public async Task<bool> UpdateWindingCodeDb(IWindingCode code) {
+		return await DirectoryHub.InvokeAsync<bool>("UpdateWindingCode", code, WindingCodeType);
 	}
-	public async Task<WindingCode?> DeleteWindingCode(WindingCode code) {
-		return await DirectoryHub.InvokeAsync<WindingCode>("DeleteWindingCode", code);
+	public async Task<IWindingCode?> DeleteWindingCode(IWindingCode code) {
+		return await DirectoryHub.InvokeAsync<IWindingCode>("DeleteWindingCode", code, WindingCodeType);
 	}
 	#endregion
 

@@ -1,7 +1,6 @@
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.FileProviders;
-using MudBlazor.Services;
 using MudBlazorPWA.Server;
 using MudBlazorPWA.Server.Extensions;
 using MudBlazorPWA.Server.Hubs;
@@ -9,29 +8,12 @@ using MudBlazorPWA.Server.Services;
 using MudBlazorPWA.Shared.Data;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
-using MudExtensions.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
-builder.Services.AddMudServices();
-builder.Services.AddMudExtensions();
-builder.Services.AddDirectoryBrowser();
-builder.Services.AddSignalR();
-builder.Services.AddLogging();
-builder.Services.AddLogging(loggingBuilder => {
-    loggingBuilder.AddConsole();
-});
 
-builder.Services.AddCors(options => {
-    options.AddPolicy(AppConfig.CorsPolicy,
-    configurePolicy: b => b.AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowAnyOrigin());
-});
 
 builder.Services.AddHostServices(builder.Configuration);
 builder.Services.Configure<DirectoryServiceOptions>(options => {
@@ -48,24 +30,24 @@ if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
     using IServiceScope scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
-    await dbContext.InitialiseAsync();
+    var dbInit = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
+    await dbInit.InitialiseAsync();
     bool useInMemoryDatabase = AppConfig.UseInMemoryDatabase;
     bool runtimeIsWindows = AppConfig.IsWindows;
     switch (useInMemoryDatabase)
     {
         case true when runtimeIsWindows:
-            await dbContext.SeedDataAsync(
-                removeRecords: false,
+            await dbInit.SeedDataAsync(
+            removeRecords: false,
                 jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
             break;
         case true when !runtimeIsWindows:
-            await dbContext.SeedDataAsync(
+            await dbInit.SeedDataAsync(
                 removeRecords: true,
                 jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
             break;
         case false:
-            await dbContext.SeedDataAsync(removeRecords: false, jsonFilePath: AppConfig.JsonDataSeedFile);
+            await dbInit.SeedDataAsync(removeRecords: false, jsonFilePath: AppConfig.JsonDataSeedFile);
             break;
     }
 

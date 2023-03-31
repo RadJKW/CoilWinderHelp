@@ -11,7 +11,7 @@
           var colors = new[] { Color.Primary, Color.Secondary, Color.Success };
           var colorIndex = 0;
 
-          foreach (WindingCode? stopCode in WindingStopCodes) {
+          foreach (IWindingCode? stopCode in WindingStopCodes) {
               i++;
 
               if (i % 3 == 1) {
@@ -33,12 +33,12 @@
 
 @code {
   [Parameter]
-  public IEnumerable<WindingCode>? WindingStopCodes { get; set; }
+  public IEnumerable<IWindingCode>? WindingStopCodes { get; set; }
 
   [Parameter]
-  public EventCallback<WindingCode> OnCodeSelected { get; set; }
+  public EventCallback<IWindingCode> OnCodeSelected { get; set; }
 
-  private async Task OnChipClicked(WindingCode code) {
+  private async Task OnChipClicked(IWindingCode code) {
     await OnCodeSelected.InvokeAsync(code);
   }
 

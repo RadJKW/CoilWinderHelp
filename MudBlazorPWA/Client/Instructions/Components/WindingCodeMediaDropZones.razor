@@ -62,13 +62,13 @@
   public List<DropItem>? FolderDropItems { get; set; }
 
   [Parameter, EditorRequired]
-  public required CellContext<WindingCode> Context { get; set; }
+  public required CellContext<IWindingCode> Context { get; set; }
 
   [Parameter, EditorRequired]
-  public required WindingCode WindingCode { get; set; }
+  public required IWindingCode WindingCode { get; set; }
 
   [Parameter]
-  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
+  public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
 
   public class DropZoneConfig {
     private string _style = string.Empty;
@@ -124,12 +124,12 @@
   }
 
   private async Task CommitItemChanges() {
-    WindingCode contextItem = Context.Item;
+    IWindingCode contextItem = Context.Item;
     bool hasNewDropItems = MapDropZoneItemsToWindingCode(contextItem);
     if (hasNewDropItems)
       await OnCommittedItemChanges.InvokeAsync(contextItem);
   }
-  private bool MapDropZoneItemsToWindingCode(WindingCode contextItem) {
+  private bool MapDropZoneItemsToWindingCode(IWindingCode contextItem) {
     int id = contextItem.Id;
     string[] dropZoneNames = _dropZoneConfigs.Select(d => d.Identifier + "-" + id).ToArray();
 

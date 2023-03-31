@@ -3,8 +3,6 @@
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
-@inject ILogger<AdminDashboard> Logger
-@using System.Text.Json
 @implements IDisposable
 
 <MudScrollbar Selector=""
@@ -37,186 +35,9 @@
           <FolderSelector WindingCodes="_windingCodesList"
               OnDropItemsUpdated="DropItemsUpdated"/>
           <div class="data-grid-border mud-background-gray">
-            <MudDataGrid T="WindingCode"
-                id="winding-codes-data-grid"
-                Class="mud-elevation-4"
-                Items="@_windingCodesList"
-                QuickFilter="@DataGridQuickFilter"
-                EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
-                Virtualize="true"
-                OverscanCount="5"
-                ShowMenuIcon="true"
-                Hover="true"
-                ReadOnly="@(_enableEdit == false)"
-                EditMode="DataGridEditMode.Form"
-                EditTrigger="DataGridEditTrigger.OnRowClick"
-                StartedEditingItem="@StartedEditingItem"
-                CanceledEditingItem="@CanceledEditingItem"
-                CommittedItemChanges="@CommitItemChanges"
-                HorizontalScrollbar="false"
-                FixedHeader="true"
-                FilterMode="DataGridFilterMode.Simple"
-                FilterDefinitions="@_dataGridFilter"
-                Bordered="true"
-                Dense="true">
-              <ToolBarContent>
-                <MudStack Row
-                    AlignItems="AlignItems.Center"
-                    Justify="Justify.Center">
-                  <MudTooltip @ref="_menuTooltip"
-                      UserAttributes="@(new() {{ "duration", 2000}})"
-                      Placement="Placement.Top"
-                      @bind-IsVisible="@MenuTooltipVisible"
-                      Text="Table Settings">
-                    <MudMenu Icon="@Icons.Material.Outlined.ExpandCircleDown"
-                        Class="mud-background-gray"
-                        AnchorOrigin="Origin.BottomLeft"
-                        TransformOrigin="Origin.TopLeft"
-                        Variant="Variant.Filled"
-                        PopoverClass="py-1 px-2 border border-radius-4"
-                        Size="Size.Small">
-                      <MudCheckBox Label="Enable Edit"
-                          @bind-Checked="_enableEdit"
-                          Color="Color.Info"
-                          Dense="true"
-                          Size="Size.Small"/>
-                    </MudMenu>
-                  </MudTooltip>
-                  <MudText Typo="Typo.h6">Winding-Stop Codes</MudText>
-                  <MudMenu Label="@(_selectedDivisions.Any() ? string.Join(", ", _selectedDivisions) : "Division")"
-                      StartIcon="@Icons.Material.Outlined.FilterAlt"
-                      Dense="true"
-                      LockScroll="true"
-                      PositionAtCursor="true"
-                      PopoverClass="data-grid-filter-popover mud-background-gray"
-                      FullWidth="false"
-                      Color="@(_selectedDivisions.Any() ? Color.Info : Color.Default)"
-                      Variant="Variant.Outlined">
-                    <div class="pt-1 px-2">
-                      <MudStack Spacing="1">
-                        @foreach (Division divEnum in Enum.GetValues(typeof(Division)).Cast<Division>()) {
-                          <div class="border d-flex flex-column mud-width-full px-2">
-                            <MudCheckBox Checked="@_selectedDivisions.Contains(divEnum)"
-                                CheckedChanged="(bool isChecked) => OnDivisionCheckedChanged(isChecked, divEnum)"
-                                Color="Color.Info"
-                                Dense="true"
-                                Size="Size.Small">
-                              <MudText Class="mx-2"
-                                  Typo="Typo.body2">
-                                @divEnum.ToString()
-                              </MudText>
-                            </MudCheckBox>
-                          </div>
-                        }
-                      </MudStack>
-                    </div>
-                  </MudMenu>
-                </MudStack>
-                <MudSpacer/>
-                <MudTextField @bind-Value="_searchString"
-                    Variant="Variant.Outlined"
-                    Placeholder="Search"
-                    Adornment="Adornment.Start"
-                    Immediate="true"
-                    AdornmentIcon="@Icons.Material.Filled.Search"
-                    IconSize="Size.Medium"
-                    Margin="Margin.None"
-                    Class="winding-codes-search">
-                </MudTextField>
-              </ToolBarContent>
+            <WindingCodesTable WindingCodes="@_windingCodesList" FolderPaths="@_folderPathsCollection" DropItems="@_dropItems" >
 
-              <Columns>
-                <HierarchyColumn T="WindingCode"
-                    ButtonDisabledFunc="@_assignedMediaDisabled"/>
-                <PropertyColumn Property="x => x.Id"
-                    T="WindingCode"
-                    TProperty="int"
-                    IsEditable="false"
-                    Hideable="true">
-                  <EditTemplate/>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Division.ToString()"
-                    T="WindingCode"
-                    TProperty="string"
-                    Title="Dept"
-                    IsEditable="false"
-                    Hideable="true">
-                  <EditTemplate/>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Code"
-                    TProperty="string"
-                    T="WindingCode"
-                    IsEditable="false">
-                  <EditTemplate/>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Name"
-                    T="WindingCode"
-                    TProperty="string"
-                    IsEditable>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.CodeTypeId.ToString()"
-                    T="WindingCode"
-                    TProperty="string"
-                    Title="CodeType"
-                    Hideable="true">
-                  <EditTemplate>
-                    <MudSelectExtended T="CodeTypeId"
-                        Class="mt-4"
-                        RelativeWidth="true"
-                        ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
-                        @bind-Value="@context.Item.CodeTypeId"
-                        Margin="Margin.Dense"
-                        Dense="true"
-                        Variant="Variant.Outlined"
-                        Label="CodeType">
-                    </MudSelectExtended>
-                  </EditTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.FolderPath"
-                    T="WindingCode"
-                    TProperty="string"
-                    Hidden="true">
-                  <EditTemplate>
-                    <MudSelectExtended T="string"
-                        Context="selectContext"
-                        ItemCollection="@(_folderPathsCollection.OrderByDirection(SortDirection.Ascending, x => x).ToList())"
-                        @bind-Value="@context.Item.FolderPath"
-                        Margin="Margin.Dense"
-                        Variant="Variant.Filled"
-                        Clearable="true"
-                        CloseIcon="true"
-                        OnClearButtonClick="@(() => context.Item.FolderPath = null)"
-                        Color="Color.Dark"
-                        Label="Assigned Folder"
-                        Placeholder="Select a folder"
-                        PopoverClass="folder-select-popover"
-                        ForceShrink="true"
-                        SearchBox="true"
-                        SearchBoxPlaceholder="@($"\"{context.Item.Name}\"")"
-                        SearchBoxAutoFocus="true"
-                        LockScroll="true"
-                        DisablePopoverPadding="true">
-                      <ItemTemplate>
-                        <MudText Typo="Typo.button"> @selectContext.Value</MudText>
-                      </ItemTemplate>
-                    </MudSelectExtended>
-                  </EditTemplate>
-                </PropertyColumn>
-                <PropertyColumn Property="x => x.Media.Pdf"
-                    T="WindingCode"
-                    TProperty="string"
-                    IsEditable="false"
-                    Hidden="true">
-                  <EditTemplate/>
-                </PropertyColumn>
-              </Columns>
-              <ChildRowContent>
-                <WindingCodeMediaDropZones Context="context"
-                    FolderDropItems="_dropItems.ToList()"
-                    WindingCode="context.Item"
-                    OnCommittedItemChanges="CommitItemChanges"/>
-              </ChildRowContent>
-            </MudDataGrid>
+            </WindingCodesTable>
           </div>
           break;
       }
@@ -261,32 +82,17 @@
 
 @code {
   private MudDropContainer<DropItem> _dropContainer = default!;
-  private MudTooltip _menuTooltip = default!;
-  private readonly List<DropItem> _dropItems = new();
-  private readonly List<WindingCode> _windingCodesList = new();
+
   private readonly List<string> _folderPathsCollection = new();
-  private readonly List<Division> _selectedDivisions = new();
-  private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
-  private bool MenuTooltipVisible {
-    get => _menuTooltipVisible;
-    set {
-      _menuTooltipVisible = value;
-      if (value) {
-        _ = HideMenuTooltip();
-      } else {
-        _ctsMenuToolTip.Cancel();
-        _ctsMenuToolTip = new();
-      }
-    }
-  }
-  private CancellationTokenSource _ctsMenuToolTip = new();
-  private bool _menuTooltipVisible;
-  private bool _enableEdit;
-  private string? _searchString;
+  private readonly List<DropItem> _dropItems = new();
+  private readonly List<IWindingCode> _windingCodesList = new();
+
+
+
+
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-    HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
     var getWindingCodesTask = HubClientService.GetCodeList();
     var getFolderPathsTask = HubClientService.GetFoldersInPath();
     var getPdfFilesTask = HubClientService.ListPdfFiles();
@@ -308,115 +114,10 @@
   void IDisposable.Dispose() {
     Snackbar.Dispose();
   }
-  private async Task OnWindingCodesDbUpdated() {
-    Snackbar.Add("Winding Codes Database Updated", Severity.Success);
-    await RefreshWindingCodes();
-  }
-
-  #region QuickFilterSearch
-  private readonly Dictionary<string, Func<WindingCode, string>> _columnMap = new() {
-    ["CodeType"] = x => x.CodeTypeId.ToString(),
-    ["CodeTypeId"] = x => x.CodeTypeId.ToString(),
-    ["Code"] = x => x.Code,
-    ["Name"] = x => x.Name,
-    ["Division"] = x => x.Division.ToString(),
-    ["Dept"] = x => x.Division.ToString()
-  };
-
-  private Func<WindingCode, bool> DataGridQuickFilter => x => {
-    if (string.IsNullOrWhiteSpace(_searchString)) {
-      return true;
-    }
-
-    var searchTerms = _searchString.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s));
-    foreach (string searchTerm in searchTerms) {
-      int delimiterIndex = searchTerm.IndexOfAny(new[] {
-        '=', ':'
-      });
-      if (delimiterIndex < 0) {
-        bool matches = _columnMap.Values.Any(propertySelector => propertySelector(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-        if (!matches) {
-          return false;
-        }
-      } else {
-        string columnName = searchTerm[..delimiterIndex].Trim();
-        if (!_columnMap.TryGetValue(columnName, out var propertySelector)) {
-          continue;
-        }
-
-        string searchTermValue = searchTerm[(delimiterIndex + 1)..].Trim();
-        string columnValue = propertySelector(x);
-        if (!columnValue.Contains(searchTermValue, StringComparison.OrdinalIgnoreCase)) {
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
-  #endregion
-
-  #region DataGrid Methods
-  private readonly Func<WindingCode, bool> _assignedMediaDisabled = windingCode => windingCode.FolderPath == null;
-  private async Task RefreshWindingCodes() {
-    var windingCodesList = await HubClientService.GetCodeList();
-    if (windingCodesList != null) {
-      _windingCodesList.Clear();
-      _windingCodesList.AddRange(windingCodesList);
-      StateHasChanged();
-    }
-  }
 
 
-  private void StartedEditingItem(WindingCode item) {
-    Snackbar.Add($"Started editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
-  }
-  private void CanceledEditingItem(WindingCode item) {
-    Snackbar.Add($"Canceled editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
-  }
 
-  private async Task CommitItemChanges(WindingCode item) {
-    bool result = await HubClientService.UpdateWindingCodeDb(item);
-    if (!result) {
-      Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(item)}", Severity.Error);
-      return;
-    }
-    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(item)}", Severity.Success);
-    WindingCode? updatedItem = await HubClientService.GetWindingCode(item.Id);
-    if (updatedItem != null) {
-      int index = _windingCodesList.FindIndex(x => x.Id == updatedItem.Id);
-      _windingCodesList[index] = updatedItem;
-      StateHasChanged();
-    }
-  }
-  private void UpdateGridFilterList() {
-    var enumerable = _selectedDivisions.ToList();
-    Logger.LogInformation("Selected Divs: {DivFilter}", string.Join(", ", enumerable));
-    if (!enumerable.Any()) {
-      _dataGridFilter.Clear();
-      return;
-    }
 
-    _dataGridFilter.Clear();
-    _dataGridFilter.Add(new() {
-      FilterFunction = x => { return enumerable.Any(d => d == x.Division); }
-    });
-
-    _selectedDivisions.Clear();
-    _selectedDivisions.AddRange(enumerable);
-  }
-
-  private Task OnDivisionCheckedChanged(bool isChecked, Division divEnum) {
-    if (isChecked) {
-      _selectedDivisions.Add(divEnum);
-    } else {
-      _selectedDivisions.Remove(divEnum);
-    }
-
-    UpdateGridFilterList();
-    return Task.CompletedTask;
-  }
-  #endregion
 
   private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
     DropItem? dropItem = dropInfo.Item;
@@ -487,11 +188,6 @@
       }, {
         "data-path", context.Path!
       }
-  // ,
-  // {"data-type", context.Type!},
-  // {"data-identifier", context.Identifier!},
-  // {"data-original-identifier", context.OriginalIdentifier!},
-  // {"data-is-copy", context.IsCopy.ToString()}
     };
 
     var copies = _dropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
@@ -511,14 +207,5 @@
     _dropItems.AddRange(arg);
     return Task.CompletedTask;
   }
-  private async Task HideMenuTooltip() {
-    try {
-      await Task.Delay((int)_menuTooltip.UserAttributes["duration"], _ctsMenuToolTip.Token);
-    }
-    catch (TaskCanceledException) {
-      return;
-    }
-    MenuTooltipVisible = false;
-    StateHasChanged();
-  }
+
 }
