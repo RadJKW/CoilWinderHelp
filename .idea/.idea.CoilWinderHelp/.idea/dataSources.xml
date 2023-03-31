@@ -20,7 +20,7 @@
         </library>
       </libraries>
     </data-source>
-    <data-source source="LOCAL" name="CoilWinderHelp.Old" uuid="53e7b060-aaf4-4c8a-88b5-f813e52888cb">
+    <data-source source="LOCAL" name="CoilWinderHelp.Old" uuid="2e38b2c2-4749-4ec5-85d8-a2a80df9b4bb">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>

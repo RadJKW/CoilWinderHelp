@@ -71,7 +71,7 @@
               <MudExpansionPanels MultiExpansion="true"
                   Class="flex-grow-0 overflow-auto stops-expansion-panel"
                   Elevation="2">
-                @foreach (WindingCode windingCode in group) {
+                @foreach (IWindingCode windingCode in group) {
                   <MudExpansionPanel Class="stops-expansion-item"
                       IsInitiallyExpanded="false">
                     <TitleContent>
@@ -194,8 +194,8 @@
   }
 
   #region Properties
-  private IEnumerable<IGrouping<CodeTypeId, WindingCode>> WindingCodeGroups { get; set; }
-    = new List<IGrouping<CodeTypeId, WindingCode>>();
+  private IEnumerable<IGrouping<CodeTypeId, IWindingCode>> WindingCodeGroups { get; set; }
+    = new List<IGrouping<CodeTypeId, IWindingCode>>();
   private PageState State { get; set; } = PageState.Loading;
   private List<string> _folderPaths = new List<string>();
   //private readonly List<(string, List<string>?)> _folderItemGroups = new();
@@ -218,7 +218,7 @@
 
   #region Startup Methods
   private async Task FetchCodesFromHub() {
-    var windingCodes = await DirectoryHub.DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", Division.D1);
+    var windingCodes = await DirectoryHub.DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", Division.D1);
     if (windingCodes == null) {
       State = PageState.Error;
       return;
@@ -246,7 +246,7 @@
 
   private async Task SetUpdatedStop(int codeId) {
   // get the updated code information from the hub
-    var updatedWindingCode = await DirectoryHub.DirectoryHub.InvokeAsync<WindingCode?>("GetWindingCode", codeId);
+    var updatedWindingCode = await DirectoryHub.DirectoryHub.InvokeAsync<IWindingCode?>("GetWindingCode", codeId);
     if (updatedWindingCode == null)
       return;
   /*updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";*/
@@ -259,7 +259,7 @@
       config.CloseAfterNavigation = true;
     });
   }
-  private void OnCurrentWindingStopUpdated(object? obj, WindingCode code) {
+  private void OnCurrentWindingStopUpdated(object? obj, IWindingCode code) {
     Media media = code.Media;
     Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.RefMedia}",
       Severity.Info,
@@ -271,10 +271,10 @@
       });
   }
 
-  private string FormatWindingCode(WindingCode windingCode) {
+  private string FormatWindingCode(IWindingCode windingCode) {
     return !_showFullPaths ? windingCode.FolderPath! : $"{ServerWindingDocsFolder}{windingCode.FolderPath}";
   }
-  private async Task SaveWindingCodeDb(WindingCode windingCode) {
+  private async Task SaveWindingCodeDb(IWindingCode windingCode) {
     if (windingCode.FolderPath != null)
       windingCode.FolderPath = windingCode.FolderPath.Replace("../", string.Empty);
     await DirectoryHub.DirectoryHub.InvokeAsync("UpdateWindingCode", windingCode.Name, windingCode);

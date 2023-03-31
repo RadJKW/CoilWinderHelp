@@ -201,7 +201,7 @@
   [Parameter]
   public string? DirectoryPath { get; set; }
   [Parameter]
-  public List<WindingCode>? WindingCodes { get; set; }
+  public List<IWindingCode>? WindingCodes { get; set; }
 
     private const string FolderDropZoneId = "DZ-Folder";
     private const string PdfDropZoneId = "DZ-Pdf";
@@ -214,7 +214,7 @@
   private MudListItemExtended<Folder?>? SelectedItem { get; set; }
   private Folder? SelectedValue { get; set; }
   private Folder? RootFolder { get; set; }
-  private List<WindingCode> _windingCodesWithFolders = default!;
+  private List<IWindingCode> _windingCodesWithFolders = default!;
   private List<DropItem> _dropItems = new();
   private IEnumerable<string> _folders = default!;
   private bool _rootFolderChanged = false;

@@ -8,7 +8,9 @@ public class DataContext : DbContext, IDataContext
     public DataContext(DbContextOptions<DataContext> options) : base(options) {
     }
 
-    public DbSet<WindingCode> WindingCodes => Set<WindingCode>();
+    public DbSet<Z80WindingCode> Z80WindingCodes => Set<Z80WindingCode>();
+
+    public DbSet<PcWindingCode> PcWindingCodes => Set<PcWindingCode>();
 
     public IEnumerable<CodeType> CodeTypes => Set<CodeType>();
 

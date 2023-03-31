@@ -64,7 +64,7 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
                         });
                 });
 
-            modelBuilder.Entity("MudBlazorPWA.Shared.Models.WindingCode", b =>
+            modelBuilder.Entity("MudBlazorPWA.Shared.Models.PcWindingCode", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -98,10 +98,47 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
                     b.HasIndex("Code", "Division")
                         .IsUnique();
 
-                    b.ToTable("WindingCodes");
+                    b.ToTable("PcWindingCodes");
                 });
 
-            modelBuilder.Entity("MudBlazorPWA.Shared.Models.WindingCode", b =>
+            modelBuilder.Entity("MudBlazorPWA.Shared.Models.Z80WindingCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CodeTypeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Division")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FolderPath")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("Stop");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodeTypeId");
+
+                    b.HasIndex("Code", "Division")
+                        .IsUnique();
+
+                    b.ToTable("Z80WindingCodes");
+                });
+
+            modelBuilder.Entity("MudBlazorPWA.Shared.Models.PcWindingCode", b =>
                 {
                     b.HasOne("MudBlazorPWA.Shared.Models.CodeType", "CodeType")
                         .WithMany()
@@ -111,7 +148,7 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
 
                     b.OwnsOne("MudBlazorPWA.Shared.Models.Media", "Media", b1 =>
                         {
-                            b1.Property<int>("WindingCodeId")
+                            b1.Property<int>("PcWindingCodeId")
                                 .HasColumnType("INTEGER");
 
                             b1.Property<string>("Pdf")
@@ -128,12 +165,53 @@ namespace MudBlazorPWA.Shared.Persistence.Migrations
                                 .HasColumnType("TEXT")
                                 .HasColumnName("Video");
 
-                            b1.HasKey("WindingCodeId");
+                            b1.HasKey("PcWindingCodeId");
 
-                            b1.ToTable("WindingCodes");
+                            b1.ToTable("PcWindingCodes");
 
                             b1.WithOwner()
-                                .HasForeignKey("WindingCodeId");
+                                .HasForeignKey("PcWindingCodeId");
+                        });
+
+                    b.Navigation("CodeType");
+
+                    b.Navigation("Media")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MudBlazorPWA.Shared.Models.Z80WindingCode", b =>
+                {
+                    b.HasOne("MudBlazorPWA.Shared.Models.CodeType", "CodeType")
+                        .WithMany()
+                        .HasForeignKey("CodeTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsOne("MudBlazorPWA.Shared.Models.Media", "Media", b1 =>
+                        {
+                            b1.Property<int>("Z80WindingCodeId")
+                                .HasColumnType("INTEGER");
+
+                            b1.Property<string>("Pdf")
+                                .HasMaxLength(255)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Pdf");
+
+                            b1.Property<string>("RefMedia")
+                                .HasColumnType("TEXT")
+                                .HasColumnName("RefMedia");
+
+                            b1.Property<string>("Video")
+                                .HasMaxLength(255)
+                                .HasColumnType("TEXT")
+                                .HasColumnName("Video");
+
+                            b1.HasKey("Z80WindingCodeId");
+
+                            b1.ToTable("Z80WindingCodes");
+
+                            b1.WithOwner()
+                                .HasForeignKey("Z80WindingCodeId");
                         });
 
                     b.Navigation("CodeType");

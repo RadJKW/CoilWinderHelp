@@ -6,7 +6,15 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace MudBlazorPWA.Shared.Persistence.EntityConfigurations;
-public class WindingCodeConfiguration : IEntityTypeConfiguration<WindingCode>
+public class Z80WindingCodeConfiguration : WindingCodeConfiguration<Z80WindingCode>
+{
+}
+
+public class PcWindingCodeConfiguration : WindingCodeConfiguration<PcWindingCode>
+{
+}
+
+public class WindingCodeConfiguration<T> : IEntityTypeConfiguration<T> where T : WindingCode
 {
 	private readonly JsonSerializerOptions _jsonSerializerOptions = new() {
 		PropertyNameCaseInsensitive = true,
@@ -16,7 +24,7 @@ public class WindingCodeConfiguration : IEntityTypeConfiguration<WindingCode>
 		}
 	};
 
-	public void Configure(EntityTypeBuilder<WindingCode> builder) {
+	public void Configure(EntityTypeBuilder<T> builder) {
 		// Entity Configuration
 		builder.HasKey(w => w.Id);
 		builder.HasIndex(w => new {
@@ -37,10 +45,10 @@ public class WindingCodeConfiguration : IEntityTypeConfiguration<WindingCode>
 				.HasConversion(
 				files =>
 					JsonSerializer.Serialize
-							(files, _jsonSerializerOptions),
+						(files, _jsonSerializerOptions),
 				filesJson =>
 					JsonSerializer.Deserialize<List<string>>
-							(filesJson, _jsonSerializerOptions) ?? new List<string>(),
+						(filesJson, _jsonSerializerOptions) ?? new List<string>(),
 				new ValueComparer<List<string>>(
 				(c1, c2) =>
 					c2 != null && c1 != null && c1.SequenceEqual(c2),

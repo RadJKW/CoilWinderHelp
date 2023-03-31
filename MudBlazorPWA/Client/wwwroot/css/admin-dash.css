@@ -16,7 +16,8 @@
 }
 
 #winding-codes-data-grid{
-    --data-grid-toolbar-height: 64px;
+    --data-grid-toolbar-height: 72px;
+    padding:0 8px 8px;
     margin-inline:auto;
     height: 100%;
 }
@@ -28,16 +29,31 @@
 }
 
 .mud-table .mud-toolbar .winding-codes-search{
-    padding-inline: 16px 6px;
+    padding-inline:16px 6px;
+    margin-top: 0;
+}
+.division-radio-group label.mud-radio .mud-icon-button{
+    padding: 4px;
+}
+.division-radio-group.mud-input-control{
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 4px;
+    padding-inline: 0 8px;
+}
+.division-radio-group.mud-input-control .mud-radio{
+    margin: 0;
+}
+.division-radio-group.mud-input-control button{
+    margin-inline: 4px;
+    padding: 0
 }
 #winding-codes-data-grid .mud-table-container{
     max-height: calc(100% - var(--data-grid-toolbar-height));
     overflow: auto;
-    padding-inline: 8px 2px;
+    border: 1px solid var(--mud-palette-lines-default);
 }
+
 #winding-codes-data-grid .mud-table-root{
-    border: 1px solid var(--mud-palette-lines-inputs);
-    border-radius: 2px;
 }
 
 #winding-codes-data-grid .mud-table-root thead > tr > th{
@@ -49,37 +65,36 @@
 #winding-codes-data-grid .mud-table-root tbody > .mud-table-row:nth-of-type(even){
     background-color: var(--mud-palette-table-striped);
 }
-#winding-codes-data-grid .mud-table-root tbody > .mud-table-row .mud-table-cell[data-label="Name"]{
-    max-width: 150px;
-    min-width: 100px;
-}#winding-codes-data-grid .mud-table-root tbody > .mud-table-row .mud-table-cell{
+#winding-codes-data-grid .mud-table-root tbody > .mud-table-row .mud-table-cell{
      min-width: 100px;
      max-width: 140px;
     text-align: center;
 }
 #winding-codes-data-grid .mud-table-root tbody > .mud-table-row .mud-table-cell:not([data-label]) {
     min-width: unset;
+    padding: 0 12px;
 }
-
-
 #winding-codes-data-grid thead .mud-table-cell{
     padding: 4px 8px;
     font-size: .875rem;
     text-align: start;
 }
+#winding-codes-data-grid thead .mud-table-cell:first-child{
+    padding: 0;
+    text-align: center;
+}
 #winding-codes-data-grid thead th:not(:first-child) span.column-header {
     display: flex;
     flex: auto;
     flex-wrap: wrap;
+}#winding-codes-data-grid thead th:not(:first-child) span.column-options {
+    width: min-content;
 }
 #winding-codes-data-grid thead th:not(:first-child) span.column-header > :first-child {
     flex: auto;
-    width: 75px;
-    margin-inline: 8px 12px;
+    width: min-content;
+    margin-inline: 8px 24px;
 }
-
-
-
 #winding-codes-data-grid tbody tr td{
     /*padding: 0.5rem 1rem;*/
     /*text-align: center;*/

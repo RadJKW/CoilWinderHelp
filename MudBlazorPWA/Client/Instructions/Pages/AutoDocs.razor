@@ -55,7 +55,7 @@
 
 
 @code{
-  private WindingCode? _currentWindingStop;
+  private IWindingCode? _currentWindingStop;
   private double _startWidth = 65;
 
   private IJSObjectReference? _moduleJS;
@@ -76,7 +76,7 @@
   }
 
 
-  private void DirectoryHub_OnCurrentWindingStopUpdated(object? sender, WindingCode windingCode) {
+  private void DirectoryHub_OnCurrentWindingStopUpdated(object? sender, IWindingCode windingCode) {
     _currentWindingStop = windingCode;
     StateHasChanged();
     if (_moduleJS != null)

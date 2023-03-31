@@ -4,7 +4,8 @@ using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Shared.Data;
 public interface IDataContext
 {
-    public DbSet<WindingCode> WindingCodes { get; }
+    public DbSet<Z80WindingCode> Z80WindingCodes { get; }
+    public DbSet<PcWindingCode> PcWindingCodes { get; }
     public IEnumerable<CodeType> CodeTypes { get; }
 
 

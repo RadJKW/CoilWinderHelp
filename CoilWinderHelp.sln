@@ -20,11 +20,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionC
 		package.json = package.json
 		README.md = README.md
 		WindingCodes.json = WindingCodes.json
+		Z80WindingCodes.csv = Z80WindingCodes.csv
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqliteDB", "SqliteDB", "{306E55C0-41E2-4D49-92BE-8A31D38BD81B}"
 	ProjectSection(SolutionItems) = preProject
 		MudBlazorPWA\SqliteDb\CoilWinderHelp.db = MudBlazorPWA\SqliteDb\CoilWinderHelp.db
+		MudBlazorPWA\SqliteDb\CoilWinderHelp.Old.db = MudBlazorPWA\SqliteDb\CoilWinderHelp.Old.db
 	EndProjectSection
 EndProject
 Global
