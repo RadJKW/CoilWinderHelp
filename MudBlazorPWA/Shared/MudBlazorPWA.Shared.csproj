@@ -27,6 +27,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
         <PackageReference Include="MudBlazor" Version="6.2.0" />
+        <PackageReference Include="Riok.Mapperly" Version="2.7.0" />
     </ItemGroup>
 
     <ItemGroup>

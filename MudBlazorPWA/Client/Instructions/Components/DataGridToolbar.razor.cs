@@ -8,7 +8,6 @@ public partial class DataGridToolbar : ComponentBase
 	[Parameter] public string? SearchString { get; set; }
 	[Parameter] public List<Division> SelectedDivisions { get; set; } = new List<Division>();
 	[Parameter] public EventCallback<(bool, Division)> OnDivisionToggled { get; set; }
-
 	[Parameter] public EventCallback<bool> EnableEditChanged { get; set; }
 
 	private async Task OnDivisionCheckedChanged(bool isChecked, Division division) {

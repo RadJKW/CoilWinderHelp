@@ -10,12 +10,15 @@ public enum HubServers
 	DirectoryHub,
 	ChatHub
 }
-public sealed class HubClientService: IAsyncDisposable
+
+public class HubClientService
 {
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
 	public event EventHandler<IWindingCode>? CurrentWindingStopUpdated;
+
+	public event Action? WindingCodeTypeChanged;
 	public event Action<string, string>? NewChatMessage;
 	public HubClientService(NavigationManager navigationManager, ILogger<HubClientService> logger) {
 		_navigationManager = navigationManager;
@@ -34,12 +37,16 @@ public sealed class HubClientService: IAsyncDisposable
 	public HubConnection DirectoryHub { get; private set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
 
-
-	// ReSharper disable once MemberCanBePrivate.Global
-	public WindingCodeType WindingCodeType { get; private set; } = WindingCodeType.Z80;
+	private WindingCodeType _windingCodeType = WindingCodeType.Z80;
+	public WindingCodeType WindingCodeType {
+		get => _windingCodeType;
+		set {
+			_windingCodeType = value;
+			WindingCodeTypeChanged?.Invoke();
+		}
+	}
 	public string WindingDocsFolder { get; private set; } = string.Empty;
-
-	// TODO: GetHubConnection is redundant, remove it
+// TODO: GetHubConnection is redundant, remove it
 	public HubConnection GetHubConnection(HubServers hubServer) {
 		return hubServer switch {
 			HubServers.DirectoryHub => DirectoryHub,
@@ -154,10 +161,5 @@ public sealed class HubClientService: IAsyncDisposable
 		return await DirectoryHub.InvokeAsync<IWindingCode>("DeleteWindingCode", code, WindingCodeType);
 	}
 	#endregion
-
-	public async ValueTask DisposeAsync() {
-		if (DirectoryHub.State == HubConnectionState.Connected)
-			await DirectoryHub.DisposeAsync();
-	}
 
 }
