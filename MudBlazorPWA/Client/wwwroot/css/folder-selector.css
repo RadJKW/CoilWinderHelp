@@ -99,12 +99,14 @@
     width: unset;
 }
 
-
-
 #folder-selector .drop-zone-gallery > :nth-child(1n) {
     width: 45%;
     padding: 1px;
     z-index: 1;
+}
+#folder-selector .drop-zone-gallery.flex-column .mud-drop-item {
+    width: 70%;
+   margin-inline: auto;
 }
 
 #drop-zone-chip.drop-zone-item {

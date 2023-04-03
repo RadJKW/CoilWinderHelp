@@ -140,6 +140,7 @@ public class DirectoryService : IDirectoryService
 		// foreach folder in the list, if the folder uses "\\" as a separator, replace it with "/"
 		// also remove AppConfig.BasePath from the folder path
 		folders = folders.Select(f => f.Replace(AppConfig.BasePath, "").Replace("\\", "/"));
+		Console.WriteLine("Completed");
 		return Task.FromResult(folders.ToArray());
 	}
 

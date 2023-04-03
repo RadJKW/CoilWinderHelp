@@ -5,6 +5,19 @@ function openFilePreview (url) {
   window.open(url, '_blank')
 }
 
+function toggleDropItemsDense (bool) {
+  const dropZones = document.querySelectorAll('#folder-selector div.drop-zone-gallery')
+  if (bool) {
+    dropZones.forEach((item) => {
+      item.classList.add('flex-column')
+    })
+  } else {
+    dropZones.forEach((item) => {
+      item.classList.remove('flex-column')
+    })
+  }
+}
+
 function checkOverflowingElements () {
   console.log('checkOverflowingElements')
   const selector = '#drop-zone-chip > * p'
@@ -61,5 +74,3 @@ function AddTooltipEventListeners (element, tooltipText) {
     tooltip.style.visibility = 'hidden'
   })
 }
-
-// Run the function on page load

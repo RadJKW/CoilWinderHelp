@@ -147,6 +147,7 @@ public class DirectoryHub : Hub<IHubClient>
 		var results = division is null
 			? await windingCodes.ToListAsync()
 			: await windingCodes.Where(w => w.Division == division).ToListAsync();
+		_logger.LogInformation("Found {Count} winding codes for Type {WindingCodeType} and Division {Division}", results.Count, windingCodeType, division);
 		return results.Any() ? results : null;
 	}
 
@@ -197,27 +198,17 @@ public class DirectoryHub : Hub<IHubClient>
 		}
 
 		var dbContext = (DataContext)_dataContext;
+		var mapper = new WindingCodeMapper();
 
 		switch (windingCodeType) {
 			case WindingCodeType.Z80: {
-				Z80WindingCode? z80WindingCode = await _dataContext.Z80WindingCodes.FindAsync(windingCode.Id);
-
-				if (z80WindingCode is null) {
-					return false;
-				}
-
-
-				z80WindingCode.FolderPath = windingCode.FolderPath;
-				z80WindingCode.Media.RefMedia = windingCode.Media.RefMedia;
-				z80WindingCode.Media.Pdf = windingCode.Media.Pdf;
-				z80WindingCode.Media.Video = windingCode.Media.Video;
-			}
+				Z80WindingCode updatedCode = mapper.MapToZ80(windingCode);
+				dbContext.Z80WindingCodes.Update(updatedCode);
 				break;
-
+			}
 			case WindingCodeType.Pc: {
-				var pcWindingCode = (PcWindingCode)windingCode;
-				dbContext.Entry(pcWindingCode).State = EntityState.Modified;
-				dbContext.Entry(pcWindingCode.Media).State = EntityState.Modified;
+				PcWindingCode updatedCode = mapper.MapToPc(windingCode);
+				dbContext.PcWindingCodes.Update(updatedCode);
 				break;
 			}
 			default:
@@ -282,4 +273,5 @@ public class DirectoryHub : Hub<IHubClient>
 		return Task.FromResult(_currentWindingStop);
 	}
 	#endregion
+
 }
