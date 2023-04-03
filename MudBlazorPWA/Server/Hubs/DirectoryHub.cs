@@ -189,7 +189,7 @@ public class DirectoryHub : Hub<IHubClient>
 		return true;
 	}
 
-	public async Task<bool> UpdateWindingCode(WindingCode windingCode, WindingCodeType windingCodeType)
+	public async Task<bool> UpdateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType)
 	{
 		if (!WindingCodeExists(windingCode.Id, windingCodeType))
 		{
@@ -200,12 +200,20 @@ public class DirectoryHub : Hub<IHubClient>
 
 		switch (windingCodeType) {
 			case WindingCodeType.Z80: {
-				// TODO: this is not getting the changes from windingCode parameter
-				Z80WindingCode z80WindingCode = (await _dataContext.Z80WindingCodes.FindAsync(windingCode.Id))!;
-				dbContext.Entry(z80WindingCode).State = EntityState.Modified;
-				dbContext.Entry(z80WindingCode.Media).State = EntityState.Modified;
-				break;
+				Z80WindingCode? z80WindingCode = await _dataContext.Z80WindingCodes.FindAsync(windingCode.Id);
+
+				if (z80WindingCode is null) {
+					return false;
+				}
+
+
+				z80WindingCode.FolderPath = windingCode.FolderPath;
+				z80WindingCode.Media.RefMedia = windingCode.Media.RefMedia;
+				z80WindingCode.Media.Pdf = windingCode.Media.Pdf;
+				z80WindingCode.Media.Video = windingCode.Media.Video;
 			}
+				break;
+
 			case WindingCodeType.Pc: {
 				var pcWindingCode = (PcWindingCode)windingCode;
 				dbContext.Entry(pcWindingCode).State = EntityState.Modified;
