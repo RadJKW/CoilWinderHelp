@@ -134,7 +134,7 @@
 
           @if (RootFolder.SubFolders.Any()) {
             <MudListItemExtended T="string"
-                Style="position: sticky; top: 1px;"
+                Class="drop-zone-header"
                 InitiallyExpanded="true"
                 Dense="true">
               <ChildContent>
@@ -147,20 +147,24 @@
               </ChildContent>
               <NestedList>
                 @{
+                  var dzId = $"{FolderDropZoneId}-{RootFolder.Id}";
                   var dzClass = "drop-zone-gallery";
                   if (_dropItemsDense)
                     dzClass += " flex-column";
 
+
                   <MudDropZone T="DropItem"
-                      Identifier="@($"{FolderDropZoneId}-{RootFolder.Id}")"
-                      Class="@dzClass"/>
+                      Class="@dzClass"
+                      Identifier="@dzId"
+                      CanDrop="CanDropFolder"
+                      />
                 }
               </NestedList>
             </MudListItemExtended>
           }
           @if (RootFolder.MediaFiles.PdfFiles != null && RootFolder.MediaFiles.PdfFiles.Any()) {
             <MudListItemExtended T="string"
-                Style="position: sticky; top: 1px; z-index: 2;"
+                Class="drop-zone-header"
                 InitiallyExpanded="true"
                 Dense="true">
               <ChildContent>
@@ -178,8 +182,8 @@
                     dzClass += " flex-column";
                   <MudDropZone T="DropItem"
                       Identifier="@($"{PdfDropZoneId}-{RootFolder.Id}")"
-                      ApplyDropClassesOnDragStarted="true"
-                      Class="@dzClass"/>
+                      Class="@dzClass"
+                      CanDrop="CanDropPdf"/>
                 }
               </NestedList>
             </MudListItemExtended>
@@ -187,7 +191,7 @@
 
           @if (RootFolder.MediaFiles.VideoFiles != null && RootFolder.MediaFiles.VideoFiles.Any()) {
             <MudListItemExtended T="string"
-                Style="position: sticky; top: 1px; z-index: 2;;"
+                Class="drop-zone-header"
                 InitiallyExpanded="true"
                 Dense="true">
               <ChildContent>
@@ -205,7 +209,8 @@
                     dzClass += " flex-column";
                   <MudDropZone T="DropItem"
                       Identifier="@($"{VideoDropZoneId}-{RootFolder.Id}")"
-                      Class="@dzClass"/>
+                      Class="@dzClass"
+                      CanDrop="CanDropVideo"/>
                 }
               </NestedList>
             </MudListItemExtended>

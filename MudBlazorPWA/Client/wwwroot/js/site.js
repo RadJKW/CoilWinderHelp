@@ -59,7 +59,6 @@ function AddTooltipEventListeners (element, tooltipText) {
     const elementRect = element.getBoundingClientRect()
     const elementRight = elementRect.right
     const elementLeft = elementRect.left
-    const elementBottom = elementRect.bottom
     const elementTop = elementRect.top
 
     tooltip.innerHTML = tooltipText
