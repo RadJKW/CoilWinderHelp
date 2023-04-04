@@ -50,6 +50,13 @@
 
 }
 
+#folder-selector .drop-zone-header{
+    position: sticky;
+    top: 2.9em;
+    background: var(--mud-palette-surface);
+    z-index: 2;
+}
+
 #folder-selector .drop-zone-gallery {
     display: flex;
     flex-direction: row;
