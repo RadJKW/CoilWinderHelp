@@ -136,11 +136,12 @@ private List<string> _videoPathsCollection = new();
     int lastSlash = mediaPdf.LastIndexOf('/');
     return lastSlash == -1 ? mediaPdf : mediaPdf[(lastSlash + 1)..];
   }
-  private async Task OpenFilePreview(string? filePath) {
-    if (!string.IsNullOrEmpty(filePath)) {
-      var url = $"{NavigationManager.BaseUri}files/{filePath}";
-      await JSRuntime.InvokeVoidAsync("openFilePreview", url);
-    }
+  private async void OpenFilePreview(string? filePath) {
+    if (string.IsNullOrEmpty(filePath))
+      return;
+
+    var url = $"{NavigationManager.BaseUri}files/{filePath}";
+    await JSRuntime.InvokeVoidAsync("openFilePreview", url);
   }
 
   private async Task CommittedItemChanges(IWindingCode contextItem) {

@@ -95,7 +95,8 @@
 }
 
 #media-card .drop-zone-gallery > :nth-child(n):only-child {
-    max-width: 80%;
+    max-width: 65%;
+    width: 100%;
 }
 
 #media-card .drop-zone-gallery > :nth-child(n):not(:only-child) {
@@ -129,11 +130,31 @@
     margin: unset;
 }
 
+.drop-zone-item-tooltip {
+    display:none;
+    visibility: hidden;
+}
 
-/*.overflowing.drop-zone-item:hover::after {
-    content: attr(data-path);
-    cursor: default;
+/* TODO: not working */
+.drop-zone-item-tooltip .drop-item-icon:hover p {
+    text-decoration: none;
+    color: var(--mud-palette-info-darken)
+}
+
+.drop-zone-item-tooltip p{
+    text-decoration: underline;
+}
+
+.drop-zone-gallery .mud-drop-item:hover .drop-zone-item-tooltip{
+    visibility: visible;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    content:attr(data-path);
+    cursor: context-menu;
     position: absolute;
+    overflow:  hidden;
+    max-height: 3rem;
     min-height: 1rem;
     bottom: 1.9rem;
     margin: auto;
@@ -144,26 +165,12 @@
     background-color: rgba(0, 0, 0, 0.9);
     color: var(--mud-palette-text-primary);
     white-space: pre-line;
-}*/
-
-.drop-zone-item:hover::after {
-    content: attr(data-path);
-    cursor: default;
-    position: absolute;
-    min-height: 1rem;
-    bottom: 1.9rem;
-    margin: auto;
-    left: -2px;
-    right: -2px;
-    text-align: center;
-    padding: 4px 4px;
-    background-color: rgba(0, 0, 0, 0.9);
-    color: var(--mud-palette-text-primary);
-    white-space: pre-line;
+    font-size: small;
+    text-size-adjust: auto;
+    -webkit-text-size-adjust: auto;
 }
 
 body .custom-tooltip {
-    /* position: absolute; Remove this line */
     position: fixed;
     text-align: center;
     padding: 4px 4px;

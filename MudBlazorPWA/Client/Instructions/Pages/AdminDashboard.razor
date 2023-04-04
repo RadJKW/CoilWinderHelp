@@ -3,6 +3,7 @@
 @inject HubClientService HubClientService
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 @implements IDisposable
 
 <MudScrollbar Selector=""
@@ -32,8 +33,7 @@
           <MudProgressLinear Indeterminate="true"/>
           break;
         case false:
-          <FolderSelector
-              OnDropItemsUpdated="DropItemsUpdated"/>
+          <FolderSelector OnDropItemsUpdated="DropItemsUpdated"/>
           <div class="data-grid-border mud-background-gray">
             <WindingCodesTable WindingCodes="@_windingCodesList"
                 FolderPaths="@_folderPathsCollection"
@@ -48,6 +48,7 @@
     @{
       var chipClass = "border border-solid drop-zone-item";
       string chipIcon;
+      string? chipCloseIcon = context.IsCopy ? null : " ";
       switch (context.Type) {
         case DropItemType.Folder:
           chipClass += " " + "folder-item";
@@ -65,17 +66,29 @@
           throw new ArgumentOutOfRangeException();
       }
 
-      string? chipCloseIcon = context.IsCopy ? null : " ";
+      var fileUrl = $"{NavigationManager.BaseUri}files/{context.Path}";
 
+      <div class="drop-zone-item-tooltip">
+
+        <MudIcon @onclick="@(() => JSRuntime.InvokeVoidAsync("openFilePreview", fileUrl))"
+            Size="Size.Small"
+            Class="pl-0 pr-1 py-0 cursor-pointer drop-item-icon"
+            Icon="@Icons.Material.Filled.OpenInNew"/>
+
+        <p>
+          @context.Path
+        </p>
+      </div>
       <MudChip Class="@chipClass"
-          UserAttributes="GetDropItemAttributes(context)"
           Icon="@chipIcon"
-          Size="Size.Small"
+          Size="@Size.Small"
           CloseIcon="@chipCloseIcon"
+          UserAttributes="GetDropItemAttributes(context)"
           OnClose="@(() => _dropItems.Remove(context))"
-          Label="true">
+          Label="@true">
         <p class="mud-typography-button">@context.Name</p>
       </MudChip>
+
     }
   </ItemRenderer>
 

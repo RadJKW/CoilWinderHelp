@@ -28,7 +28,7 @@ public partial class FolderSelector
 	private List<DropItem> _dropItems = new();
 	private IEnumerable<string> _folders = default!;
 	private bool _rootFolderChanged;
-	private bool _dropItemsDense;
+	private bool _dropItemsDense = true;
 	#endregion
 
 	protected override async Task OnInitializedAsync() {

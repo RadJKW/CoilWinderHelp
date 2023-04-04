@@ -28,7 +28,6 @@ public class DirectoryService : IDirectoryService
 	}
 
 	public Task<List<string>> ListPdfFiles(string? path = null) {
-		Console.WriteLine($"Searching PDFs in {path ?? "BasePath"}");
 		SearchOption searchOption = path == null ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
 		path ??= AppConfig.BasePath;
 		var files = Directory.EnumerateFiles(path, "*.*", searchOption)
