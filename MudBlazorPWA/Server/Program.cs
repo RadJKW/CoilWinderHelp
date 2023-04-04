@@ -4,24 +4,15 @@ using Microsoft.Extensions.FileProviders;
 using MudBlazorPWA.Server;
 using MudBlazorPWA.Server.Extensions;
 using MudBlazorPWA.Server.Hubs;
-using MudBlazorPWA.Server.Services;
 using MudBlazorPWA.Shared.Data;
-using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
-
-
 builder.Services.AddHostServices(builder.Configuration);
-builder.Services.Configure<DirectoryServiceOptions>(options => {
 
-    options.RootDirectoryPath = AppConfig.BasePath;
-});
-
-builder.Services.AddScoped<IDirectoryService, DirectoryService>();
 
 WebApplication app = builder.Build();
 
@@ -32,31 +23,13 @@ if (app.Environment.IsDevelopment())
     using IServiceScope scope = app.Services.CreateScope();
     var dbInit = scope.ServiceProvider.GetRequiredService<DataContextInitializer>();
     await dbInit.InitialiseAsync();
-    bool useInMemoryDatabase = AppConfig.UseInMemoryDatabase;
-    bool runtimeIsWindows = AppConfig.IsWindows;
-    switch (useInMemoryDatabase)
-    {
-        case true when runtimeIsWindows:
-            await dbInit.SeedDataAsync(
-            removeRecords: false,
-                jsonFilePath: @"C:\Users\jwest\source\RiderProjects\CoilWinderHelp\WindingCodes.json");
-            break;
-        case true when !runtimeIsWindows:
-            await dbInit.SeedDataAsync(
-                removeRecords: true,
-                jsonFilePath: @"/Users/jkw/RiderProjects/CoilWinderHelp/WindingCodes.json");
-            break;
-        case false:
-            await dbInit.SeedDataAsync(removeRecords: false, jsonFilePath: AppConfig.JsonDataSeedFile);
-            break;
-    }
+    await dbInit.SeedDataAsync(removeRecords: false, jsonFilePath: AppConfig.JsonDataSeedFile);
 
 }
 else
 {
     app.UseResponseCompression();
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
