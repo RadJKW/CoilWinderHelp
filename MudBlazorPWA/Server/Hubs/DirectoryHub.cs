@@ -255,19 +255,14 @@ public class DirectoryHub : Hub<IHubClient>
 	#endregion
 
 	#region WindingStop Tracking
-	public async void UpdateCurrentWindingStop(IWindingCode code) {
+	public async void UpdateCurrentWindingStop(int codeId, WindingCodeType windingCodeType) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
-		try {
-			code.FolderPath = AppConfig.BasePath + code.FolderPath;
-			IWindingCode windingCode = await _directoryService.GetWindingCodeDocuments(code);
-			_currentWindingStop = windingCode;
-			if (clientIp != null)
-				await Clients.Group(clientIp).CurrentWindingStopUpdated(windingCode);
-			//await Clients.All.CurrentWindingStopUpdated(windingCode);
+		_currentWindingStop = await GetWindingCode(codeId, windingCodeType);
+		if (_currentWindingStop is null) {
+			_logger.LogWarning("Could not find WindingCode with Id {CodeId} and Type {WindingCodeType}", codeId, windingCodeType);
+			return;
 		}
-		catch (Exception e) {
-			_logger.LogError("Error updating current winding stop => {Exception}", e.Message);
-		}
+		await Clients.Group(clientIp!).CurrentWindingStopUpdated(_currentWindingStop);
 	}
 	public Task<IWindingCode?> GetCurrentWindingStop() {
 		return Task.FromResult(_currentWindingStop);

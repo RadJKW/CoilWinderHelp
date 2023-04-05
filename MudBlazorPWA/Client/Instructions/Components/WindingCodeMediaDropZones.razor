@@ -16,6 +16,7 @@
       <MudGrid Spacing="2"
           Justify="Justify.Center">
         @foreach (DropZoneConfig? config in _dropZoneConfigs) {
+          var dropZoneIdentifier = $"{config.Identifier}-{WindingCode.Id}";
           <MudItem xs="9"
               lg="6">
             <div class="@config.ContainerClass">
@@ -28,7 +29,7 @@
               <MudDropZone T="DropItem"
                   Style="@config.Style"
                   Class="@config.DropZoneClass"
-                  CanDrop="@config.CanDropFunc"
+                  CanDrop="@((item) => CanAcceptDrop(item, dropZoneIdentifier))"
                   Identifier="@($"{config.Identifier}-{WindingCode.Id}")">
               </MudDropZone>
             </div>
@@ -88,7 +89,6 @@
 
     public required string Identifier { get; init; }
     public required string HeaderText { get; init; }
-    public Func<DropItem, bool>? CanDropFunc { get; init; }
   }
 
   private List<DropZoneConfig> _dropZoneConfigs = new();
@@ -100,25 +100,21 @@
         ContainerClass = "mud-alert-text-success",
         Identifier = DzCodeFolder,
         HeaderText = "Folder Path",
-        CanDropFunc = CanDropFolder
       },
       new() {
         ContainerClass = "mud-alert-text-warning",
         Identifier = DzCodePdf,
         HeaderText = "PDF",
-        CanDropFunc = CanDropPdf
       },
       new() {
         ContainerClass = "mud-alert-text-info",
         Identifier = DzCodeVideo,
         HeaderText = "Video",
-        CanDropFunc = CanDropVideo
       },
       new() {
         ContainerClass = "mud-alert-text-secondary",
         Identifier = DzCodeRefMedia,
         HeaderText = "Reference Media",
-        CanDropFunc = CanDropReferenceMedia
       }
     };
   }
@@ -172,24 +168,27 @@
     return true;
   }
 
-  private bool CanDropVideo(DropItem arg) {
-    if (FolderDropItems == null) return false;
+  private bool CanAcceptDrop(DropItem item, string dropZoneIdentifier) {
+  // create a switch statement that handles each drop item type (folder, pdf, video)
+    // and returns true if the item is of the type and FolderDropItems does not contain the item where item.Identifier == dropZoneIdentifier
+    // otherwise return false
 
-    return arg.Type == DropItemType.Video && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
-  }
-  private bool CanDropPdf(DropItem arg) {
-    if (FolderDropItems == null) return false;
+    // trim the last '-' and everything after it from the dropZoneIdentifier
+    // then use a switch statement to determine the dropzone
+    if (FolderDropItems == null)
+      return false;
 
-    return arg.Type == DropItemType.Pdf && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
-  }
-  private bool CanDropFolder(DropItem arg) {
-    if (FolderDropItems == null) return false;
-
-    return arg.Type == DropItemType.Folder && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
-  }
-  private bool CanDropReferenceMedia(DropItem arg) {
-    if (FolderDropItems == null) return false;
-
-    return arg.Type is DropItemType.Pdf or DropItemType.Video && FolderDropItems.Any(d => d.Path == arg.Path || d.Name == arg.Name);
+    bool isNotDuplicate = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
+    return dropZoneIdentifier[..dropZoneIdentifier.LastIndexOf('-')] switch {
+      DzCodeFolder => item.Type is DropItemType.Folder
+                      && isNotDuplicate,
+      DzCodePdf => item.Type == DropItemType.Pdf
+                   && isNotDuplicate,
+      DzCodeVideo => item is { Type: DropItemType.Video }
+                     && isNotDuplicate,
+      DzCodeRefMedia => item.Type is DropItemType.Pdf or DropItemType.Video
+                        && isNotDuplicate,
+      _ => false
+      };
   }
 }

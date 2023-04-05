@@ -156,8 +156,8 @@
                   <MudDropZone T="DropItem"
                       Class="@dzClass"
                       Identifier="@dzId"
-                      CanDrop="CanDropFolder"
-                      />
+                      CanDrop="CanAcceptDropItem"
+                  />
                 }
               </NestedList>
             </MudListItemExtended>
@@ -183,7 +183,7 @@
                   <MudDropZone T="DropItem"
                       Identifier="@($"{PdfDropZoneId}-{RootFolder.Id}")"
                       Class="@dzClass"
-                      CanDrop="CanDropPdf"/>
+                      CanDrop="CanAcceptDropItem"/>
                 }
               </NestedList>
             </MudListItemExtended>
@@ -210,7 +210,7 @@
                   <MudDropZone T="DropItem"
                       Identifier="@($"{VideoDropZoneId}-{RootFolder.Id}")"
                       Class="@dzClass"
-                      CanDrop="CanDropVideo"/>
+                      CanDrop="CanAcceptDropItem"/>
                 }
               </NestedList>
             </MudListItemExtended>

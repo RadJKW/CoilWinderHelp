@@ -1,0 +1,35 @@
+﻿#media-card .drop-zone-gallery {
+    /*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*/
+    display: flex;
+    gap: 4px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    min-height: 50px;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 8px;
+}
+
+/* select each child but with an offset so that the first child is not selected */
+#media-card .drop-zone-gallery > :nth-child(n) {
+    flex: 0 1 auto;
+    width: fit-content;
+}
+
+#media-card .drop-zone-gallery > :nth-child(n):only-child {
+    max-width: 65%;
+    width: 100%;
+}
+
+#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) {
+    max-width: 45%;
+    width: 100%;
+}
+#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) .drop-zone-item > span {
+    width: unset;
+}
+#media-card #drop-zone-chip.drop-zone-item {
+    margin: unset;
+}

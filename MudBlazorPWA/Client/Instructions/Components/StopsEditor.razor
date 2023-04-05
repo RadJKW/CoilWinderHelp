@@ -1,8 +1,7 @@
 ﻿@using Microsoft.AspNetCore.SignalR.Client
 @implements IDisposable
 @inject ISnackbar Snackbar
-@inject HubClientService DirectoryHub
-@inject ILogger<StopsEditor> Logger
+@inject HubClientService DirectoryHubClient
 
 <MudScrollbar Selector=""
     Width="4"
@@ -199,26 +198,25 @@
   private PageState State { get; set; } = PageState.Loading;
   private List<string> _folderPaths = new List<string>();
   //private readonly List<(string, List<string>?)> _folderItemGroups = new();
-  private Folder? RootFolder { get; set; }
   private bool _showFullPaths;
   private string ServerWindingDocsFolder { get; set; } = "Default";
   #endregion
 
   protected override async Task OnInitializedAsync() {
-    DirectoryHub.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
-    DirectoryHub.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
-    ServerWindingDocsFolder = await DirectoryHub.DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
+    DirectoryHubClient.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
+    DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
+    ServerWindingDocsFolder = await DirectoryHubClient.DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
     await FetchCodesFromHub();
     await base.OnInitializedAsync();
   }
   public void Dispose() {
-    DirectoryHub.WindingCodesDbUpdated -= DirectoryHub_OnWindingCodesDbUpdated;
-    DirectoryHub.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
+    DirectoryHubClient.WindingCodesDbUpdated -= DirectoryHub_OnWindingCodesDbUpdated;
+    DirectoryHubClient.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
   }
 
   #region Startup Methods
   private async Task FetchCodesFromHub() {
-    var windingCodes = await DirectoryHub.DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", Division.D1);
+    var windingCodes = await DirectoryHubClient.DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", Division.D1);
     if (windingCodes == null) {
       State = PageState.Error;
       return;
@@ -235,7 +233,6 @@
       };
   }
   private void HandleRootFolderChange(DirectoryMenu.FolderCallbackArgs folderArgs) {
-    RootFolder = folderArgs.Folder;
     _folderPaths.Clear();
     if (folderArgs.SubFolders == null)
       return;
@@ -244,13 +241,8 @@
   }
   #endregion
 
-  private async Task SetUpdatedStop(int codeId) {
-  // get the updated code information from the hub
-    var updatedWindingCode = await DirectoryHub.DirectoryHub.InvokeAsync<IWindingCode?>("GetWindingCode", codeId);
-    if (updatedWindingCode == null)
-      return;
-  /*updatedWindingCode.FolderPath = $"{ServerWindingDocsFolder}{updatedWindingCode.FolderPath}";*/
-    DirectoryHub.SetCurrentCoilWinderStop(updatedWindingCode);
+  private void SetUpdatedStop(int codeId) {
+    DirectoryHubClient.SetCurrentCoilWinderStop(codeId);
   }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success, config => {
@@ -277,7 +269,7 @@
   private async Task SaveWindingCodeDb(IWindingCode windingCode) {
     if (windingCode.FolderPath != null)
       windingCode.FolderPath = windingCode.FolderPath.Replace("../", string.Empty);
-    await DirectoryHub.DirectoryHub.InvokeAsync("UpdateWindingCode", windingCode.Name, windingCode);
+    await DirectoryHubClient.DirectoryHub.InvokeAsync("UpdateWindingCode", windingCode.Name, windingCode);
     StateHasChanged();
   }
 }

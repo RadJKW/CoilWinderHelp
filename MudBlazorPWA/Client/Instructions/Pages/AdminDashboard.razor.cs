@@ -8,6 +8,10 @@ using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Instructions.Pages;
 public partial class AdminDashboard
 {
+	/*private const string DzCodeFolder = "DZ-Code-Folder";
+	private const string DzCodePdf = "DZ-Code-Pdf";
+	private const string DzCodeVideo = "DZ-Code-Video";
+	private const string DzCodeRefMedia = "DZ-Code-Ref";*/
 	private MudDropContainer<DropItem> _dropContainer = default!;
 	private readonly List<string> _folderPathsCollection = new();
 	private readonly List<DropItem> _dropItems = new();
@@ -97,6 +101,11 @@ public partial class AdminDashboard
 		// If the item is going back to its original destination
 		if (dropItem.OriginalIdentifier == targetZoneId)
 			return true;
+
+		// TODO: Add logic to check if the item can be dropped in the target zone
+		//if the target zone is one of DZ-Code-Folder, DZ-Code-Pdf, DZ-Code-Video,
+		// and the there is already an item in that zone, delete the existing item
+
 
 		// If the item is a copy and is being dragged to another list where that item already exists
 		return !dropItem.IsCopy || _dropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;

@@ -125,8 +125,8 @@ public class HubClientService
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync("SendMessage", user, message, null);
 	}
-	public async void SetCurrentCoilWinderStop(IWindingCode code) {
-		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", code);
+	public async void SetCurrentCoilWinderStop(int id) {
+		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", id, WindingCodeType);
 	}
 	private void ParseWindingCodeMedia(IWindingCode code) {
 		if (code.Media.Video != null)

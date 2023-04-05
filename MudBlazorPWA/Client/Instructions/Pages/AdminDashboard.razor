@@ -19,7 +19,7 @@
     CanDropClass="mud-border-success cursor-cell"
     NoDropClass="mud-border-error cursor-not-allowed"
     DraggingClass="item-dragging"
-    ApplyDropClassesOnDragStarted="true"
+    ApplyDropClassesOnDragStarted="false"
     ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
     ItemDropped="ItemUpdated">
   <ChildContent>
@@ -70,14 +70,16 @@
 
       <div class="drop-zone-item-tooltip">
 
-        <MudIcon @onclick="@(() => JSRuntime.InvokeVoidAsync("openFilePreview", fileUrl))"
-            Size="Size.Small"
-            Class="pl-0 pr-1 py-0 cursor-pointer drop-item-icon"
-            Icon="@Icons.Material.Filled.OpenInNew"/>
-
-        <p>
+        <div class="tooltip-icon">
+          <MudIcon @onclick="@(() => JSRuntime.InvokeVoidAsync("openFilePreview", fileUrl))"
+              Size="Size.Small"
+              Icon="@Icons.Material.Filled.OpenInNew"/>
+          </div>
+          <div class="tooltip-content">
+            <p>
           @context.Path
         </p>
+        </div>
       </div>
       <MudChip Class="@chipClass"
           Icon="@chipIcon"

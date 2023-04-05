@@ -4,7 +4,6 @@
 function openFilePreview (url) {
   window.open(url, '_blank')
 }
-
 function toggleDropItemsDense (bool) {
   const dropZones = document.querySelectorAll('#folder-selector div.drop-zone-gallery')
   if (bool) {
@@ -17,7 +16,6 @@ function toggleDropItemsDense (bool) {
     })
   }
 }
-
 function checkOverflowingElements () {
   console.log('checkOverflowingElements')
   const selector = '#drop-zone-chip > * p'
@@ -30,7 +28,6 @@ function checkOverflowingElements () {
   })
   addAttributeToElements()
 }
-
 function addAttributeToElements () {
   const selector = '#folder-selector .drop-zone-gallery #drop-zone-chip'
   const elements = document.querySelectorAll(selector)
@@ -44,7 +41,6 @@ function addAttributeToElements () {
     // add the attribute to the parent
   })
 }
-
 function createCustomTooltip () {
   const tooltip = document.createElement('div')
   // get the first parent of the element that has a class of 'drop-zone-gallery'
