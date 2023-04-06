@@ -6,19 +6,17 @@ using MudBlazorPWA.Client.ViewModels;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
-public partial class AdminDashboard
+public partial class AdminDashboard: IDisposable
 {
-	/*private const string DzCodeFolder = "DZ-Code-Folder";
-	private const string DzCodePdf = "DZ-Code-Pdf";
-	private const string DzCodeVideo = "DZ-Code-Video";
-	private const string DzCodeRefMedia = "DZ-Code-Ref";*/
 	private MudDropContainer<DropItem> _dropContainer = default!;
 	private readonly List<string> _folderPathsCollection = new();
 	private readonly List<DropItem> _dropItems = new();
 	private readonly List<IWindingCode> _windingCodesList = new();
+	public Action<string?> OnDrop { get; set; } = default!;
 
+	#region LifeCycle Methods
 	protected override async Task OnInitializedAsync() {
-		HubClientService.WindingCodeTypeChanged += async () => await OnWindingCodeTypeChanged();
+		HubClientService.WindingCodeTypeChanged += OnWindingCodeTypeChanged;
 		await base.OnInitializedAsync();
 		var getWindingCodesTask = HubClientService.GetCodeList();
 		var getFolderPathsTask = HubClientService.GetFoldersInPath();
@@ -30,12 +28,6 @@ public partial class AdminDashboard
 			_folderPathsCollection.AddRange(getFolderPathsTask.Result);
 		}
 	}
-	private async Task OnWindingCodeTypeChanged() {
-		_folderPathsCollection.Clear();
-		_windingCodesList.Clear();
-		await OnInitializedAsync();
-		await InvokeAsync(StateHasChanged);
-	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
 		await base.OnAfterRenderAsync(firstRender);
 		if (firstRender) {
@@ -44,7 +36,12 @@ public partial class AdminDashboard
 	}
 	void IDisposable.Dispose() {
 		Snackbar.Dispose();
+		HubClientService.WindingCodeTypeChanged -= OnWindingCodeTypeChanged;
+		GC.SuppressFinalize(this);
 	}
+	#endregion
+
+	#region Event Handlers
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
 		DropItem? dropItem = dropInfo.Item;
 		string? targetZoneId = dropInfo.DropzoneIdentifier;
@@ -62,12 +59,15 @@ public partial class AdminDashboard
 		switch (dropItem.IsCopy) {
 			case true when targetZoneId == dropItem.OriginalIdentifier:
 				_dropItems.Remove(dropItem);
+				OnDrop.Invoke(dropItem.Identifier);
 				return;
 			case true when targetZoneId != dropItem.OriginalIdentifier:
 				dropItem.Identifier = targetZoneId;
+				OnDrop.Invoke(dropItem.Identifier);
 				return;
 			case true when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
 				_dropItems.Remove(dropItem);
+				OnDrop.Invoke(dropItem.Identifier);
 				return;
 			case false when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
 				return;
@@ -90,10 +90,10 @@ public partial class AdminDashboard
 				else {
 					_dropItems.Add(dropItemCopy);
 				}
+				OnDrop.Invoke(dropItem.Identifier);
 				break;
 		}
 	}
-
 	private bool CanDropItem(MudItemDropInfo<DropItem> dropInfo) {
 		DropItem? dropItem = dropInfo.Item;
 		string? targetZoneId = dropInfo.DropzoneIdentifier;
@@ -110,7 +110,19 @@ public partial class AdminDashboard
 		// If the item is a copy and is being dragged to another list where that item already exists
 		return !dropItem.IsCopy || _dropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;
 	}
+	private async void OnWindingCodeTypeChanged() {
+		_folderPathsCollection.Clear();
+		_windingCodesList.Clear();
+		await OnInitializedAsync();
+		await InvokeAsync(StateHasChanged);
+	}
+	private void DropItemsUpdated(IEnumerable<DropItem> arg) {
+		_dropItems.Clear();
+		_dropItems.AddRange(arg);
+	}
+	#endregion
 
+	#region Methods
 	private Dictionary<string, object> GetDropItemAttributes(DropItem context) {
 		// ReSharper disable once UseObjectOrCollectionInitializer
 		var attributes = new Dictionary<string, object>();
@@ -121,31 +133,17 @@ public partial class AdminDashboard
 		attributes.Add("ondblclick", EventCallback
 			.Factory.Create<MouseEventArgs>(this, () => OpenFilePreview(context.Path)));
 
-
 		if (context.Type is DropItemType.Pdf or DropItemType.Video)
 			attributes.Add("data-url", $"{NavigationManager.BaseUri}files/{context.Path}");
 
 		var copies = _dropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
 		if (!copies.Any())
 			return attributes;
-
 		attributes.Add("data-title", string.Join("<br />", copies.Select(c => c.Identifier)));
 
 		return attributes;
 	}
-	private Task DropItemsUpdated(List<DropItem> arg) {
-		if (_dropItems.Any()) {
-			_dropItems.Clear();
-		}
 
-		_dropItems.AddRange(arg);
-		return Task.CompletedTask;
-	}
-
-	/*private async Task OnDropItemsViewChanged(bool arg) {
-	  _dropItemsViewDense = arg;
-	  await InvokeAsync(StateHasChanged);
-	}*/
 	private async Task OpenFilePreview(string? filePath) {
 		if (string.IsNullOrEmpty(filePath))
 			return;
@@ -153,4 +151,10 @@ public partial class AdminDashboard
 		var url = $"{NavigationManager.BaseUri}files/{filePath}";
 		await JSRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
+	private void DropItemRemoved(DropItem arg) {
+		_dropItems.Remove(arg);
+		OnDrop.Invoke(arg.Identifier);
+	}
+	#endregion
+
 }

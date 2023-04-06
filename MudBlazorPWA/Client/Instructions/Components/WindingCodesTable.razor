@@ -6,7 +6,7 @@
     QuickFilter="@DataGridQuickFilter"
     EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
     Virtualize="true"
-    OverscanCount="5"
+    OverscanCount="2"
     ShowMenuIcon="true"
     Hover="true"
     ReadOnly="@(_enableEdit == false)"
@@ -87,7 +87,7 @@
       </MudTooltip>
       <MudRadioGroup @bind-SelectedOption="@SelectedDivision"
           Class="division-radio-group">
-        <MudIconButton Icon="@Icons.Material.Outlined.Refresh"
+        <MudIconButton Icon="@Icons.Material.Outlined.Close"
             Variant="Variant.Outlined"
             Disabled="@(SelectedDivision is Division.All)"
             Color="Color.Tertiary"

@@ -1,4 +1,5 @@
-﻿<div id="media-card"
+﻿@using MudBlazorPWA.Client.Instructions.Pages
+<div id="media-card"
     class="d-flex justify-center mud-width-full">
   <MudCard Elevation="4"
       Class="mud-width-full"
@@ -16,7 +17,7 @@
       <MudGrid Spacing="2"
           Justify="Justify.Center">
         @foreach (DropZoneConfig? config in _dropZoneConfigs) {
-          var dropZoneIdentifier = $"{config.Identifier}-{WindingCode.Id}";
+          var identifier = $"{config.Identifier}-{WindingCode.Id}";
           <MudItem xs="9"
               lg="6">
             <div class="@config.ContainerClass">
@@ -29,8 +30,8 @@
               <MudDropZone T="DropItem"
                   Style="@config.Style"
                   Class="@config.DropZoneClass"
-                  CanDrop="@((item) => CanAcceptDrop(item, dropZoneIdentifier))"
-                  Identifier="@($"{config.Identifier}-{WindingCode.Id}")">
+                  CanDrop="@((item) => CanAcceptDrop(item, identifier))"
+                  Identifier="@identifier">
               </MudDropZone>
             </div>
           </MudItem>
@@ -41,6 +42,7 @@
       <MudStack Row
           Spacing="2">
         <MudButton StartIcon="@Icons.Material.Filled.Verified"
+            Disabled="_submitDisabled"
             OnClick="CommitItemChanges">
           Submit
         </MudButton>
@@ -51,50 +53,41 @@
 
 @code{
 
+  #region Constants
     private const string DzCodeFolder = "DZ-Code-Folder";
     private const string DzCodePdf = "DZ-Code-Pdf";
     private const string DzCodeVideo = "DZ-Code-Video";
     private const string DzCodeRefMedia = "DZ-Code-Ref";
+  #endregion
 
-  /// <summary>
-  ///  Used to validate the if items can be dropped into the drop zones
-  ///</summary>
-  [Parameter, EditorRequired]
+  #region Parameters
+  [CascadingParameter]
+  public AdminDashboard AdminDashboard { get; set; } = default!;
+
+  [Parameter]
+  [EditorRequired]
   public List<DropItem>? FolderDropItems { get; set; }
 
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required CellContext<IWindingCode> Context { get; set; }
 
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required IWindingCode WindingCode { get; set; }
 
   [Parameter]
   public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
 
-  public class DropZoneConfig {
-    private string _style = string.Empty;
+  #endregion
 
-    private string _containerClass = "pa-2";
-
-    public string Style {
-      get => _style;
-      init => _style = $"{_style}{(value.EndsWith(";") ? value : value + ";")}";
-    }
-
-    public string DropZoneClass { get; init; } = "drop-zone-gallery";
-    public string ContainerClass {
-      get => _containerClass;
-      init => _containerClass = $"{_containerClass} {value}";
-    }
-
-    public required string Identifier { get; init; }
-    public required string HeaderText { get; init; }
-  }
-
+  private DropItem? _changedDropItem = null;
   private List<DropZoneConfig> _dropZoneConfigs = new();
+  private bool _submitDisabled = true;
 
   protected override void OnInitialized() {
     base.OnInitialized();
+    AdminDashboard.OnDrop += AdminDashboard_OnDrop;
     _dropZoneConfigs = new() {
       new() {
         ContainerClass = "mud-alert-text-success",
@@ -119,11 +112,28 @@
     };
   }
 
+  private void AdminDashboard_OnDrop(string? identifier) {
+    Console.WriteLine("OnDrop Event");
+    if (identifier == null) {
+      Console.WriteLine("is null");
+      return;
+    }
+
+    DropItem? dropItem = FolderDropItems?.FirstOrDefault(d => d.Identifier == identifier);
+    if (dropItem == null)
+      return;
+    _submitDisabled = false;
+  }
+
+  #region Methods
   private async Task CommitItemChanges() {
     IWindingCode contextItem = Context.Item;
     bool hasNewDropItems = MapDropZoneItemsToWindingCode(contextItem);
-    if (hasNewDropItems)
-      await OnCommittedItemChanges.InvokeAsync(contextItem);
+    if (!hasNewDropItems)
+      return;
+
+    _submitDisabled = true;
+    await OnCommittedItemChanges.InvokeAsync(contextItem);
   }
   private bool MapDropZoneItemsToWindingCode(IWindingCode contextItem) {
     int id = contextItem.Id;
@@ -154,7 +164,7 @@
         case DzCodeRefMedia: {
           Console.WriteLine("Case -> DzCodeRefMedia");
           if (item.Path != null) {
-           Console.WriteLine("Item Path -> " + item.Path);
+            Console.WriteLine("Item Path -> " + item.Path);
             refMedia.Add(item.Path);
           }
         }
@@ -167,14 +177,13 @@
       Console.WriteLine("Refs ->" + string.Join(", ", contextItem.Media.RefMedia.ToArray()));
     return true;
   }
-
   private bool CanAcceptDrop(DropItem item, string dropZoneIdentifier) {
   // create a switch statement that handles each drop item type (folder, pdf, video)
-    // and returns true if the item is of the type and FolderDropItems does not contain the item where item.Identifier == dropZoneIdentifier
-    // otherwise return false
+  // and returns true if the item is of the type and FolderDropItems does not contain the item where item.Identifier == dropZoneIdentifier
+  // otherwise return false
 
-    // trim the last '-' and everything after it from the dropZoneIdentifier
-    // then use a switch statement to determine the dropzone
+  // trim the last '-' and everything after it from the dropZoneIdentifier
+  // then use a switch statement to determine the dropzone
     if (FolderDropItems == null)
       return false;
 
@@ -191,4 +200,27 @@
       _ => false
       };
   }
+  #endregion
+
+  #region Classes
+  public class DropZoneConfig {
+    private string _style = string.Empty;
+
+    private string _containerClass = "pa-2";
+
+    public string Style {
+      get => _style;
+      init => _style = $"{_style}{(value.EndsWith(";") ? value : value + ";")}";
+    }
+
+    public string DropZoneClass { get; init; } = "drop-zone-gallery";
+    public string ContainerClass {
+      get => _containerClass;
+      init => _containerClass = $"{_containerClass} {value}";
+    }
+
+    public required string Identifier { get; init; }
+    public required string HeaderText { get; init; }
+  }
+  #endregion
 }

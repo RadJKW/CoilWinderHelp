@@ -170,15 +170,10 @@
     flex: 6;
     align-items: center;
     justify-content: flex-start;
-    line-break: anywhere;
 }
 .drop-zone-item-tooltip .tooltip-content p{
     text-decoration: underline;
 }
-
-
-
-
 
 body .custom-tooltip {
     position: fixed;
@@ -191,7 +186,6 @@ body .custom-tooltip {
     visibility: hidden;
     z-index: 10;
 }
-
 
 .drop-zone-item > span {
     width: 100%;

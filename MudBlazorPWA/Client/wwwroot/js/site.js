@@ -17,7 +17,6 @@ function toggleDropItemsDense (bool) {
   }
 }
 function checkOverflowingElements () {
-  console.log('checkOverflowingElements')
   const selector = '#drop-zone-chip > * p'
   const elements = document.querySelectorAll(selector)
 

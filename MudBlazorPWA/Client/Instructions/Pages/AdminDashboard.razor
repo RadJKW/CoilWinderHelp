@@ -4,7 +4,6 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavigationManager
-@implements IDisposable
 
 <MudScrollbar Selector=""
     Width="6"
@@ -24,25 +23,28 @@
     ItemDropped="ItemUpdated">
   <ChildContent>
 
+    <CascadingValue Value="@this">
+
     <MudStack Row
-        Class="dashboard-content"
-        AlignItems="AlignItems.Stretch"
-        Justify="Justify.FlexStart">
-      @switch (_windingCodesList.Count == 0) {
-        case true:
-          <MudProgressLinear Indeterminate="true"/>
-          break;
-        case false:
-          <FolderSelector OnDropItemsUpdated="DropItemsUpdated"/>
-          <div class="data-grid-border mud-background-gray">
-            <WindingCodesTable WindingCodes="@_windingCodesList"
-                FolderPaths="@_folderPathsCollection"
-                DropItems="@_dropItems">
-            </WindingCodesTable>
-          </div>
-          break;
-      }
-    </MudStack>
+          Class="dashboard-content"
+          AlignItems="AlignItems.Stretch"
+          Justify="Justify.FlexStart">
+        @switch (_windingCodesList.Count == 0) {
+          case true:
+            <MudProgressLinear Indeterminate="true"/>
+            break;
+          case false:
+            <FolderSelector OnDropItemsUpdated="DropItemsUpdated"/>
+            <div class="data-grid-border mud-background-gray">
+              <WindingCodesTable WindingCodes="@_windingCodesList"
+                  FolderPaths="@_folderPathsCollection"
+                  DropItems="@_dropItems">
+              </WindingCodesTable>
+            </div>
+            break;
+        }
+      </MudStack>
+    </CascadingValue>
   </ChildContent>
   <ItemRenderer>
     @{
@@ -74,11 +76,11 @@
           <MudIcon @onclick="@(() => JSRuntime.InvokeVoidAsync("openFilePreview", fileUrl))"
               Size="Size.Small"
               Icon="@Icons.Material.Filled.OpenInNew"/>
-          </div>
-          <div class="tooltip-content">
-            <p>
-          @context.Path
-        </p>
+        </div>
+        <div class="tooltip-content">
+          <p>
+            @context.Path
+          </p>
         </div>
       </div>
       <MudChip Class="@chipClass"
@@ -86,11 +88,10 @@
           Size="@Size.Small"
           CloseIcon="@chipCloseIcon"
           UserAttributes="GetDropItemAttributes(context)"
-          OnClose="@(() => _dropItems.Remove(context))"
+          OnClose="@(() => DropItemRemoved(context))"
           Label="@true">
         <p class="mud-typography-button">@context.Name</p>
       </MudChip>
-
     }
   </ItemRenderer>
 

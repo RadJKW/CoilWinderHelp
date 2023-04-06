@@ -58,6 +58,8 @@ public partial class WindingCodesTable
 
 	protected override Task OnInitializedAsync() {
 		HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
+		SelectedDivision = Division.D1;
+		UpdateGridFilter();
 		BuildColumnMap();
 		return base.OnInitializedAsync();
 	}
