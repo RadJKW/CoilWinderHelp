@@ -42,10 +42,8 @@
 }
 
 #folder-selector .mud-list-drop-content {
-    object-fit: fill;
-    height: auto;
-    max-height: calc(100% - 84px);
     overflow: hidden auto;
+    padding-block: 0 1rem;
 
 }
 
@@ -72,7 +70,7 @@
 
 
 
-#folder-selector .drop-zone-gallery > :nth-child(1n) {
+#folder-selector .drop-zone-gallery > :nth-child(1n):not(.drop-zone-bottom) {
     width: 45%;
     padding: 1px;
     z-index: 1;
@@ -122,29 +120,29 @@
     - then set each even child's .drop-zone-tooltip left to -4rem and right to -1rem;
  */
 
-.drop-zone-gallery.flex-column .drop-zone-item-tooltip {
-    left: -1rem;
-    right: -1rem;
+.drop-zone-gallery > :nth-child(n):not(.drop-zone-bottom) {
+    position: relative;
 }
 
-.drop-zone-gallery:not(.flex-column) .mud-drop-item:nth-child(odd) .drop-zone-item-tooltip {
+#folder-selector .drop-zone-gallery:not(.flex-column) .mud-drop-item:nth-child(odd) .drop-zone-item-tooltip {
     left: 0;
     right: unset;
 }
 
-.drop-zone-gallery:not(.flex-column) .mud-drop-item:nth-child(even) .drop-zone-item-tooltip {
+#folder-selector .drop-zone-gallery:not(.flex-column) .mud-drop-item:nth-child(even) .drop-zone-item-tooltip {
     left: unset;
     right: 0;
     flex-direction: row-reverse;
     justify-content: center;
 }
 
-
 .drop-zone-gallery .mud-drop-item:hover .drop-zone-item-tooltip{
     display: flex;
     visibility: visible;
     align-items: center;
     justify-content: flex-start;
+    left: 0;
+    right: 0;
 }
 
 

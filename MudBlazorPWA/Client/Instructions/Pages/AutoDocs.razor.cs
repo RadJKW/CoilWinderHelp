@@ -1,9 +1,12 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
 public partial class AutoDocs
 {
+	[Parameter]
+	public int? WindingCodeId { get; set; }
 	private IWindingCode? _currentWindingStop;
 	private double _startWidth = 65;
 
@@ -20,6 +23,9 @@ public partial class AutoDocs
 		if (firstRender) {
 			// _moduleJS = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Instructions/Pages/AutoDocs.razor.js");
 			_moduleJS = null;
+			if (WindingCodeId.HasValue) {
+				DirectoryHubClient.SetCurrentCoilWinderStop(WindingCodeId.Value);
+			}
 		}
 	}
 	private void OnCurrentWindingStopUpdated(object? sender, IWindingCode windingCode) {
@@ -38,5 +44,4 @@ public partial class AutoDocs
 		if (_moduleJS != null)
 			await _moduleJS.DisposeAsync();
 	}
-
 }

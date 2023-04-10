@@ -1,4 +1,6 @@
-﻿let iframe
+﻿// noinspection JSUnusedGlobalSymbols
+
+let iframe
 
 export function init () {
   iframe = document.getElementById('pdf-viewer')

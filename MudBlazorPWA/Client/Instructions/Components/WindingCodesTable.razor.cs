@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazorPWA.Client.Services;
 using MudBlazorPWA.Client.ViewModels;
@@ -18,6 +19,8 @@ public partial class WindingCodesTable
 
 	[Inject] private HubClientService HubClientService { get; set; } = default!;
 	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
 	[Inject] private ILogger<WindingCodesTable> Logger { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -54,6 +57,7 @@ public partial class WindingCodesTable
 			}
 		}
 	}
+	private IWindingCode? SelectedWindingCode { get; set; }
 	private CancellationTokenSource _ctsMenuToolTip = new();
 
 	protected override Task OnInitializedAsync() {

@@ -92,7 +92,7 @@ public partial class HubCommander
       (int)HubServers.ChatHub
         => string.IsNullOrEmpty(_selectedCallbackMethod) || string.IsNullOrEmpty(_selectedGroup) || _hubConnection == null,
       (int)HubServers.DirectoryHub
-        => string.IsNullOrEmpty(_selectedCallbackMethod) || string.IsNullOrEmpty(_selectedGroup) || _selectedWindingCode == null,
+        => string.IsNullOrEmpty(_selectedCallbackMethod) ||  _selectedWindingCode == null,
       _
         => true
       };

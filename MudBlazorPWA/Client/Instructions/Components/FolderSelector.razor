@@ -66,7 +66,7 @@
         </MudStack>
       }
     </MudListSubheaderExtended>
-    <div class="mud-background-gray mud-height-full mud-width-full">
+    <div class="mud-background-gray mud-height-full mud-width-full d-flex flex-column">
       @if (RootFolder != null) {
         var hasSubFolders = false;
         var hasPdfs = false;
@@ -210,12 +210,14 @@
                   <MudDropZone T="DropItem"
                       Identifier="@($"{VideoDropZoneId}-{RootFolder.Id}")"
                       Class="@dzClass"
-                      CanDrop="CanAcceptDropItem"/>
+                      CanDrop="CanAcceptDropItem">
+                  </MudDropZone>
                 }
               </NestedList>
             </MudListItemExtended>
           }
         </div>
+
       }
     </div>
 

@@ -1,9 +1,9 @@
-﻿
-<MudDataGrid T="IWindingCode"
+﻿<MudDataGrid T="IWindingCode"
     id="winding-codes-data-grid"
     Class="mud-elevation-4"
     Items="@WindingCodes"
     QuickFilter="@DataGridQuickFilter"
+    @bind-SelectedItem="@SelectedWindingCode"
     EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
     Virtualize="true"
     OverscanCount="2"
@@ -40,8 +40,11 @@
             Size="Size.Small">
           <ActivatorContent>
             <MudButton StartIcon="@Icons.Material.Outlined.ExpandCircleDown"
-                Variant="Variant.Filled" Style="flex: none">
-              <MudText Color="Color.Secondary" Inline="true" Style="text-overflow: ellipsis;">
+                Variant="Variant.Filled"
+                Style="flex: none">
+              <MudText Color="Color.Secondary"
+                  Inline="true"
+                  Style="text-overflow: ellipsis;">
                 @($"{CurrentWindingCodeType.ToString().ToUpper()} - Stops Table")
               </MudText>
             </MudButton>
@@ -106,21 +109,21 @@
           </MudRadio>
         }
       </MudRadioGroup>
-    <MudSpacer/>
-    <MudTextField @bind-Value="_searchString"
-        Variant="Variant.Text"
-        Placeholder="Search"
-        HelperTextOnFocus="true"
-        HelperText="Search Templates: {column}:{value} or {value},{value} or {value}"
-        Clearable="true"
-        OnClearButtonClick="() => _searchString = string.Empty"
-        Adornment="Adornment.Start"
-        Immediate="true"
-        AdornmentIcon="@Icons.Material.Filled.Search"
-        IconSize="Size.Medium"
-        Margin="Margin.None"
-        Class="winding-codes-search">
-    </MudTextField>
+      <MudSpacer/>
+      <MudTextField @bind-Value="_searchString"
+          Variant="Variant.Text"
+          Placeholder="Search"
+          HelperTextOnFocus="true"
+          HelperText="Search Templates: {column}:{value} or {value},{value} or {value}"
+          Clearable="true"
+          OnClearButtonClick="() => _searchString = string.Empty"
+          Adornment="Adornment.Start"
+          Immediate="true"
+          AdornmentIcon="@Icons.Material.Filled.Search"
+          IconSize="Size.Medium"
+          Margin="Margin.None"
+          Class="winding-codes-search">
+      </MudTextField>
     </MudStack>
   </ToolBarContent>
   <Columns>

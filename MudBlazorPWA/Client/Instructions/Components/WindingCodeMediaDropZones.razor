@@ -1,16 +1,27 @@
 ﻿@using MudBlazorPWA.Client.Instructions.Pages
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+@inject HubClientService HubClientService
 <div id="media-card"
     class="d-flex justify-center mud-width-full">
   <MudCard Elevation="4"
       Class="mud-width-full"
       Style="background-color: transparent"
       Outlined="true">
-    <MudCardHeader Class="mud-background-gray">
+    <MudCardHeader Class="gap-x-4 mud-background-gray">
       <MudText Typo="Typo.h6">
         <strong>
           Assigned Media
         </strong>
       </MudText>
+      <MudButton StartIcon="@Icons.Material.Outlined.Upgrade"
+          Size="Size.Small"
+          Color="Color.Secondary"
+          Variant="Variant.Outlined"
+          OnClick="OpenCodeAutoDocs"
+          Disabled="@(WindingCode.Media.Pdf == null && WindingCode.Media.Video == null)">
+        View Media
+      </MudButton>
     </MudCardHeader>
     <MudDivider/>
     <MudCardContent>
@@ -42,6 +53,7 @@
       <MudStack Row
           Spacing="2">
         <MudButton StartIcon="@Icons.Material.Filled.Verified"
+            Size="Size.Small"
             Disabled="_submitDisabled"
             OnClick="CommitItemChanges">
           Submit
@@ -78,10 +90,8 @@
 
   [Parameter]
   public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
-
   #endregion
 
-  private DropItem? _changedDropItem = null;
   private List<DropZoneConfig> _dropZoneConfigs = new();
   private bool _submitDisabled = true;
 
@@ -122,6 +132,7 @@
     DropItem? dropItem = FolderDropItems?.FirstOrDefault(d => d.Identifier == identifier);
     if (dropItem == null)
       return;
+
     _submitDisabled = false;
   }
 
@@ -223,4 +234,9 @@
     public required string HeaderText { get; init; }
   }
   #endregion
+
+  private async Task OpenCodeAutoDocs() {
+    var newTabUrl = $"{NavigationManager.BaseUri}{WindingCode.Id}";
+    await JSRuntime.InvokeVoidAsync("openFilePreview", newTabUrl);
+  }
 }
