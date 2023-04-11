@@ -1,24 +1,30 @@
-﻿<div class="video-grid">
-  @if (VideoUrl != null) {
+﻿@using MudBlazorPWA.Client.Instructions.Pages
+@inherits ComponentBase
+<div class="video-grid">
+
+  @if (AutoDocs.VideoUrl != null) {
     <div class="video-content">
-      <VideoPlayer VideoUrl="@VideoUrl"/>
+      <VideoPlayer @ref="@_videoPlayer"/>
     </div>
   }
 
-  @if (RefMedia != null) {
+  @if (AutoDocs.RefMediaContent.Any()) {
     <div class="video-footer">
-      <WindingCodeRefMedia RefMedia="@RefMedia"/>
+
+      <WindingCodeRefMedia/>
     </div>
   }
 </div>
 
 @code {
-  [Parameter]
-  [EditorRequired]
-  public string? VideoUrl { get; set; }
 
-  [Parameter]
-  [EditorRequired]
-  public List<string>? RefMedia { get; set; }
+  [CascadingParameter]
+  public AutoDocs AutoDocs { get; set; } = default!;
+  private VideoPlayer _videoPlayer = default!;
+
+  public async void Refresh() {
+    await _videoPlayer.DisposeAsync();
+    await InvokeAsync(StateHasChanged);
+  }
 
 }

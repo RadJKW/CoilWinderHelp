@@ -1,10 +1,11 @@
-@if (!string.IsNullOrEmpty(Src))
+@using MudBlazorPWA.Client.Instructions.Pages
+@if (!string.IsNullOrEmpty(AutoDocs.PdfUrl))
 {
     <div class="pdf-content">
         <iframe id="pdf-viewer"
                 allow="autoplay; fullscreen"
                 style="width:100%; height:100%"
-                src="@Src#view=FitH&toolbar=0">
+                src="@AutoDocs.PdfUrl#view=FitH&toolbar=0">
         </iframe>
 
     </div>
@@ -26,8 +27,7 @@
 
 
 @code {
-    [Parameter]
-    [EditorRequired]
-    public required string Src { get; set; }
+    [CascadingParameter]
+    public AutoDocs AutoDocs { get; set; } = default!;
 
 }

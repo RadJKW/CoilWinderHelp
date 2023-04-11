@@ -136,7 +136,7 @@
     justify-content: center;
 }
 
-.drop-zone-gallery .mud-drop-item:hover .drop-zone-item-tooltip{
+.drop-zone-gallery .mud-drop-item:hover:not(:active) .drop-zone-item-tooltip {
     display: flex;
     visibility: visible;
     align-items: center;

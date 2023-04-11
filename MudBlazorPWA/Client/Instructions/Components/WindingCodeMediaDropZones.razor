@@ -198,15 +198,20 @@
     if (FolderDropItems == null)
       return false;
 
-    bool isNotDuplicate = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
+    bool isNotDuplicate = !FolderDropItems.Any(d => d.Identifier == dropZoneIdentifier && d.Path == item.Path);
+    bool isDropZoneEmpty = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
     return dropZoneIdentifier[..dropZoneIdentifier.LastIndexOf('-')] switch {
-      DzCodeFolder => item.Type is DropItemType.Folder
-                      && isNotDuplicate,
-      DzCodePdf => item.Type == DropItemType.Pdf
-                   && isNotDuplicate,
-      DzCodeVideo => item is { Type: DropItemType.Video }
-                     && isNotDuplicate,
-      DzCodeRefMedia => item.Type is DropItemType.Pdf or DropItemType.Video
+      DzCodeFolder => item is { Type: DropItemType.Folder, IsCopy: false }
+                      && isNotDuplicate
+                      && isDropZoneEmpty,
+      DzCodePdf => item is { Type: DropItemType.Pdf, IsCopy: false }
+                   && isNotDuplicate
+                   && isDropZoneEmpty,
+      DzCodeVideo => item is { Type: DropItemType.Video, IsCopy: false }
+                     && isNotDuplicate
+                     && isDropZoneEmpty,
+      DzCodeRefMedia => item is { Type: DropItemType.Video, IsCopy: false}
+                        || item is { Type: DropItemType.Pdf, IsCopy: false }
                         && isNotDuplicate,
       _ => false
       };

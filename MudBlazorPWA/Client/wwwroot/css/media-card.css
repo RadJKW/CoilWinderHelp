@@ -12,24 +12,16 @@
     border-radius: 8px;
 }
 
-/* select each child but with an offset so that the first child is not selected */
-#media-card .drop-zone-gallery > :nth-child(n) {
-    flex: 0 1 auto;
-    width: fit-content;
-}
-
-#media-card .drop-zone-gallery > :nth-child(n):only-child {
+#media-card .mud-grid-item:not(:last-child) .drop-zone-gallery .mud-drop-item {
     max-width: 65%;
     width: 100%;
 }
 
-#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) {
+#media-card .mud-grid-item:last-of-type .drop-zone-gallery .mud-drop-item {
     max-width: 45%;
     width: 100%;
 }
-#media-card .drop-zone-gallery > :nth-child(n):not(:only-child) .drop-zone-item > span {
-    width: unset;
-}
+
 #media-card #drop-zone-chip.drop-zone-item {
     margin: unset;
 }

@@ -1,14 +1,23 @@
 .auto-docs.container{
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 60px);
+    margin-block: 12px 0;
+    overflow: hidden;
+    padding-inline: 0.4rem;
+}
+
+.auto-docs.splitter {
     height: 100%;
-    flex: none;
 }
 
-.auto-docs.splitter{
-
+.auto-docs.splitter .mud-splitter-content {
+    overflow: hidden;
 }
-.auto-docs button.splitter-size-toggle{
+
+.auto-docs button.splitter-size-toggle {
     position: absolute;
     z-index: 2;
     left: 0.8rem;
@@ -45,26 +54,21 @@
     padding: 4rem;
     height: 100%;
 }
-.video-grid{
-    display: grid;
-    grid-template-rows: min-content minmax(10%, 1fr);
-    min-height: 100%;
-    flex: 1;
-    padding: 0;
+.video-grid {
+    display: flex;
+    flex-direction: column;
+
 }
 .video-content {
-    display: flex;
     background: transparent;
-    overflow: hidden;
-    width: 100%;
-    padding: 0.2rem 0 0 0.2rem;
+    padding-inline: 0.2rem;
+    margin-block: 0 0.4rem;
 }
 .video-footer {
-    background: rgba(41, 68, 7, 0.51);
-    display: flex;
-    justify-content: space-evenly;
-    justify-items: center;
-    align-items: center;
-    padding: 4rem;
+    background: inherit;
+    padding-block: 0 1rem;
+    padding-inline: 1rem;
+    overflow: auto;
     height: 100%;
+    margin-right: -6px;
 }

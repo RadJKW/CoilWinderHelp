@@ -1,44 +1,49 @@
+@using MudBlazorPWA.Client.Instructions.Pages
 @inject IJSRuntime JSRuntime
-<div class="d-flex flex-1 flex-column mud-height-full mud-width-full justify-start align-stretch">
-  @foreach (string item in RefMedia) {
-    <div class="flex-1 d-flex justify-center align-center ">
-      @*
-      - if the item is of type pdf, display a thumbnail preview for the pdf file.
-      - if the item is of type video, display a thumbnail preview for the video file.
-      *@
+
+<div class="ref-media-grid">
+
+  @foreach (string item in AutoDocs.RefMediaContent) {
+    <div class="ref-media-item">
 
       @if (item.EndsWith(".pdf")) {
 
-        <MudPaper Class="d-flex justify-center align-center" Elevation="4" Height="100%" Width="100%">
           @* get the metadata and display *@
+        <div class="d-flex justify-center">
           <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf"/>
-        </MudPaper>
+        </div>
       }
       @* //TODO: Can't add multiple videos to REF_MEDIA on mac *@
       else if (item.EndsWith(".mp4")) {
-        <MudPaper Class="d-flex justify-center align-center" Elevation="4" Height="100%" Width="100%">
-          @* get the metadata and display *@
-          <img @ref="_thumbnail" src="" class="mud-image-responsive" alt="video-thumbnail"/>
-        </MudPaper>
+        var videoSrc = $"{item}#t=1.0";
+        <video class="video-thumbnail"
+            preload="metadata"
+            width="100%">
+          <source src="@videoSrc"
+              type="video/mp4"/>
+        </video>
+        <img src="play-button.png"
+            class="video-play-btn"
+            alt="Play Video"
+            @onclick="() => SetActiveVideo(item)"/>
       }
     </div>
   }
 </div>
 
 @code {
-  [Parameter]
-  public List<string> RefMedia { get; set; } = new();
 
-  private ElementReference _thumbnail;
+  [CascadingParameter]
+  public AutoDocs AutoDocs { get; set; } = default!;
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender) {
-      foreach (string item in RefMedia.Where(item => item.EndsWith(".mp4"))) {
-        var thumbnailDataUrl = await JSRuntime.InvokeAsync<string>("getVideoThumbnail", item);
-        await JSRuntime.InvokeVoidAsync("setImageSrc", _thumbnail, thumbnailDataUrl);
-        StateHasChanged();
-      }
-    }
+  private void SetActiveVideo(string selectedItem) {
+    if (AutoDocs.VideoUrl == null)
+      return;
+
+    AutoDocs.RefMediaContent.Remove(selectedItem);
+    AutoDocs.RefMediaContent.Add(AutoDocs.VideoUrl);
+    AutoDocs.VideoUrl = selectedItem;
+    StateHasChanged();
+    AutoDocs.SecondaryContentUpdated();
   }
 }
