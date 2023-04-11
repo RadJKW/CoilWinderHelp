@@ -1,5 +1,4 @@
 // noinspection JSUnusedGlobalSymbols
-/* eslint-disable no-unused-vars */
 
 let video;
 

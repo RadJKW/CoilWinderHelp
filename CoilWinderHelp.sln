@@ -12,12 +12,9 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionConfig", "SolutionConfig", "{560F7C00-2B45-4E95-A02C-BAFE3B80E7C1}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
-		.eslintrc.json = .eslintrc.json
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		global.json = global.json
-		package-lock.json = package-lock.json
-		package.json = package.json
 		README.md = README.md
 		WindingCodes.json = WindingCodes.json
 	EndProjectSection

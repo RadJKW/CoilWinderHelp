@@ -61,14 +61,12 @@
     if (folders == null)
       return;
 
-    foreach (string? folder in folders) {
+    foreach (string folder in folders) {
       string folderTitle = GetLastIndexOf(folder);
       var newNode = new TreeItemData(
         folderTitle,
         folder,
-        Icons.Material.Outlined.Folder,
-        null,
-        true);
+        Icons.Material.Outlined.Folder);
       if (selectedNode == null) {
         TreeItems.Add(newNode);
       } else {
