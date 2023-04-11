@@ -1,24 +1,19 @@
 ﻿@inject HubClientService DirectoryHub
 @using Microsoft.AspNetCore.SignalR.Client
 @implements IDisposable
-<div
-    class="directory-tree">
+<div class="directory-tree">
 
-  <MudPaper
-      Class="tree-paper mud-background-gray">
+  <MudPaper Class="mud-background-gray tree-paper">
     @*TODO:MudTreeView causes UI to stutter when Expanded Folder has MANY children. Only on Windows Hosting No issue with Macbook using localhost *@
-    <MudTreeView
-        id="directory-tree-list"
+    <MudTreeView id="directory-tree-list"
         ServerData="LoadServerData"
         Items="TreeItems"
         ExpandOnClick="true"
         Color="Color.Primary"
         Hover="true"
-        Dense="true"
-        >
+        Dense="true">
       <ItemTemplate>
-        <MudTreeViewItem
-            Class="@(context.CanExpand ? "folder" : "file")"
+        <MudTreeViewItem Class="@(context.CanExpand ? "folder" : "file")"
             Value="@context"
             bind-Activated="@(context == SelectedNode)"
             Icon="@context.Icon"
@@ -35,7 +30,7 @@
 </div>
 
 @code{
-  protected virtual HashSet<TreeItemData> TreeItems { get; set; } = new HashSet<TreeItemData>();
+  protected virtual HashSet<TreeItemData> TreeItems { get; set; } = new();
   private TreeItemData? SelectedNode { get; set; }
 
 
@@ -47,9 +42,8 @@
   private async Task InitializeDirectoryHub() {
     DirectoryHub.ReceiveFolderContent += OnReceiveFolderContent;
     await DirectoryHub.DirectoryHub.InvokeAsync("GetFolderContent", null);
-
   }
-  private void OnReceiveFolderContent(string path, string[]? files, string[]? folders ) {
+  private void OnReceiveFolderContent(string path, string[]? files, string[]? folders) {
     if (SelectedNode == null) {
       TreeItems.Clear();
     } else {
@@ -57,7 +51,7 @@
     }
 
     ConvertToTreeItems(
-      folders: folders,
+      folders,
       SelectedNode
       );
     StateHasChanged();
@@ -70,11 +64,11 @@
     foreach (string? folder in folders) {
       string folderTitle = GetLastIndexOf(folder);
       var newNode = new TreeItemData(
-        title: folderTitle,
-        path: folder,
-        icon: Icons.Material.Outlined.Folder,
-        number: null,
-        canExpand: true);
+        folderTitle,
+        folder,
+        Icons.Material.Outlined.Folder,
+        null,
+        true);
       if (selectedNode == null) {
         TreeItems.Add(newNode);
       } else {

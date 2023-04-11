@@ -14,15 +14,15 @@
   <MudDivider/>
   <MudGrid Spacing="0">
     <MudItem xs="12">
-      <MudCheckBox @bind-Checked="@this[Settings.AppBarIsVisible]"
+      <MudCheckBox @bind-Checked="@(this[Settings.AppBarIsVisible])"
           Label="AppBar">
       </MudCheckBox>
-      <MudCheckBox @bind-Checked="@this[Settings.DrawerOpenOnHover]"
+      <MudCheckBox @bind-Checked="@(this[Settings.DrawerOpenOnHover])"
           Label="Drawer Hover">
       </MudCheckBox>
       @if (!this[Settings.DrawerOpenOnHover]) {
         <div class="pl-3">
-          <MudCheckBox @bind-Checked="@this[Settings.DrawerOpen]"
+          <MudCheckBox @bind-Checked="@(this[Settings.DrawerOpen])"
               Label="Drawer Open">
           </MudCheckBox>
         </div>
@@ -54,7 +54,7 @@
   private AppSettings _appSettings = default!;
 
   protected override async Task OnInitializedAsync() {
-    DocViewSettings.MajorUpdateOccured +=  DocViewSettingsOnMajorUpdateOccured;
+    DocViewSettings.MajorUpdateOccured += DocViewSettingsOnMajorUpdateOccured;
     _appSettings = DocViewSettings.Settings;
     await base.OnInitializedAsync();
   }

@@ -6,7 +6,7 @@ public partial class DataGridToolbar : ComponentBase
 {
 	[Parameter] public bool EnableEdit { get; set; }
 	[Parameter] public string? SearchString { get; set; }
-	[Parameter] public List<Division> SelectedDivisions { get; set; } = new List<Division>();
+	[Parameter] public List<Division> SelectedDivisions { get; set; } = new();
 	[Parameter] public EventCallback<(bool, Division)> OnDivisionToggled { get; set; }
 	[Parameter] public EventCallback<bool> EnableEditChanged { get; set; }
 
@@ -15,9 +15,9 @@ public partial class DataGridToolbar : ComponentBase
 	}
 
 	protected override async Task OnInitializedAsync() {
-		 await base.OnInitializedAsync();
+		await base.OnInitializedAsync();
 
-		 if (EnableEditChanged.HasDelegate)
-			 _ = EnableEditChanged.InvokeAsync(EnableEdit);
+		if (EnableEditChanged.HasDelegate)
+			_ = EnableEditChanged.InvokeAsync(EnableEdit);
 	}
 }

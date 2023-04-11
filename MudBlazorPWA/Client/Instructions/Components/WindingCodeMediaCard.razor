@@ -80,13 +80,17 @@
 
 @code{
 
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required CellContext<IWindingCode> Context { get; set; }
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required List<string> PdfPathsCollection { get; set; }
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required List<string> FolderPathsCollection { get; set; }
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public required List<string> VideoPathsCollection { get; set; }
   [Parameter]
   public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
@@ -95,7 +99,7 @@
 
   private List<string> _pdfPathsCollection = new();
   private List<string> _folderPathsCollection = new();
-private List<string> _videoPathsCollection = new();
+  private List<string> _videoPathsCollection = new();
 
 
 

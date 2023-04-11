@@ -69,7 +69,9 @@ public partial class WindingCodesTable
 	}
 
 	#region DataGrid Methods
-	private static bool AssignedMediaDisabled(IWindingCode windingCode) => windingCode.FolderPath == null;
+	private static bool AssignedMediaDisabled(IWindingCode windingCode) {
+		return windingCode.FolderPath == null;
+	}
 	private async Task RefreshWindingCodes() {
 		var windingCodesList = await HubClientService.GetCodeList();
 		if (windingCodesList != null) {

@@ -196,7 +196,7 @@
   private IEnumerable<IGrouping<CodeTypeId, IWindingCode>> WindingCodeGroups { get; set; }
     = new List<IGrouping<CodeTypeId, IWindingCode>>();
   private PageState State { get; set; } = PageState.Loading;
-  private List<string> _folderPaths = new List<string>();
+  private List<string> _folderPaths = new();
   //private readonly List<(string, List<string>?)> _folderItemGroups = new();
   private bool _showFullPaths;
   private string ServerWindingDocsFolder { get; set; } = "Default";
@@ -245,7 +245,7 @@
     DirectoryHubClient.SetCurrentCoilWinderStop(codeId);
   }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
-    Snackbar.Add("Winding Codes Database Updated", Severity.Success, config => {
+    Snackbar.Add("Winding Codes Database Updated", Severity.Success, configure: config => {
       config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
       config.ShowCloseIcon = true;
       config.CloseAfterNavigation = true;
@@ -255,7 +255,7 @@
     Media media = code.Media;
     Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.RefMedia}",
       Severity.Info,
-      config => {
+      configure: config => {
         config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
         config.ShowCloseIcon = true;
         config.RequireInteraction = true;

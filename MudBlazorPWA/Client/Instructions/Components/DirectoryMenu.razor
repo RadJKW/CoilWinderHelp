@@ -46,19 +46,21 @@
 
 @code {
 
-  public enum StartupFolder  {
+  public enum StartupFolder {
     Division1,
     Division2,
     Division3,
     None
   }
+
   [Parameter]
   public EventCallback<FolderCallbackArgs> OnRootFolderChange { get; set; }
   [Parameter]
   public EventCallback<string[]> OnFoldersArrayReceived { get; set; }
   [Parameter]
   public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
-  [Parameter, EditorRequired]
+  [Parameter]
+  [EditorRequired]
   public StartupFolder Folder { get; set; }
 
   public class FolderCallbackArgs {
@@ -78,20 +80,19 @@
         StartupFolder.Division2 => @"B:\CoilWinderTraining-Edit\D2 Pad",
         StartupFolder.Division3 => @"B:\CoilWinderTraining-Edit\D3 3PH",
         _ => null
-      };
+        };
     }
   }
   #endregion
 
   protected override async Task OnInitializedAsync() {
-
-   var enumerable = await DirectoryHub.GetFoldersInPath(StartFolderPath!);
+    var enumerable = await DirectoryHub.GetFoldersInPath(StartFolderPath!);
     OnReceiveAllFolders(enumerable);
     await base.OnInitializedAsync();
   }
 
   // after the parameters have been set,
-  private void OnReceiveAllFolders(IEnumerable<string> folders ) {
+  private void OnReceiveAllFolders(IEnumerable<string> folders) {
     _folders = folders.Select(f => f.Insert(0, AppConfig.BasePath)).ToArray();
     RootFolder = BuildDirectoryTree(_folders);
     NavigateToFolder(RootFolder!);

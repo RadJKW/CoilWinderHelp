@@ -1,13 +1,12 @@
-<iframe
-    id="pdf-viewer"
+<iframe id="pdf-viewer"
     allow="autoplay; fullscreen"
     style="width:100%; height:100%"
-    src="@Src"></iframe>
-
+    src="@Src">
+</iframe>
 
 @code {
-    [Parameter]
-    [EditorRequired]
-    public required string Src { get; set; }
+  [Parameter]
+  [EditorRequired]
+  public required string Src { get; set; }
 
 }

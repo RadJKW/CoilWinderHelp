@@ -3,29 +3,33 @@
 @implements IAsyncDisposable
 
 @if (WindingStopCodes != null) {
-  <div  id="winding-code-reel">
+  <div id="winding-code-reel">
 
-    <MudPaper id="reel" Class="reel rounded-lg mud-background-gray" Elevation="3">
+    <MudPaper id="reel"
+        Class="mud-background-gray reel rounded-lg"
+        Elevation="3">
       @if (WindingStopCodes.Any()) {
-          var i = 0;
-          var colors = new[] { Color.Primary, Color.Secondary, Color.Success };
-          var colorIndex = 0;
+        var i = 0;
+        var colors = new[] {
+          Color.Primary, Color.Secondary, Color.Success
+        };
+        var colorIndex = 0;
 
-          foreach (IWindingCode? stopCode in WindingStopCodes) {
-              i++;
+        foreach (IWindingCode? stopCode in WindingStopCodes) {
+          i++;
 
-              if (i % 3 == 1) {
-                  colorIndex = 0;
-              }
-
-              <MudChip TValue="@typeof(TValue)"
-                        Color="@colors[colorIndex]"
-                        OnClick="@(() => OnChipClicked(stopCode))">
-                  @stopCode.Code
-              </MudChip>
-
-              colorIndex = (colorIndex + 1) % 3;
+          if (i % 3 == 1) {
+            colorIndex = 0;
           }
+
+          <MudChip TValue="@typeof(TValue)"
+              Color="@colors[colorIndex]"
+              OnClick="@(() => OnChipClicked(stopCode))">
+            @stopCode.Code
+          </MudChip>
+
+          colorIndex = (colorIndex + 1) % 3;
+        }
       }
     </MudPaper>
   </div>
@@ -44,17 +48,14 @@
 
   private IJSObjectReference? _module;
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender)
-    {
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
       _module = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Instructions/Components/WindingStopCodeReel.razor.js");
       await _module.InvokeVoidAsync("addHorizontalScrolling", "reel");
     }
   }
 
-  public async ValueTask DisposeAsync()
-  {
+  public async ValueTask DisposeAsync() {
     if (_module != null) {
       await _module.DisposeAsync();
     }
