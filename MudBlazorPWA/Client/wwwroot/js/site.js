@@ -68,3 +68,34 @@ function AddTooltipEventListeners (element, tooltipText) {
     tooltip.style.visibility = 'hidden'
   })
 }
+
+// thumbnail.js
+function getVideoThumbnail(videoURL) {
+  console.log('getVideoThumbnail @ -> ', videoURL);
+  return new Promise(async (resolve) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    video.src = videoURL;
+    video.currentTime = 0;
+
+    video.onloadedmetadata = async () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      await new Promise((resolveSeek) => {
+        video.onseeked = () => {
+          resolveSeek();
+        };
+      });
+
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL());
+    };
+  });
+}
+
+function setImageSrc(image, src) {
+  image.src = src;
+}

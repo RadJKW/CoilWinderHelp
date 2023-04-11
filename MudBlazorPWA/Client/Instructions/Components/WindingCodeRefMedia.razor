@@ -1,0 +1,44 @@
+@inject IJSRuntime JSRuntime
+<div class="d-flex flex-1 flex-column mud-height-full mud-width-full justify-start align-stretch">
+  @foreach (string item in RefMedia) {
+    <div class="flex-1 d-flex justify-center align-center ">
+      @*
+      - if the item is of type pdf, display a thumbnail preview for the pdf file.
+      - if the item is of type video, display a thumbnail preview for the video file.
+      *@
+
+      @if (item.EndsWith(".pdf")) {
+
+        <MudPaper Class="d-flex justify-center align-center" Elevation="4" Height="100%" Width="100%">
+          @* get the metadata and display *@
+          <MudIcon Icon="@Icons.Material.Filled.PictureAsPdf"/>
+        </MudPaper>
+      }
+      @* //TODO: Can't add multiple videos to REF_MEDIA on mac *@
+      else if (item.EndsWith(".mp4")) {
+        <MudPaper Class="d-flex justify-center align-center" Elevation="4" Height="100%" Width="100%">
+          @* get the metadata and display *@
+          <img @ref="_thumbnail" src="" class="mud-image-responsive" alt="video-thumbnail"/>
+        </MudPaper>
+      }
+    </div>
+  }
+</div>
+
+@code {
+  [Parameter]
+  public List<string> RefMedia { get; set; } = new();
+
+  private ElementReference _thumbnail;
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender) {
+      foreach (string item in RefMedia.Where(item => item.EndsWith(".mp4"))) {
+        var thumbnailDataUrl = await JSRuntime.InvokeAsync<string>("getVideoThumbnail", item);
+        await JSRuntime.InvokeVoidAsync("setImageSrc", _thumbnail, thumbnailDataUrl);
+        StateHasChanged();
+      }
+    }
+  }
+}

@@ -1,32 +1,16 @@
-﻿
-@if (VideoUrl != null) {
+﻿<div class="video-grid">
+  @if (VideoUrl != null) {
+    <div class="video-content">
+      <VideoPlayer VideoUrl="@VideoUrl"/>
+    </div>
+  }
 
-<div
-    class="video-grid">
-  <div
-      class="video-content">
-    <VideoPlayer VideoUrl="@VideoUrl"/>
-  </div>
-
-  <div
-      class="video-footer">
-    <MudSkeleton
-        SkeletonType="SkeletonType.Rectangle"
-        Animation="Animation.Pulse"
-        Height="100%"
-        Width="100%">
-    </MudSkeleton>
-  </div>
+  @if (RefMedia != null) {
+    <div class="video-footer">
+      <WindingCodeRefMedia RefMedia="@RefMedia"/>
+    </div>
+  }
 </div>
-} else {
-  <MudSkeleton
-      SkeletonType="SkeletonType.Rectangle"
-      Animation="Animation.Pulse"
-      Height="100%"
-      Width="100%">
-  </MudSkeleton>
-}
-
 
 @code {
   [Parameter]
@@ -34,6 +18,7 @@
   public string? VideoUrl { get; set; }
 
   [Parameter]
-  public List<string>? RefsFolder { get; set; }
+  [EditorRequired]
+  public List<string>? RefMedia { get; set; }
 
 }

@@ -4,7 +4,6 @@
 @inherits ComponentBase
 @implements IAsyncDisposable
 
-
 @switch (_currentWindingStop is not null) {
   case true: {
     <div class="auto-docs container">
@@ -16,7 +15,6 @@
           EnableMargin="false"
           Sensitivity="0.1d">
         <StartContent>
-
           <div class="d-flex justify-center relative">
             <MudIconButton Size="Size.Medium"
                 Variant="Variant.Text"
@@ -25,11 +23,10 @@
                 OnClick="ToggleContentSize">
             </MudIconButton>
           </div>
-          <PrimaryContent Src="@_currentWindingStop?.Media.Pdf"/>
-
+          <PrimaryContent Src="@_currentWindingStop.Media.Pdf"/>
         </StartContent>
         <EndContent>
-          <SecondaryContent VideoUrl="@_currentWindingStop?.Media.Video"/>
+          <SecondaryContent VideoUrl="@_currentWindingStop.Media.Video" RefMedia="@_currentWindingStop.Media.RefMedia"/>
         </EndContent>
       </MudSplitter>
     </div>
@@ -39,12 +36,10 @@
     <div class="align-center d-flex justify-center mud-width-full"
         style="height: 50%">
       <div class="align-center d-flex flex-column justify-center">
-
         <MudProgressCircular Color="Color.Tertiary"
             StrokeWidth="5"
             Size="Size.Large"
             Indeterminate="true"/>
-
         <MudText Typo="Typo.h3">Loading...</MudText>
       </div>
 
