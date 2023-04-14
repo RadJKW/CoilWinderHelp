@@ -23,8 +23,6 @@
     ItemDropped="ItemUpdated">
   <ChildContent>
 
-    <CascadingValue Value="@this">
-
     <MudStack Row
           Class="dashboard-content"
           AlignItems="AlignItems.Stretch"
@@ -37,14 +35,12 @@
             <FolderSelector OnDropItemsUpdated="DropItemsUpdated"/>
             <div class="data-grid-border mud-background-gray">
               <WindingCodesTable WindingCodes="@_windingCodesList"
-                  FolderPaths="@_folderPathsCollection"
                   DropItems="@_dropItems">
               </WindingCodesTable>
             </div>
             break;
         }
       </MudStack>
-    </CascadingValue>
   </ChildContent>
   <ItemRenderer>
     @{
@@ -68,21 +64,19 @@
           throw new ArgumentOutOfRangeException();
       }
 
-      var fileUrl = $"{NavigationManager.BaseUri}files/{context.Path}";
+        <div class="drop-zone-item-tooltip">
 
-      <div class="drop-zone-item-tooltip">
-
-        <div class="tooltip-icon">
-          <MudIcon @onclick="@(() => JSRuntime.InvokeVoidAsync("openFilePreview", fileUrl))"
-              Size="Size.Small"
-              Icon="@Icons.Material.Filled.OpenInNew"/>
+          <div class="tooltip-icon">
+            <MudIconButton OnClick="@(() => OpenFilePreview(context.Path))"
+                Size="Size.Small"
+                Icon="@Icons.Material.Filled.OpenInNew"/>
+          </div>
+          <div class="tooltip-content">
+            <p>
+              @context.Path
+            </p>
+          </div>
         </div>
-        <div class="tooltip-content">
-          <p>
-            @context.Path
-          </p>
-        </div>
-      </div>
       <MudChip Class="@chipClass"
           Icon="@chipIcon"
           Size="@Size.Small"

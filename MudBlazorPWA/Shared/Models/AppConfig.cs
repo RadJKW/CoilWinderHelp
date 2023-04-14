@@ -27,5 +27,5 @@ public static class AppConfig
 	}
 
 	// check to see if the OS is not Mac, then it must be windows
-	public static bool IsWindows => !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+	private static bool IsWindows => !RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 }

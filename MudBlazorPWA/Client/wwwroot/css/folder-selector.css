@@ -1,115 +1,113 @@
-/*private const string DropZoneClass = "align-center d-flex flex-row flex-wrap gap-1 justify-center justify-center mud-elevation-2 py-1";*/
-/*private const string DropZoneSmallStyle = "max-height: 30vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);";*/
-/*private const string DropZoneLargeStyle = "max-height: 76vh; overflow-y: auto; overflow-x: hidden; background-color: var(--mud-palette-surface);"*/
-
-
 #folder-selector {
-    flex: 1 0;
-    background-color: var(--mud-palette-dark);
-    border-radius: 8px;
-    overflow-y: hidden;
-    min-width: 350px;
+  flex: 1 0;
+  background-color: var(--mud-palette-dark);
+  border-radius: 8px;
+  overflow-y: hidden;
+  min-width: 350px;
 }
 
 #folder-selector .folder-list-item {
-    background-color: var(--mud-palette-surface);
-    box-shadow: var(--mud-elevation-2);
-    border-radius: 8px;
-    border-style: solid;
-    border-width: 0 3px 2px 3px;
-    border-color: var(--mud-palette-lines-default);
-    padding-block: 4px;
-    padding-inline: 16px;
+  background-color: var(--mud-palette-surface);
+  box-shadow: var(--mud-elevation-2);
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 3px;
+  border-color: var(--mud-palette-lines-default);
+  padding-block: 4px;
+  padding-inline: 16px;
+}
+
+#folder-selector .folder-list-item:hover {
+  /* animate the the border color transition over 2s */
+  transition: border-color 0.5s;
+  border-color: var(--mud-palette-primary);
 }
 
 #folder-selector .folder-list {
-    height: 100%;
-    overflow: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 #folder-selector .folder-item-flex-container {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    align-items: center;
-    width: 100%;
-    padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+  padding: 4px;
 }
 
 #folder-selector .mud-list-extended.mud-nested-list {
-    /* max-height: 74vh;
-     overflow-y: auto;*/
+  /* max-height: 74vh;
+       overflow-y: auto;*/
 }
 
 #folder-selector .mud-list-drop-content {
-    overflow: hidden auto;
-    padding-block: 0 1rem;
-
+  overflow: hidden auto;
+  padding-block: 0 1rem;
 }
 
-#folder-selector .drop-zone-header{
-    background: var(--mud-palette-surface);
+#folder-selector .drop-zone-header {
+  background: var(--mud-palette-surface);
 }
 
 #folder-selector .drop-zone-gallery {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px;
-    justify-content: center;
-    align-items: stretch;
-    background-color: var(--mud-palette-background-grey);
-    margin-inline: -2px;
-    padding-block: 2rem;
-    border-width: 2px;
-    border-radius: 4px;
-    border-style: solid;
-    border-color: var(--mud-palette-lines-default);
-    z-index: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  align-items: stretch;
+  background-color: var(--mud-palette-background-grey);
+  margin-inline: -2px;
+  padding-block: 2rem;
+  border-width: 2px;
+  border-radius: 4px;
+  border-style: solid;
+  border-color: var(--mud-palette-lines-default);
+  z-index: 0;
 }
 
-
-
-#folder-selector .drop-zone-gallery > :nth-child(1n):not(.drop-zone-bottom) {
-    width: 45%;
-    padding: 1px;
-    z-index: 1;
+#folder-selector .mud-drop-item:nth-child(1n) {
+  width: 45%;
+  padding: 1px;
+  z-index: 1;
 }
+
 #folder-selector .drop-zone-gallery.flex-column .mud-drop-item {
-    width: 90%;
-    height: auto;
-    line-break: auto;
-   margin-inline: auto;
+  width: 90%;
+  height: auto;
+  line-break: auto;
+  margin-inline: auto;
 }
+
 #folder-selector .drop-zone-gallery.flex-column #drop-zone-chip {
-    min-height: 45px;
+  min-height: 45px;
 }
 
 #drop-zone-chip.drop-zone-item {
-    min-height: 30px;
-    width: 100%;
-    height: auto;
-    margin: auto;
-    padding-inline-end: 8px;
-    cursor: grab;
-    border-color: transparent !important;
+  min-height: 30px;
+  width: 100%;
+  height: auto;
+  margin: auto;
+  padding-inline-end: 8px;
+  border-color: transparent !important;
 }
 
-
 .drop-zone-item-tooltip {
-    display: none;
-    visibility: hidden;
-    cursor: default;
-    position: absolute;
-    min-height: 2rem;
-    bottom: 100%;
-    margin: auto -8px;
-    text-align: left;
-    padding: 4px 4px 8px 4px;
-    background-color: rgba(0, 0, 0, 0.9);
-    color: var(--mud-palette-text-primary);
-    white-space: pre-line;
-    font-size: 9pt;
+  display: none;
+  visibility: hidden;
+  cursor: default;
+  position: absolute;
+  min-height: 2rem;
+  bottom: 100%;
+  margin: auto -8px;
+  text-align: left;
+  padding: 4px 4px 8px 4px;
+  background-color: rgba(0, 0, 0, 0.9);
+  color: var(--mud-palette-text-primary);
+  white-space: pre-line;
+  font-size: 9pt;
 }
 
 /*
@@ -120,122 +118,136 @@
     - then set each even child's .drop-zone-tooltip left to -4rem and right to -1rem;
  */
 
-.drop-zone-gallery > :nth-child(n):not(.drop-zone-bottom) {
-    position: relative;
+.drop-zone-gallery .mud-drop-item:not(.disabled) .drop-zone-item {
+  cursor: grab;
 }
 
-#folder-selector .drop-zone-gallery:not(.flex-column) .mud-drop-item:nth-child(odd) .drop-zone-item-tooltip {
-    left: 0;
-    right: unset;
+#folder-selector .drop-zone-gallery .mud-drop-item {
+  position: relative;
+}
+/* should be able to use this for a global tooltip in the drop zone*/
+#folder-selector .drop-zone-gallery.video-gallery:nth-last-child(-n + 4):hover {
+  padding-bottom: 4rem;
 }
 
-#folder-selector .drop-zone-gallery:not(.flex-column) .mud-drop-item:nth-child(even) .drop-zone-item-tooltip {
-    left: unset;
-    right: 0;
-    flex-direction: row-reverse;
-    justify-content: center;
+#folder-selector
+  .drop-zone-gallery:not(.flex-column)
+  .mud-drop-item:nth-child(odd)
+  .drop-zone-item-tooltip {
+  left: 0;
+  right: unset;
 }
 
-.drop-zone-gallery .mud-drop-item:hover:not(:active) .drop-zone-item-tooltip {
-    display: flex;
-    visibility: visible;
-    align-items: center;
-    justify-content: flex-start;
-    left: 0;
-    right: 0;
+#folder-selector
+  .drop-zone-gallery:not(.flex-column)
+  .mud-drop-item:nth-child(even)
+  .drop-zone-item-tooltip {
+  left: unset;
+  right: 0;
+  flex-direction: row-reverse;
+  justify-content: center;
 }
 
+.drop-zone-gallery .mud-drop-item:hover .drop-zone-item-tooltip {
+  display: flex;
+  visibility: visible;
+  align-items: center;
+  justify-content: flex-start;
+  left: 0;
+  right: 0;
+}
 
-.drop-zone-item-tooltip .tooltip-icon{
-    display: inline-flex;
-    flex: 1;
-    align-items: center;
-    justify-content: flex-start;
-    cursor: pointer;
+.drop-zone-item-tooltip .tooltip-icon {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
 }
-.drop-zone-item-tooltip .tooltip-icon svg{
-    margin: 4px;
-    padding: 2px;
-    border: 1px solid rgba(255, 255, 255, 0.29);
+
+.drop-zone-item-tooltip .tooltip-icon svg {
+  margin: 4px;
+  padding: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.29);
 }
+
 .drop-zone-item-tooltip .tooltip-icon:hover ~ .tooltip-content p {
-    text-decoration: none;
-    color: var(--mud-palette-info-darken)
+  text-decoration: none;
+  color: var(--mud-palette-info-darken);
 }
 
-.drop-zone-item-tooltip .tooltip-content{
-    display: inline-flex;
-    flex: 6;
-    align-items: center;
-    justify-content: flex-start;
+.drop-zone-item-tooltip .tooltip-content {
+  display: inline-flex;
+  flex: 6;
+  align-items: center;
+  justify-content: flex-start;
 }
-.drop-zone-item-tooltip .tooltip-content p{
-    text-decoration: underline;
+
+.drop-zone-item-tooltip .tooltip-content p {
+  text-decoration: underline;
 }
 
 body .custom-tooltip {
-    position: fixed;
-    text-align: center;
-    padding: 4px 4px;
-    background-color: rgb(30 30 30 / 0.9);
-    border: 2px solid var(--mud-palette-lines-default);
-    color: var(--mud-palette-text-primary);
-    white-space: pre-line;
-    visibility: hidden;
-    z-index: 10;
+  position: fixed;
+  text-align: center;
+  padding: 4px 4px;
+  background-color: rgb(30 30 30 / 0.9);
+  border: 2px solid var(--mud-palette-lines-default);
+  color: var(--mud-palette-text-primary);
+  white-space: pre-line;
+  visibility: hidden;
+  z-index: 10;
 }
 
 .drop-zone-item > span {
-    width: 100%;
-    min-height: 1rem;
-    padding-inline: 4px;
-    overflow: hidden;
-
+  width: 100%;
+  min-height: 1rem;
+  padding-inline: 4px;
+  overflow: hidden;
 }
 
 .drop-zone-item > * p {
-    white-space: nowrap;
-    width: 100%;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    text-align: start;
-    margin-block: 4px;
-    font-size: 8pt;
-    word-spacing: normal;
+  white-space: nowrap;
+  width: 100%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  text-align: start;
+  margin-block: 4px;
+  font-size: 9pt;
+  word-spacing: normal;
 }
-.drop-zone-gallery.flex-column .drop-zone-item > * p{
-    font-size: 8pt;
-    text-overflow: unset;
-    overflow: unset;
-    white-space: pre-line;
+
+.drop-zone-gallery.flex-column .drop-zone-item > * p {
+  font-size: 10pt;
+  text-overflow: unset;
+  overflow: unset;
+  white-space: pre-line;
 }
 
 #folder-selector .drop-zone-item > * p {
-    margin-inline-end: -16px;
+  margin-inline-end: -16px;
 }
 
-
 .drop-zone-item.folder-item {
-    background-color: rgb(255 64 129 / 0.3);
-
+  background-color: rgb(255 64 129 / 0.3);
 }
 
 .drop-zone-item.folder-item:hover {
-    background-color: rgb(255 64 129 / 0.5);
+  background-color: rgb(255 64 129 / 0.5);
 }
 
 .drop-zone-item.video-item {
-    background-color: rgb(50 153 255 / 0.3);
+  background-color: rgb(50 153 255 / 0.3);
 }
 
 .drop-zone-item.video-item:hover {
-    background-color: rgb(50 153 255 / 0.5);
+  background-color: rgb(50 153 255 / 0.5);
 }
 
 .drop-zone-item.pdf-item {
-    background-color: rgb(9 154 80 / 0.3);
+  background-color: rgb(9 154 80 / 0.3);
 }
 
 .drop-zone-item.pdf-item:hover {
-    background-color: rgb(9 154 80 / 0.5);
+  background-color: rgb(9 154 80 / 0.5);
 }

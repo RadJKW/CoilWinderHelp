@@ -1,7 +1,11 @@
 ﻿namespace MudBlazorPWA.Client.ViewModels;
-public class DropItem
-{
+public class DropItem {
+	private static int _counter;
+	public DropItem() {
+		Id = GenerateUniqueId();
+	}
 
+	public int Id { get; set; }
 	public string? OriginalIdentifier { get; set; }
 	public string? Identifier { get; set; }
 	public string? Name { get; set; }
@@ -11,10 +15,14 @@ public class DropItem
 	public bool IsDisabled { get; set; }
 
 	public bool IsCopy { get; set; }
+
+	private static int GenerateUniqueId() {
+		// return the incremented value of _counter as two hex digits
+		return _counter++;
+	}
 }
 
-public enum DropItemType
-{
+public enum DropItemType {
 	Folder,
 	Video,
 	Pdf

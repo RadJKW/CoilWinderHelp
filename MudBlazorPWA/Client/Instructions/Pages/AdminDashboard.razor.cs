@@ -9,24 +9,21 @@ namespace MudBlazorPWA.Client.Instructions.Pages;
 public partial class AdminDashboard: IDisposable
 {
 	private MudDropContainer<DropItem> _dropContainer = default!;
-	private readonly List<string> _folderPathsCollection = new();
 	private readonly List<DropItem> _dropItems = new();
-	private readonly List<IWindingCode> _windingCodesList = new();
-	public Action<string?> OnDrop { get; set; } = default!;
+	/* create a dictionary that we will use to append dropItem events to
+	// this will allow us to revert the event if the user 'reverts' the changes
 
+	//TODO: use this to revert changes
+	// public readonly List<(DropItem original, DropItem updated )> DropItemEvents = new();
+	*/
+	private readonly List<IWindingCode> _windingCodesList = new();
+	public Action<string?>? OnDrop { get; set; }
 	#region LifeCycle Methods
 	protected override async Task OnInitializedAsync() {
 		HubClientService.WindingCodeTypeChanged += OnWindingCodeTypeChanged;
 		await base.OnInitializedAsync();
-		var getWindingCodesTask = HubClientService.GetCodeList();
-		var getFolderPathsTask = HubClientService.GetFoldersInPath();
-
-		await Task.WhenAll(getWindingCodesTask, getFolderPathsTask);
-
-		if (getWindingCodesTask.Result != null) {
-			_windingCodesList.AddRange(getWindingCodesTask.Result);
-			_folderPathsCollection.AddRange(getFolderPathsTask.Result);
-		}
+		var windingCodes = await HubClientService.GetCodeList();
+		_windingCodesList.AddRange(windingCodes);
 	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
 		await base.OnAfterRenderAsync(firstRender);
@@ -42,83 +39,42 @@ public partial class AdminDashboard: IDisposable
 	#endregion
 
 	#region Event Handlers
+
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
-		DropItem? dropItem = dropInfo.Item;
-		string? targetZoneId = dropInfo.DropzoneIdentifier;
-
-		var dropItemListWithCopies = _dropItems.Where(x => x.Name == dropItem.Name && x.IsCopy).ToList();
-
-
-		// If the item can't be dropped, just return
-		if (!CanDropItem(dropInfo))
-			return;
-
-		if (targetZoneId == dropItem.Identifier)
-			return;
-
-		switch (dropItem.IsCopy) {
-			case true when targetZoneId == dropItem.OriginalIdentifier:
-				_dropItems.Remove(dropItem);
-				OnDrop.Invoke(dropItem.Identifier);
+			DropItem? originalItem = _dropItems.SingleOrDefault(d => d.Id == dropInfo.Item.Id);
+			var targetDropZone = dropInfo.DropzoneIdentifier;
+			if (originalItem is null)
 				return;
-			case true when targetZoneId != dropItem.OriginalIdentifier:
-				dropItem.Identifier = targetZoneId;
-				OnDrop.Invoke(dropItem.Identifier);
+			if (targetDropZone == originalItem.Identifier)
 				return;
-			case true when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
-				_dropItems.Remove(dropItem);
-				OnDrop.Invoke(dropItem.Identifier);
-				return;
-			case false when dropItemListWithCopies.Any(x => x.Identifier == targetZoneId):
-				return;
-
-			default:
-				var dropItemCopy = new DropItem {
-					Name = dropItem.Name,
-					Path = dropItem.Path,
-					Type = dropItem.Type,
-					Identifier = dropInfo.DropzoneIdentifier,
-					OriginalIdentifier = dropItem.Identifier,
-					IsCopy = true
-				};
-				DropItem? originalDropItem = _dropItems.FirstOrDefault(x => !x.IsCopy && x.Name == dropItem.Name);
-
-
-				if (originalDropItem != null) {
-					_dropItems.Insert(_dropItems.IndexOf(originalDropItem), dropItemCopy);
-				}
-				else {
-					_dropItems.Add(dropItemCopy);
-				}
-				OnDrop.Invoke(dropItem.Identifier);
-				break;
-		}
+			// create a copy of the original Item
+			var copy = new DropItem {
+				Identifier = targetDropZone,
+				OriginalIdentifier = originalItem.Identifier,
+				Name = originalItem.Name,
+				Path = originalItem.Path,
+				Type = originalItem.Type,
+				IsCopy = true
+			};
+			// add the copy to the dropItems list
+			_dropItems.Add(copy);
+			OnDrop?.Invoke(copy.Identifier);
 	}
-	private bool CanDropItem(MudItemDropInfo<DropItem> dropInfo) {
-		DropItem? dropItem = dropInfo.Item;
-		string? targetZoneId = dropInfo.DropzoneIdentifier;
 
-		// If the item is going back to its original destination
-		if (dropItem.OriginalIdentifier == targetZoneId)
-			return true;
-
-		// TODO: Add logic to check if the item can be dropped in the target zone
-		//if the target zone is one of DZ-Code-Folder, DZ-Code-Pdf, DZ-Code-Video,
-		// and the there is already an item in that zone, delete the existing item
-
-
-		// If the item is a copy and is being dragged to another list where that item already exists
-		return !dropItem.IsCopy || _dropItems.Any(x => x.Name == dropItem.Name && x.Identifier == targetZoneId) != true;
-	}
+	/// <summary>
+	/// Refreshes the list of winding codes when the user changes the winding code type. ( Z80 or PC )
+	/// </summary>
 	private async void OnWindingCodeTypeChanged() {
-		_folderPathsCollection.Clear();
 		_windingCodesList.Clear();
-		await OnInitializedAsync();
+		var windingCodes = await HubClientService.GetCodeList();
+		_windingCodesList.AddRange(windingCodes);
 		await InvokeAsync(StateHasChanged);
 	}
 	private void DropItemsUpdated(IEnumerable<DropItem> arg) {
 		_dropItems.Clear();
 		_dropItems.AddRange(arg);
+		StateHasChanged();
+
 	}
 	#endregion
 
@@ -153,7 +109,7 @@ public partial class AdminDashboard: IDisposable
 	}
 	private void DropItemRemoved(DropItem arg) {
 		_dropItems.Remove(arg);
-		OnDrop.Invoke(arg.Identifier);
+		OnDrop?.Invoke(arg.Identifier);
 	}
 	#endregion
 

@@ -144,9 +144,9 @@ public class HubClientService
 	}
 
 	#region WindingCodeDB Crud
-	public async Task<IEnumerable<IWindingCode>?> GetCodeList(Division? division = null) {
+	public async Task<IEnumerable<IWindingCode>> GetCodeList(Division? division = null) {
 		var windingCodesList = await DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", division, WindingCodeType);
-		return windingCodesList ?? null;
+		return windingCodesList ?? new List<IWindingCode>();
 	}
 	public async Task<IWindingCode?> GetWindingCode(int codeId) {
 		return await DirectoryHub.InvokeAsync<IWindingCode>("GetWindingCode", codeId, WindingCodeType);

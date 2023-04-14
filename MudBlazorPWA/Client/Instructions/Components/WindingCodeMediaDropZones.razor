@@ -1,5 +1,6 @@
 ﻿@using MudBlazorPWA.Client.Instructions.Pages
 @inject IJSRuntime JSRuntime
+@implements IDisposable
 @inject NavigationManager NavigationManager
 @inject HubClientService HubClientService
 <div id="media-card"
@@ -39,7 +40,8 @@
                 </MudText>
               </div>
               <MudDropZone T="DropItem"
-                  Style="@config.Style"
+                  Style="@DropZoneConfig.Style"
+                  ItemIsDisabled="@(item => item.IsCopy)"
                   Class="@config.DropZoneClass"
                   CanDrop="@((item) => CanAcceptDrop(item, identifier))"
                   Identifier="@identifier">
@@ -58,20 +60,23 @@
             OnClick="CommitItemChanges">
           Submit
         </MudButton>
+        @*<MudButton Size="Size.Small"
+            Disabled="_submitDisabled"
+            OnClick="RevertItemChanges">
+          Undo
+        </MudButton>*@
       </MudStack>
     </MudCardActions>
   </MudCard>
 </div>
 
 @code{
-
   #region Constants
     private const string DzCodeFolder = "DZ-Code-Folder";
     private const string DzCodePdf = "DZ-Code-Pdf";
     private const string DzCodeVideo = "DZ-Code-Video";
     private const string DzCodeRefMedia = "DZ-Code-Ref";
   #endregion
-
   #region Parameters
   [CascadingParameter]
   public AdminDashboard AdminDashboard { get; set; } = default!;
@@ -91,13 +96,14 @@
   [Parameter]
   public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
   #endregion
-
   private List<DropZoneConfig> _dropZoneConfigs = new();
+  private List<DropItem> _dropItemChanges = new();
   private bool _submitDisabled = true;
 
+  #region Lifecycle
   protected override void OnInitialized() {
-    base.OnInitialized();
     AdminDashboard.OnDrop += AdminDashboard_OnDrop;
+    base.OnInitialized();
     _dropZoneConfigs = new() {
       new() {
         ContainerClass = "mud-alert-text-success",
@@ -121,6 +127,7 @@
       }
     };
   }
+  #endregion
 
   private void AdminDashboard_OnDrop(string? identifier) {
     Console.WriteLine("OnDrop Event");
@@ -129,14 +136,38 @@
       return;
     }
 
-    DropItem? dropItem = FolderDropItems?.FirstOrDefault(d => d.Identifier == identifier);
-    if (dropItem == null)
+   // get the last segment of the identifier which is the code id
+    // split by "-" and get the last segment
+    var codeId = identifier.Split('-').Last();
+    if (codeId != WindingCode.Id.ToString()) {
+      Console.WriteLine("not the same code id");
       return;
-
+    }
     _submitDisabled = false;
   }
-
   #region Methods
+  private bool CanAcceptDrop(DropItem item, string dropZoneIdentifier) {
+    if (FolderDropItems == null)
+      return false;
+
+    bool isNotDuplicate = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
+    bool isDropZoneEmpty = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
+    return dropZoneIdentifier[..dropZoneIdentifier.LastIndexOf('-')] switch {
+      DzCodeFolder => item is { Type: DropItemType.Folder, IsCopy: false }
+                      && isNotDuplicate
+                      && isDropZoneEmpty,
+      DzCodePdf => item is { Type: DropItemType.Pdf, IsCopy: false }
+                   && isNotDuplicate
+                   && isDropZoneEmpty,
+      DzCodeVideo => item is { Type: DropItemType.Video, IsCopy: false }
+                     && isNotDuplicate
+                     && isDropZoneEmpty,
+      DzCodeRefMedia => item.Type != DropItemType.Folder
+                        && item.IsCopy is false
+                        && isNotDuplicate,
+      _ => false
+      };
+  }
   private async Task CommitItemChanges() {
     IWindingCode contextItem = Context.Item;
     bool hasNewDropItems = MapDropZoneItemsToWindingCode(contextItem);
@@ -145,6 +176,12 @@
 
     _submitDisabled = true;
     await OnCommittedItemChanges.InvokeAsync(contextItem);
+  }
+  private Task RevertItemChanges() {
+    _submitDisabled = true;
+   FolderDropItems?.AddRange(_dropItemChanges);
+    StateHasChanged();
+    return Task.CompletedTask;
   }
   private bool MapDropZoneItemsToWindingCode(IWindingCode contextItem) {
     int id = contextItem.Id;
@@ -188,46 +225,16 @@
       Console.WriteLine("Refs ->" + string.Join(", ", contextItem.Media.RefMedia.ToArray()));
     return true;
   }
-  private bool CanAcceptDrop(DropItem item, string dropZoneIdentifier) {
-  // create a switch statement that handles each drop item type (folder, pdf, video)
-  // and returns true if the item is of the type and FolderDropItems does not contain the item where item.Identifier == dropZoneIdentifier
-  // otherwise return false
-
-  // trim the last '-' and everything after it from the dropZoneIdentifier
-  // then use a switch statement to determine the dropzone
-    if (FolderDropItems == null)
-      return false;
-
-    bool isNotDuplicate = !FolderDropItems.Any(d => d.Identifier == dropZoneIdentifier && d.Path == item.Path);
-    bool isDropZoneEmpty = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
-    return dropZoneIdentifier[..dropZoneIdentifier.LastIndexOf('-')] switch {
-      DzCodeFolder => item is { Type: DropItemType.Folder, IsCopy: false }
-                      && isNotDuplicate
-                      && isDropZoneEmpty,
-      DzCodePdf => item is { Type: DropItemType.Pdf, IsCopy: false }
-                   && isNotDuplicate
-                   && isDropZoneEmpty,
-      DzCodeVideo => item is { Type: DropItemType.Video, IsCopy: false }
-                     && isNotDuplicate
-                     && isDropZoneEmpty,
-      DzCodeRefMedia => item is { Type: DropItemType.Video, IsCopy: false}
-                        || item is { Type: DropItemType.Pdf, IsCopy: false }
-                        && isNotDuplicate,
-      _ => false
-      };
+  private async Task OpenCodeAutoDocs() {
+    var newTabUrl = $"{NavigationManager.BaseUri}{WindingCode.Id}";
+    await JSRuntime.InvokeVoidAsync("openFilePreview", newTabUrl);
   }
   #endregion
-
   #region Classes
   public class DropZoneConfig {
-    private string _style = string.Empty;
-
     private string _containerClass = "pa-2";
 
-    public string Style {
-      get => _style;
-      init => _style = $"{_style}{(value.EndsWith(";") ? value : value + ";")}";
-    }
+    public static string Style => string.Empty;
 
     public string DropZoneClass { get; init; } = "drop-zone-gallery";
     public string ContainerClass {
@@ -239,9 +246,7 @@
     public required string HeaderText { get; init; }
   }
   #endregion
-
-  private async Task OpenCodeAutoDocs() {
-    var newTabUrl = $"{NavigationManager.BaseUri}{WindingCode.Id}";
-    await JSRuntime.InvokeVoidAsync("openFilePreview", newTabUrl);
+  public void Dispose() {
+    AdminDashboard.OnDrop -= AdminDashboard_OnDrop;
   }
 }

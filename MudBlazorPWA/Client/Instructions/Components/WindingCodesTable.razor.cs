@@ -10,7 +10,6 @@ namespace MudBlazorPWA.Client.Instructions.Components;
 public partial class WindingCodesTable
 {
 	[Parameter] [EditorRequired] public required List<IWindingCode> WindingCodes { get; set; }
-	[Parameter] [EditorRequired] public required List<string> FolderPaths { get; set; }
 	[Parameter] [EditorRequired] public required List<DropItem> DropItems { get; set; }
 
 	// create an event callback for the parent component to handle for when CodeType is changed
@@ -27,6 +26,7 @@ public partial class WindingCodesTable
 
 
 
+	private List<DropItem> _dropItems = default!;
 	private Division _selectedDivision = Division.All;
 	private Division SelectedDivision {
 		get => _selectedDivision;
@@ -68,16 +68,22 @@ public partial class WindingCodesTable
 		return base.OnInitializedAsync();
 	}
 
+	protected override Task OnParametersSetAsync() {
+		_dropItems = DropItems;
+		return Task.CompletedTask;
+	}
+
+
+
 	#region DataGrid Methods
 	private static bool AssignedMediaDisabled(IWindingCode windingCode) {
 		return windingCode.FolderPath == null;
 	}
 	private async Task RefreshWindingCodes() {
 		var windingCodesList = await HubClientService.GetCodeList();
-		if (windingCodesList != null) {
-			WindingCodes.Clear();
-			WindingCodes.AddRange(windingCodesList);
-		}
+		// replace the list of WindingCodes with the new list
+		WindingCodes.Clear();
+		WindingCodes.AddRange(windingCodesList);
 	}
 	private void StartedEditingItem(IWindingCode item) {
 		Snackbar.Add($"Started editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);

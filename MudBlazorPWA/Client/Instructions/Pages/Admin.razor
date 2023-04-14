@@ -1,2 +1,19 @@
 ﻿@page "/Admin"
 @layout DocViewLayout
+@inject AdminEditorState State
+
+<h3>@(_mediaDirectory)</h3>
+
+@code{
+
+  private string _mediaDirectory = string.Empty;
+
+  protected override void OnInitialized() {
+    State.StateChanged += AdminStateChanged;
+  }
+  private void AdminStateChanged() {
+    _mediaDirectory = State.MediaDirectory?.Path ?? string.Empty;
+    StateHasChanged();
+  }
+
+}

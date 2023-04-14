@@ -28,9 +28,9 @@
             Justify="Justify.FlexStart"
             AlignItems="AlignItems.Center">
           <MudTooltip Text="@($"{baseFolder.Name}")"
+
               Arrow="true"
               Placement="Placement.Top">
-            @* disable icon button if the baseFolder is the only folder in _breadcrumbs*@
             <MudIconButton Icon="@Icons.Material.Outlined.Home"
                 Disabled="@(_breadCrumbs.Count == 1)"
                 Color="Color.Primary"
@@ -203,7 +203,7 @@
               </ChildContent>
               <NestedList>
                 @{
-                  var dzClass = "drop-zone-gallery";
+                  var dzClass = "drop-zone-gallery video-gallery";
                   if (_dropItemsDense)
                     dzClass += " flex-column";
                   <MudDropZone T="DropItem"

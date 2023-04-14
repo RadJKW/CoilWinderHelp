@@ -14,6 +14,7 @@ public static class ConfigureServices
         services.AddScoped<LayoutService>();
         services.AddScoped<DocViewService>();
         services.AddScoped<HubClientService>();
+        services.AddScoped<AdminEditorState>();
     }
 
 }

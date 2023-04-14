@@ -8,10 +8,7 @@ using MudExtensions;
 namespace MudBlazorPWA.Client.Instructions.Components;
 public partial class FolderSelector
 {
-	[Parameter] public EventCallback<Folder[]?> OnFoldersSubmitted { get; set; }
-	[Parameter] public EventCallback<bool> DropItemViewChanged { get; set; }
 	[Parameter] public EventCallback<List<DropItem>> OnDropItemsUpdated { get; set; }
-	[Parameter] public string? DirectoryPath { get; set; }
 
 	private const string FolderDropZoneId = "DZ-Folder";
 	private const string PdfDropZoneId = "DZ-Pdf";
@@ -34,20 +31,23 @@ public partial class FolderSelector
 	#region Component Lifecycle
 	protected override async Task OnInitializedAsync() {
 		DirectoryHubClient.WindingCodeTypeChanged += async () => await OnWindingCodeTypeChanged();
+		DirectoryHubClient.WindingCodesDbUpdated += async () => await OnWindingCodeTypeChanged();
 		var windingCodes = await DirectoryHubClient.GetCodeList();
-		if (windingCodes != null)
-			_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null).ToList();
+		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null).ToList();
 		Logger.LogInformation("WindingCodesWithFolders: {@WindingCodesWithFolders}", _windingCodesWithFolders.Count);
 		_folders = await DirectoryHubClient.GetFoldersInPath();
 		await OnReceiveAllFolders();
 	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
 		// only invoke the js FUnction if the RootFolder has changed since the last render
+
 		if (_rootFolderChanged) {
 			await JSRuntime.InvokeVoidAsync("checkOverflowingElements");
 			_rootFolderChanged = false;
 		}
+		await base.OnAfterRenderAsync(firstRender);
 	}
+
 	public void Dispose() {
 		SelectableFolders?.Dispose();
 		SelectedFoldersList?.Dispose();
@@ -61,8 +61,7 @@ public partial class FolderSelector
 		_dropItems.Clear();
 		_windingCodesWithFolders.Clear();
 		var windingCodes = await DirectoryHubClient.GetCodeList();
-		if (windingCodes != null)
-			_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null).ToList();
+		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null).ToList();
 		SetFolderAsRoot(_breadCrumbs[0]);
 		await ConvertDirectoryToDropItems(_breadCrumbs[0]);
 		await OnDropItemsUpdated.InvokeAsync(_dropItems);
@@ -131,7 +130,6 @@ public partial class FolderSelector
 					break;
 				case string pdf when pdf.EndsWith(".pdf"):
 					_dropItems.AddRange(ConvertPdf(pdf, rootFolder.Id));
-					_dropItems.AddRange(AddRefDropItems(pdf));
 					break;
 				case string video when video.EndsWith(".mp4"):
 					_dropItems.AddRange(AddVideoDropItem(video, rootFolder.Id));
@@ -147,9 +145,7 @@ public partial class FolderSelector
 		}
 	}
 	private IEnumerable<DropItem> AddRefDropItems(string file) {
-		// this method is similar to AddVideoDropItem and ConvertPdf except for there is no original drop-item to add
-		// this file has already been added to the list, so we need to look in _windingsCodesWithFolders to find the copies
-		// that need to be added to the list
+
 		var refDropItems = _windingCodesWithFolders
 			.Where(w => w.Media.RefMedia is not null && w.Media.RefMedia.Any(r => r == file.RelativePath()))
 			.Select(windingCode => new DropItem {
