@@ -9,8 +9,7 @@ using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Server.Hubs;
-public interface IHubClient
-{
+public interface IHubClient {
 	Task ReceiveFolderContent(string currentPath, string[] files, string[] folders);
 	Task FileSelected(string relativePath);
 
@@ -21,8 +20,7 @@ public interface IHubClient
 }
 
 /// <inheritdoc />
-public class DirectoryHub : Hub<IHubClient>
-{
+public class DirectoryHub : Hub<IHubClient> {
 	#region Constructor
 	private readonly IDirectoryService _directoryService;
 	private readonly ILogger<DirectoryHub> _logger;
@@ -86,7 +84,7 @@ public class DirectoryHub : Hub<IHubClient>
 		return Task.FromResult(clients);
 	}
 	public async Task<List<string>> GetCallbackMethods() {
-		Type hubType = GetType();
+		var hubType = GetType();
 		var methods = hubType.GetMethods()
 			.Where(m =>
 				(m.Attributes & MethodAttributes.Virtual) == 0 &&// exclude overridden methods
@@ -99,6 +97,25 @@ public class DirectoryHub : Hub<IHubClient>
 	}
 
 	#region Directory Methods
+	public async Task<DirectoryNode> BuildDirectorySnapshot(string? path) {
+
+		var dirInfo = new DirectoryInfo(path ?? AppConfig.BasePath);
+
+		var node = new DirectoryNode
+			(dirInfo.Name, dirInfo.FullName);
+
+		foreach (var subdir in dirInfo.GetDirectories()) {
+			node.Folders.Add(await BuildDirectorySnapshot(subdir.FullName));
+		}
+
+		foreach (var file in dirInfo.GetFiles()) {
+			if (file.Name.StartsWith("."))
+				continue;
+			node.Files.Add(new(file.Name, file.FullName));
+		}
+
+		return node;
+	}
 	public async Task<List<string>> ListVideoFiles(string? path) {
 		var result = await _directoryService.ListVideoFiles(path);
 		return result;
@@ -130,15 +147,11 @@ public class DirectoryHub : Hub<IHubClient>
 		await Clients.Group(clientIp!).ReceiveAllFolders(folders.ToArray());
 		return folders;
 	}
- #pragma warning disable CA1822
 	public string GetServerWindingDocsFolder() => AppConfig.BasePath;
- #pragma warning restore CA1822
 	#endregion
 
 	#region DataBase CRUD
-
 	public async Task<IEnumerable<IWindingCode>?> GetWindingCodes(Division? division, WindingCodeType windingCodeType) {
-
 		var windingCodes = windingCodeType switch {
 			WindingCodeType.Z80 => _dataContext.Z80WindingCodes.AsQueryable(),
 			WindingCodeType.Pc => _dataContext.PcWindingCodes.AsQueryable(),
@@ -190,10 +203,8 @@ public class DirectoryHub : Hub<IHubClient>
 		return true;
 	}
 
-	public async Task<bool> UpdateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType)
-	{
-		if (!WindingCodeExists(windingCode.Id, windingCodeType))
-		{
+	public async Task<bool> UpdateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
+		if (!WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;
 		}
 
@@ -202,12 +213,12 @@ public class DirectoryHub : Hub<IHubClient>
 
 		switch (windingCodeType) {
 			case WindingCodeType.Z80: {
-				Z80WindingCode updatedCode = mapper.MapToZ80(windingCode);
+				var updatedCode = mapper.MapToZ80(windingCode);
 				dbContext.Z80WindingCodes.Update(updatedCode);
 				break;
 			}
 			case WindingCodeType.Pc: {
-				PcWindingCode updatedCode = mapper.MapToPc(windingCode);
+				var updatedCode = mapper.MapToPc(windingCode);
 				dbContext.PcWindingCodes.Update(updatedCode);
 				break;
 			}
@@ -222,19 +233,18 @@ public class DirectoryHub : Hub<IHubClient>
 
 
 	public async Task DeleteWindingCode(int codeId, WindingCodeType windingCodeType) {
-
 		if (!WindingCodeExists(codeId, windingCodeType)) {
 			return;
 		}
 
 		switch (windingCodeType) {
 			case WindingCodeType.Z80: {
-				Z80WindingCode? windingCode = await _dataContext.Z80WindingCodes.FindAsync(codeId);
+				var windingCode = await _dataContext.Z80WindingCodes.FindAsync(codeId);
 				_dataContext.Z80WindingCodes.Remove(windingCode!);
 				break;
 			}
 			case WindingCodeType.Pc: {
-				PcWindingCode? windingCode = await _dataContext.PcWindingCodes.FindAsync(codeId);
+				var windingCode = await _dataContext.PcWindingCodes.FindAsync(codeId);
 				_dataContext.PcWindingCodes.Remove(windingCode!);
 				break;
 			}
@@ -242,16 +252,13 @@ public class DirectoryHub : Hub<IHubClient>
 				throw new ArgumentOutOfRangeException(nameof(windingCodeType), windingCodeType, null);
 		}
 	}
-	private bool WindingCodeExists(int codeId, WindingCodeType windingCodeType)
-	{
-		return windingCodeType switch
-		{
+	private bool WindingCodeExists(int codeId, WindingCodeType windingCodeType) {
+		return windingCodeType switch {
 			WindingCodeType.Z80 => Z80WindingCodes.Any(e => e.Id == codeId),
 			WindingCodeType.Pc => PcWindingCodes.Any(e => e.Id == codeId),
 			_ => false,
 		};
 	}
-
 	#endregion
 
 	#region WindingStop Tracking
@@ -268,5 +275,4 @@ public class DirectoryHub : Hub<IHubClient>
 		return Task.FromResult(_currentWindingStop);
 	}
 	#endregion
-
 }

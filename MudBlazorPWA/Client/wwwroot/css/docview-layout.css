@@ -1,26 +1,29 @@
 .docview.mud-main-content.main-content {
-    display: flex;
-    --mud-palette-table-striped: rgb(0 0 0 / 0.2);
-    --mud-appbar-height: 40px;
-    margin-top: var(--mud-appbar-height);
-    padding-top: 0.8rem;
+  display: flex;
+  --mud-palette-table-striped: rgb(0 0 0 / 0.2);
+  --mud-appbar-height: 48px;
+  margin-top: var(--mud-appbar-height);
+  padding-top: 0;
 }
 
 .docview.main-container {
-    --min-docview-height: calc(100vh - var(--mud-appbar-height));
-    --max-docview-height: calc(100vh - var(--mud-appbar-height));
-    margin-inline: auto;
-    height: 100vh;
-    max-height: var(--max-docview-height);
+  --min-docview-height: calc(100vh - var(--mud-appbar-height));
+  --max-docview-height: calc(100vh - var(--mud-appbar-height));
+  margin-inline: auto;
+  height: 100vh;
+  padding-top: 0.5rem;
 }
 /*.docview.main-container :not(div) {}
 
 /*Custom MudBlazor Overrides*/
 
-aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link{
-    padding-left: 4px;
+aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link {
+  padding-left: 4px;
 }
 
-aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) .mud-nav-link-icon.mud-nav-link-icon-default {
-    color: rgba(var(--mud-palette-primary-rgb), 0.75);
+aside.docview.drawer-left
+  .mud-navmenu.mud-navmenu-default
+  .mud-nav-link.active:not(.mud-nav-link-disabled)
+  .mud-nav-link-icon.mud-nav-link-icon-default {
+  color: rgba(var(--mud-palette-primary-rgb), 0.75);
 }

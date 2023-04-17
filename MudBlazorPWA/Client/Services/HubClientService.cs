@@ -54,6 +54,11 @@ public class HubClientService
 			_ => throw new ArgumentOutOfRangeException(nameof(hubServer), hubServer, null)
 		};
 	}
+
+	public async Task<DirectoryNode> GetDirectorySnapshot() {
+		var directory = await DirectoryHub.InvokeAsync<DirectoryNode>("BuildDirectorySnapshot", null);
+		return directory;
+	}
 	private async void GetServerDocsFolder() {
 		WindingDocsFolder = await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
 	}

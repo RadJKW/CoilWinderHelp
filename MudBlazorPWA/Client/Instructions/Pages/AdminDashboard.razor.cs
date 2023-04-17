@@ -2,20 +2,23 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
+using MudBlazorPWA.Client.Services;
 using MudBlazorPWA.Client.ViewModels;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
 public partial class AdminDashboard: IDisposable
 {
+
+	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+	[Inject] private HubClientService HubClientService { get; set; } = default!;
+	[Inject] private ISnackbar Snackbar { get; set; } = default!;
+	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
+
+
+	//TODO: use a Dictionary to Track/Revert changes
 	private MudDropContainer<DropItem> _dropContainer = default!;
 	private readonly List<DropItem> _dropItems = new();
-	/* create a dictionary that we will use to append dropItem events to
-	// this will allow us to revert the event if the user 'reverts' the changes
-
-	//TODO: use this to revert changes
-	// public readonly List<(DropItem original, DropItem updated )> DropItemEvents = new();
-	*/
 	private readonly List<IWindingCode> _windingCodesList = new();
 	public Action<string?>? OnDrop { get; set; }
 	#region LifeCycle Methods

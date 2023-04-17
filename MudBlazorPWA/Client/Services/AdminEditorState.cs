@@ -1,58 +1,64 @@
-﻿using MudBlazorPWA.Client.ViewModels;
-using MudBlazorPWA.Shared.Extensions;
-using MudBlazorPWA.Shared.Models;
+﻿using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState {
-	private const string FolderDropZoneId = "DZ-Folder";
-	private const string PdfDropZoneId = "DZ-Pdf";
-	private const string VideoDropZoneId = "DZ-Video";
-	public List<DropItem> DropItems { get; private set; } = new();
-	public Folder? MediaDirectory { get; private set; }
-
-	// when the currentFolder changes, the breadcrumbs need to be updated
-	// the breadcrumbs are a list of folders that lead to the current folder
-	// the first item in the list is the root folder
-	// the last item in the list is the current folder
-	// the list is used to build the breadcrumb navigation
-	public string CurrentFolder { get; private set; } = string.Empty;
 	public event Action? StateChanged;
-
-	private readonly List<IWindingCode> _windingCodes = new();
-	private readonly List<IWindingCode> _windingCodesWithFolders = new();
-	private readonly List<Folder?> _breadcrumbs = new();
-
+	public DirectoryNode CurrentDirectory => DirectoryNavigator.GetCurrentFolder();
 
 	private readonly HubClientService _directoryHub;
+	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<AdminEditorState> _logger;
-	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger) {
+	public readonly IDirectoryNavigator DirectoryNavigator;
+	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator) {
 		_directoryHub = directoryHub;
 		_logger = logger;
-		Initialize();
+		DirectoryNavigator = directoryNavigator;
 	}
-	private async void Initialize() {
-		await PopulateDirectoryTree();
-		await PopulateDropItems();
+
+	public async Task FetchDirectoryTree() {
+
+			await DirectoryNavigator.InitializeAsync();
+			var rootDirectory = await _directoryHub.GetDirectorySnapshot();
+			DirectoryNavigator.RootDirectory = rootDirectory;
+
+			if (DirectoryNavigator.NavigationHistory.Count == 0)
+			{
+				DirectoryNavigator.NavigateToFolder(rootDirectory);
+			}
+			NotifyStateChanged();
+	}
+
+	public void NavigateToFolder(DirectoryNode folder) {
+		DirectoryNavigator.NavigateToFolder(folder);
+		NotifyStateChanged();
+	}
+	public void NavigateBack() {
+		DirectoryNavigator.NavigateBack();
 		NotifyStateChanged();
 	}
 
-	private async Task PopulateDropItems() {
-		_windingCodes.AddRange(await _directoryHub.GetCodeList());
-
-
-		_windingCodesWithFolders.Clear();
-		_windingCodesWithFolders.AddRange(_windingCodes.Where(w => w.FolderPath != null));
-		await ConvertDirectoryToDropItems(MediaDirectory);
+	public void NavigateToRoot() {
+		DirectoryNavigator.NavigateToRoot();
+		NotifyStateChanged();
 	}
-	private async Task PopulateDirectoryTree() {
-		var enumerable = await _directoryHub.GetFoldersInPath();
-		var paths = enumerable.Select(f => f.Insert(0, _directoryHub.WindingDocsFolder)).ToList();
-		MediaDirectory = BuildDirectoryTree(paths);
-		CurrentFolder = _directoryHub.WindingDocsFolder;
-	}
+
+	public bool HasNavigationHistory => DirectoryNavigator.NavigationHistory.Count > 1;
+
 	private void NotifyStateChanged() {
 		StateChanged?.Invoke();
 	}
-	private async Task ConvertDirectoryToDropItems(Folder? rootFolder) {
+}
+/*
+ private const string FolderDropZoneId = "DZ-Folder";
+	private const string PdfDropZoneId = "DZ-Pdf";
+	private const string VideoDropZoneId = "DZ-Video";
+ private List<DropItem> DropItems { get; set; } = new();
+	private Folder? MediaDirectory { get; set; }
+	public string CurrentFolder { get; private set; } = string.Empty;
+
+	private readonly List<IWindingCode> _windingCodes = new();
+	private readonly List<IWindingCode> _windingCodesWithFolders = new();
+	// private readonly List<Folder?> _breadcrumbs = new();
+private async Task ConvertDirectoryToDropItems(Folder? rootFolder) {
 		if (rootFolder == null)
 			return;
 
@@ -227,4 +233,17 @@ public class AdminEditorState {
 			current = next;
 		}
 	}
-}
+
+
+private async Task PopulateDropItems() {
+		_windingCodes.AddRange(await _directoryHub.GetCodeList());
+		_windingCodesWithFolders.Clear();
+		_windingCodesWithFolders.AddRange(_windingCodes.Where(w => w.FolderPath != null));
+		await ConvertDirectoryToDropItems(MediaDirectory);
+	}
+	private async Task PopulateDirectoryTree() {
+		var enumerable = await _directoryHub.GetFoldersInPath();
+		var paths = enumerable.Select(f => f.Insert(0, _directoryHub.WindingDocsFolder)).ToList();
+		MediaDirectory = BuildDirectoryTree(paths);
+		CurrentFolder = _directoryHub.WindingDocsFolder;
+	}*/

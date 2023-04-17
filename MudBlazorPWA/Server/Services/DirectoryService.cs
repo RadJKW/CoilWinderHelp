@@ -72,65 +72,6 @@ public class DirectoryService : IDirectoryService
 		Console.WriteLine($"Root: {_rootDirectory} \n Path: {path} \n Relative: {relativePath}");
 		return relativePath;
 	}
-	public async Task<IWindingCode> GetWindingCodeDocuments(IWindingCode code) {
-		if (code.FolderPath == null) { return code; }
-		Media documents = code.Media;
-
-		// get the pdf path
-		try {
-			string? pdfPath = await GetPdfPath(code.FolderPath, false);
-			if (pdfPath != null) { documents.Pdf = GetRelativePath(pdfPath); }
-		}
-		catch (Exception e) {
-			Console.WriteLine($"TryPdfPath: {e.Message}");
-			throw;
-		}
-
-		// get the video path
-		try {
-			string? videoPath = await GetVideoPath(code.FolderPath);
-			if (videoPath != null) { documents.Video = GetRelativePath(videoPath); }
-		}
-		catch (Exception e) {
-			Console.WriteLine($"TryVideoPath: {e.Message}");
-			throw;
-		}
-
-		// get the refMedia path
-		try {
-			string? refMediaPath = await GetRefMediaPath(code.FolderPath);
-			if (refMediaPath != null) { documents.RefMedia = new() {
-				GetRelativePath(refMediaPath)
-			}; }
-		}
-		catch (Exception e) {
-			Console.WriteLine($"TryRefMediaPath: {e.Message}");
-			throw;
-		}
-		return code;
-	}
-	private Task<string?> GetPdfPath(string folder, bool relative) {
-		string? pdfPath = Directory.EnumerateFiles(folder).FirstOrDefault(f => f.EndsWith(".pdf"));
-		if (relative && pdfPath != null) { pdfPath = Path.GetRelativePath(_rootDirectory, pdfPath); }
-		return Task.FromResult(pdfPath);
-	}
-	private static Task<string?> GetVideoPath(string? folder) {
-		if (folder == null) { return Task.FromResult<string?>(null); }
-		string platformVideoFolder = Path.Combine(AppConfig.BasePath, "TrainingVideos", "Unsorted");
-		string[] videos = Directory.EnumerateFiles(platformVideoFolder).Where(f => f.EndsWith(".mp4")).ToArray();
-		var random = new Random();
-		for (int i = videos.Length - 1; i > 0; i--) {
-			int j = random.Next(i + 1);
-			(videos[i], videos[j]) = (videos[j], videos[i]);
-		}
-		int randomNumber = random.Next(videos.Length);
-		string videoPath = videos[randomNumber];
-		return Task.FromResult(videoPath)!;
-	}
-	private static Task<string?> GetRefMediaPath(string folder) {
-		string? refMediaPath = Directory.EnumerateDirectories(folder).FirstOrDefault(f => f.Contains("Ref", StringComparison.OrdinalIgnoreCase));
-		return Task.FromResult(refMediaPath);
-	}
 	public Task<string[]> GetFoldersInPath(string? path = null) {
 		Console.WriteLine("GettingFoldersInPath");
 		// return a list of all folders starting from the root directory
