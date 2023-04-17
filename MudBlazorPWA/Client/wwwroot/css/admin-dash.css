@@ -5,8 +5,7 @@
 }
 
 #admin-dashboard .dashboard-content {
-    height: calc(100vh - 84px);
-    margin: 24px 16px;
+    height: calc(100vh - 60px);
     overflow: auto;
 
 }

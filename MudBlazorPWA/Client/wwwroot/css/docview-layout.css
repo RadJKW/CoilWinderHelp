@@ -2,7 +2,8 @@
     display: flex;
     --mud-palette-table-striped: rgb(0 0 0 / 0.2);
     --mud-appbar-height: 40px;
-    padding-top: var(--mud-appbar-height);
+    margin-top: var(--mud-appbar-height);
+    padding-top: 0.8rem;
 }
 
 .docview.main-container {

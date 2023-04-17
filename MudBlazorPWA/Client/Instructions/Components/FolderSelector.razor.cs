@@ -115,7 +115,11 @@ public partial class FolderSelector
 		if (rootFolder == null)
 			return;
 
-		(rootFolder.MediaFiles.PdfFiles, rootFolder.MediaFiles.VideoFiles) = await DirectoryHubClient.ListMediaFiles(rootFolder.Path);
+		(
+			rootFolder.MediaFiles.PdfFiles,
+			rootFolder.MediaFiles.VideoFiles
+			) = await
+				DirectoryHubClient.ListMediaFiles(rootFolder.Path);
 
 		var dropItems = new List<object>();
 		dropItems.AddRange(rootFolder.SubFolders);
@@ -129,7 +133,7 @@ public partial class FolderSelector
 					_dropItems.AddRange(AddFolderDropItems(folder, rootFolder.Id));
 					break;
 				case string pdf when pdf.EndsWith(".pdf"):
-					_dropItems.AddRange(ConvertPdf(pdf, rootFolder.Id));
+					_dropItems.AddRange(AddPdfDropItems(pdf, rootFolder.Id));
 					break;
 				case string video when video.EndsWith(".mp4"):
 					_dropItems.AddRange(AddVideoDropItem(video, rootFolder.Id));
@@ -144,19 +148,62 @@ public partial class FolderSelector
 			await ConvertDirectoryToDropItems(subFolder);
 		}
 	}
-	private IEnumerable<DropItem> AddRefDropItems(string file) {
 
-		var refDropItems = _windingCodesWithFolders
-			.Where(w => w.Media.RefMedia is not null && w.Media.RefMedia.Any(r => r == file.RelativePath()))
+
+
+	private IEnumerable<DropItem> AddFolderDropItems(Folder folder, string folderId) {
+		string? folderPath = folder.Path?.Replace(DirectoryHubClient.WindingDocsFolder, "");
+		var dropZoneId = $"{FolderDropZoneId}-{folderId}";
+		List<DropItem> folderDropItems = new() {
+			new() {
+				Name = folder.Name,
+				Path = folderPath,
+				Type = DropItemType.Folder,
+				Identifier = dropZoneId
+			}
+		};
+
+		// add copies of the original drop-item to the list, but with the identifier of the winding code's drop-zone
+		folderDropItems.AddRange(_windingCodesWithFolders
+			.Where(w =>
+				w.FolderPath == folderPath)
 			.Select(windingCode => new DropItem {
-				Name = file.Split("/").Last(),
-				Path = file.RelativePath(),
-				Type = file.IsPdf() ? DropItemType.Pdf : DropItemType.Video,
-				Identifier = $"DZ-Code-Ref-{windingCode.Id}",
-				OriginalIdentifier = file.IsPdf() ? $"{PdfDropZoneId}-{windingCode.Id}" : $"{VideoDropZoneId}-{windingCode.Id}",
+				Name = folder.Name,
+				Path = folder.Path.RelativePath(),
+				Type = DropItemType.Folder,
+				Identifier = $"DZ-Code-Folder-{windingCode.Id}",
+				OriginalIdentifier = dropZoneId,
 				IsCopy = true
-			});
-		return refDropItems;
+			}));
+
+		return folderDropItems;
+	}
+	private IEnumerable<DropItem> AddPdfDropItems(string pdf, string folderId) {
+		var dropZoneId = $"{PdfDropZoneId}-{folderId}";
+
+		List<DropItem> pdfDropItems = new() {
+			new() {
+				Name = pdf.Split("/").Last(),
+				Path = pdf.RelativePath(),
+				Type = DropItemType.Pdf,
+				Identifier = dropZoneId
+			}
+		};
+		pdfDropItems.AddRange(
+		_windingCodesWithFolders
+			.Where(w => w.Media.Pdf == pdf.RelativePath() || w.Media.Pdf == pdf)
+			.Select(windingCode => new DropItem {
+				Name = pdf.Split("/").Last(),
+				Path = pdf.RelativePath(),
+				Type = DropItemType.Pdf,
+				Identifier = $"DZ-Code-Pdf-{windingCode.Id}",
+				OriginalIdentifier = dropZoneId,
+				IsCopy = true
+			}));
+
+		pdfDropItems.AddRange(AddRefDropItems(pdf));
+
+		return pdfDropItems;
 	}
 	private IEnumerable<DropItem> AddVideoDropItem(string video, string folderId) {
 		var dropZoneId = $"{VideoDropZoneId}-{folderId}";
@@ -186,61 +233,20 @@ public partial class FolderSelector
 		videoDropItems.AddRange(AddRefDropItems(video));
 		return videoDropItems;
 	}
-	private IEnumerable<DropItem> ConvertPdf(string pdf, string folderId) {
-		var dropZoneId = $"{PdfDropZoneId}-{folderId}";
+	private IEnumerable<DropItem> AddRefDropItems(string file) {
 
-		List<DropItem> pdfDropItems = new() {
-			new() {
-				Name = pdf.Split("/").Last(),
-				Path = pdf.RelativePath(),
-				Type = DropItemType.Pdf,
-				Identifier = dropZoneId
-			}
-		};
-		pdfDropItems.AddRange(
-		_windingCodesWithFolders
-			.Where(w => w.Media.Pdf == pdf.RelativePath() || w.Media.Pdf == pdf)
+		var refDropItems = _windingCodesWithFolders
+			.Where(w => w.Media.RefMedia is not null && w.Media.RefMedia.Any(r => r == file.RelativePath()))
 			.Select(windingCode => new DropItem {
-				Name = pdf.Split("/").Last(),
-				Path = pdf.RelativePath(),
-				Type = DropItemType.Pdf,
-				Identifier = $"DZ-Code-Pdf-{windingCode.Id}",
-				OriginalIdentifier = dropZoneId,
+				Name = file.Split("/").Last(),
+				Path = file.RelativePath(),
+				Type = file.IsPdf() ? DropItemType.Pdf : DropItemType.Video,
+				Identifier = $"DZ-Code-Ref-{windingCode.Id}",
+				OriginalIdentifier = file.IsPdf() ? $"{PdfDropZoneId}-{windingCode.Id}" : $"{VideoDropZoneId}-{windingCode.Id}",
 				IsCopy = true
-			}));
-
-		pdfDropItems.AddRange(AddRefDropItems(pdf));
-
-		return pdfDropItems;
+			});
+		return refDropItems;
 	}
-	private IEnumerable<DropItem> AddFolderDropItems(Folder folder, string folderId) {
-		string? folderPath = folder.Path?.Replace(DirectoryHubClient.WindingDocsFolder, "");
-		var dropZoneId = $"{FolderDropZoneId}-{folderId}";
-		List<DropItem> folderDropItems = new() {
-			new() {
-				Name = folder.Name,
-				Path = folderPath,
-				Type = DropItemType.Folder,
-				Identifier = dropZoneId
-			}
-		};
-
-		// add copies of the original drop-item to the list, but with the identifier of the winding code's drop-zone
-		folderDropItems.AddRange(_windingCodesWithFolders
-			.Where(w =>
-				w.FolderPath == folderPath)
-			.Select(windingCode => new DropItem {
-				Name = folder.Name,
-				Path = folder.Path.RelativePath(),
-				Type = DropItemType.Folder,
-				Identifier = $"DZ-Code-Folder-{windingCode.Id}",
-				OriginalIdentifier = dropZoneId,
-				IsCopy = true
-			}));
-
-		return folderDropItems;
-	}
-
 	private static bool CanAcceptDropItem(DropItem arg) {
 		return arg.Type switch {
 			DropItemType.Pdf => arg.Type == DropItemType.Pdf,
@@ -255,9 +261,6 @@ public partial class FolderSelector
 		await InvokeAsync(StateHasChanged);
 	}
 	#endregion
-
-
-
 
 	#region Static Methods
 	private static Folder? BuildDirectoryTree(IEnumerable<string> paths) {
