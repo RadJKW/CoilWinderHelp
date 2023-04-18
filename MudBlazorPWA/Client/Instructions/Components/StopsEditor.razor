@@ -70,7 +70,7 @@
               <MudExpansionPanels MultiExpansion="true"
                   Class="flex-grow-0 overflow-auto stops-expansion-panel"
                   Elevation="2">
-                @foreach (IWindingCode windingCode in group) {
+                @foreach (var windingCode in group) {
                   <MudExpansionPanel Class="stops-expansion-item"
                       IsInitiallyExpanded="false">
                     <TitleContent>
@@ -252,7 +252,7 @@
     });
   }
   private void OnCurrentWindingStopUpdated(object? obj, IWindingCode code) {
-    Media media = code.Media;
+    var media = code.Media;
     Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.RefMedia}",
       Severity.Info,
       configure: config => {

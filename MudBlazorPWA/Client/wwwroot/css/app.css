@@ -23,23 +23,64 @@ body {
   height: 100lvh;
   overflow: hidden;
 }
-#blazor-error-ui {
-  background: #404040;
+body #blazor-error-ui {
+  background: #703a3a;
   bottom: 0;
   box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
-  display: none;
   left: 0;
-  padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+  padding: 0.5rem 2rem;
   position: fixed;
   width: 100%;
   z-index: 1000;
 }
+body .blazor-error-content {
+  display: flex;
+  flex-wrap: nowrap;
+  place-items: center;
+  place-content: flex-start;
+  font-size: 12pt;
+  font-family: "Inter Semi Bold", monospace;
+  font-weight: bold;
+  margin-right: 2rem;
+}
 
-#blazor-error-ui .dismiss {
+.blazor-error-content p {
+  background-color: #6d6e6de2;
+  border-radius: 1rem;
+  padding: 4px 8px;
+}
+
+body .blazor-error-content .reload {
+  border: 2px solid black;
+  border-radius: 4rem;
+  background-color: #00b0ff;
+  color: #10336c;
+  padding: 4px 24px;
+  font-size: 12pt;
+  line-height: 1.25rem;
+  margin: 0 0 0 2rem;
+  text-decoration: underline;
+}
+
+body .blazor-error-content img {
+  height: 20px;
+  width: 20px;
+  margin: 6px;
+}
+
+body .blazor-error-content .dismiss {
   cursor: pointer;
-  position: absolute;
-  right: 0.75rem;
-  top: 0.5rem;
+  display: flex;
+  position: static;
+  border: 2px solid black;
+  place-content: center;
+  align-items: center;
+}
+
+/* on .dismiss:hover change border color*/
+body .blazor-error-content .dismiss:hover {
+  border: 2px solid #00b0ff;
+  color: #00b0ff;
 }
 
 .blazor-error-boundary {

@@ -19,7 +19,7 @@
         Sticky="true"
         SecondaryBackground="true">
       @if (_breadCrumbs.Count >= 1) {
-        Folder? baseFolder = _breadCrumbs.FirstOrDefault();
+        var baseFolder = _breadCrumbs.FirstOrDefault();
         if (baseFolder == null)
           return;
 
@@ -40,7 +40,7 @@
           </MudTooltip>
           @if (_breadCrumbs.Count >= 3) {
             int currentFolderIndex = _breadCrumbs.IndexOf(_breadCrumbs.Last());
-            Folder? parentFolder = _breadCrumbs[currentFolderIndex - 1];
+            var parentFolder = _breadCrumbs[currentFolderIndex - 1];
             if (parentFolder == null)
               return;
 
@@ -59,7 +59,7 @@
             </MudTooltip>
           }
           @if (_breadCrumbs.Any()) {
-            Folder? currentFolder = _breadCrumbs.Last();
+            var currentFolder = _breadCrumbs.Last();
             <strong class="px-1">/</strong>
             <strong>@(currentFolder?.Name)</strong>
           }
@@ -73,7 +73,7 @@
         var hasVideos = false;
         <div class="folder-item-flex-container">
 
-          @foreach (Folder folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
+          @foreach (var folder in RootFolder.SubFolders.OrderBy(f => f.Name)) {
             if (folder.MediaFiles.PdfFiles != null)
               hasPdfs = folder.MediaFiles.PdfFiles.Any();
 
@@ -120,7 +120,7 @@
             @{
               // BUG: Other sticky subheaders overlap this button click when scrolling
               string? icon = _dropItemsDense ? Icons.Material.Outlined.ViewCozy : Icons.Material.Outlined.ViewStream;
-              Color color = _dropItemsDense ? Color.Secondary : Color.Primary;
+              var color = _dropItemsDense ? Color.Secondary : Color.Primary;
 
               <MudIconButton Size="Size.Medium"
                   Icon="@icon"

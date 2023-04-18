@@ -9,19 +9,22 @@ public class DirectoryNavigator : IDirectoryNavigator {
 
 	public DirectoryNavigator(ILocalStorageService localStorage) {
 		_localStorage = localStorage;
-		NavigationHistory.StackChanged += async () => await UpdateNavigationHistoryInLocalStorage();
+		NavigationHistory.StackChanged += async ()
+			=> await UpdateNavigationHistoryInLocalStorage();
 	}
 	private async Task UpdateNavigationHistoryInLocalStorage() {
-		await _localStorage.SetItemAsync("navigationHistory", NavigationHistory.ToList());
+		await _localStorage.SetItemAsync("navigationHistory", NavigationHistory);
 	}
-
 	public async Task InitializeAsync() {
-		var storedNavigationHistory = await _localStorage.GetItemAsync<List<DirectoryNode>>("navigationHistory");
+		var storedNavigationHistory = await
+			_localStorage
+				.GetItemAsync<Stack<DirectoryNode>>("navigationHistory");
 
 		if (storedNavigationHistory != null) {
 			NavigationHistory = new(storedNavigationHistory);
-			NavigationHistory.StackChanged += async () => await UpdateNavigationHistoryInLocalStorage();
 		}
+		NavigationHistory.StackChanged += async () =>
+			await UpdateNavigationHistoryInLocalStorage();
 	}
 	public void NavigateToFolder(DirectoryNode folder) {
 		NavigationHistory.Push(folder);
@@ -32,10 +35,8 @@ public class DirectoryNavigator : IDirectoryNavigator {
 		}
 	}
 	public void NavigateToRoot() {
-		// navigate back to NavigationHistory[0]
-		while (NavigationHistory.Count > 1) {
-			NavigationHistory.Pop();
-		}
+		NavigationHistory.Clear();
+		NavigationHistory.Push(RootDirectory!);
 	}
 	public DirectoryNode GetCurrentFolder() {
 		return NavigationHistory.Peek();

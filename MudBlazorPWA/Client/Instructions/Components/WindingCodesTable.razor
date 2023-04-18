@@ -8,6 +8,7 @@
     Virtualize="true"
     OverscanCount="2"
     ShowMenuIcon="true"
+
     Hover="true"
     ReadOnly="@(_enableEdit == false)"
     EditMode="DataGridEditMode.Form"
@@ -59,7 +60,7 @@
                 FlexItem="true"/>
             <MudPaper Class="mb-2 mud-background-gray"
                 Elevation="4">
-              @foreach (WindingCodeType type in Enum.GetValues(typeof(WindingCodeType))
+              @foreach (var type in Enum.GetValues(typeof(WindingCodeType))
                 .Cast<WindingCodeType>()
                 .Where(t => t != CurrentWindingCodeType)) {
                 <MudButton StartIcon="@Icons.Material.Outlined.SwapVert"
@@ -96,7 +97,7 @@
             Color="Color.Tertiary"
             OnClick="() => SelectedDivision = Division.All"
             Size="Size.Small"/>
-        @foreach (Division divEnum in Enum.GetValues(typeof(Division)).Cast<Division>().Where(div => div != Division.All)) {
+        @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>().Where(div => div != Division.All)) {
           <MudRadio Option="@divEnum"
               Color="Color.Secondary"
               UnCheckedColor="Color.Info"
@@ -159,6 +160,7 @@
     <PropertyColumn Property="x => x.CodeTypeId.ToString()"
         T="IWindingCode"
         TProperty="string"
+        HideSmall="true"
         Title="CodeType"
         Hideable="true">
       <EditTemplate>

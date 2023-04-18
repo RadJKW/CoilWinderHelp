@@ -13,6 +13,7 @@ public static class ConfigureServices
         services.AddBlazoredLocalStorage();
         services.AddScoped<LayoutService>();
         services.AddScoped<DocViewService>();
+        services.AddScoped<DropItemManager>();
         services.AddScoped<HubClientService>();
         services.AddScoped<IDirectoryNavigator, DirectoryNavigator>();
         services.AddScoped<AdminEditorState>();

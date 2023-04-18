@@ -3,43 +3,29 @@
 @inject AdminEditorState State
 @implements IDisposable
 
-@if (_loading) {
+@if  (_loading) {
   <div class="align-center d-flex justify-center mud-width-full"
       style="height: 50%">
     <MudProgressCircular Indeterminate
         Color="Color.Secondary"
         Size="Size.Large"/>
   </div>
-} else {
-  <div>
+}
 
-    <MudIconButton Icon="@Icons.Material.Outlined.Home"
-        OnClick="() => State.NavigateToRoot()">
-    </MudIconButton>
-    <MudIconButton Icon="@Icons.Material.Filled.ArrowLeft"
-        OnClick="() => State.NavigateBack()"
-        Disabled="@(!State.HasNavigationHistory)"/>
-  </div>
+@if (!_loading) {
+  <MudStack Row
+      Class="dashboard-content"
+      AlignItems="AlignItems.Stretch"
+      Justify="Justify.FlexStart">
+    <DirectoryTree/>
+    <div class="flex-1 mud-height-full">
 
-  if (State.CurrentDirectory is {Folders: not null}) {
-    <div>
-      @foreach (var subdir in State.CurrentDirectory.Folders) {
-        <MudButton Color="@Color.Secondary"
-            Variant="@Variant.Outlined"
-            OnClick="() => State.NavigateToFolder(subdir)">
-          @subdir.Name
-        </MudButton>
-      }
+      <MudSkeleton/>
+        <MudSkeleton SkeletonType="SkeletonType.Circle" Width="100px" Height="100%"/>
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="100%"/>
     </div>
-    <div>
-      @foreach (var file in State.CurrentDirectory.Files) {
-        <MudButton Color="@Color.Tertiary"
-            Variant="@Variant.Outlined">
-          @file.Name
-        </MudButton>
-      }
-    </div>
-  }
+
+  </MudStack>
 }
 
 @code{

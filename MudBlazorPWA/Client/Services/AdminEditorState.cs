@@ -2,7 +2,6 @@
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState {
 	public event Action? StateChanged;
-	public DirectoryNode CurrentDirectory => _directoryNavigator.GetCurrentFolder();
 
 	private readonly HubClientService _directoryHub;
 	// ReSharper disable once NotAccessedField.Local
@@ -14,34 +13,29 @@ public class AdminEditorState {
 		_directoryNavigator = directoryNavigator;
 	}
 
+	public DirectoryNode CurrentDirectory {
+		get => _directoryNavigator.GetCurrentFolder();
+		set => _directoryNavigator.NavigateToFolder(value);
+	}
 	public async Task FetchDirectoryTree() {
+		await _directoryNavigator.InitializeAsync();
+		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
+		_directoryNavigator.RootDirectory = rootDirectory;
 
-			await _directoryNavigator.InitializeAsync();
-			var rootDirectory = await _directoryHub.GetDirectorySnapshot();
-			_directoryNavigator.RootDirectory = rootDirectory;
-
-			if (_directoryNavigator.NavigationHistory.Count == 0)
-			{
-				_directoryNavigator.NavigateToFolder(rootDirectory);
-			}
-			NotifyStateChanged();
+		if (_directoryNavigator.NavigationHistory.Count == 0) {
+			_directoryNavigator.NavigateToFolder(rootDirectory);
+		}
+		NotifyStateChanged();
 	}
 
-	public void NavigateToFolder(DirectoryNode folder) {
+	public void NavigateToFolder(DirectoryNode folder) =>
 		_directoryNavigator.NavigateToFolder(folder);
-		NotifyStateChanged();
-	}
-	public void NavigateBack() {
+	public void NavigateBack() =>
 		_directoryNavigator.NavigateBack();
-		NotifyStateChanged();
-	}
-
-	public void NavigateToRoot() {
+	public void NavigateToRoot() =>
 		_directoryNavigator.NavigateToRoot();
-		NotifyStateChanged();
-	}
-
-	public bool HasNavigationHistory => _directoryNavigator.NavigationHistory.Count > 1;
+	public bool HasNavigationHistory =>
+		_directoryNavigator.NavigationHistory.Count > 1;
 
 	private void NotifyStateChanged() {
 		StateChanged?.Invoke();

@@ -9,16 +9,6 @@ using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Server.Hubs;
-public interface IHubClient {
-	Task ReceiveFolderContent(string currentPath, string[] files, string[] folders);
-	Task FileSelected(string relativePath);
-
-	Task ReceiveAllFolders(string[] folders);
-	Task WindingCodesDbUpdated();
-
-	Task CurrentWindingStopUpdated(IWindingCode code);
-}
-
 /// <inheritdoc />
 public class DirectoryHub : Hub<IHubClient> {
 	#region Constructor

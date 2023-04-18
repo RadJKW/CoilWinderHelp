@@ -44,7 +44,7 @@ public partial class AdminDashboard: IDisposable
 	#region Event Handlers
 
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
-			DropItem? originalItem = _dropItems.SingleOrDefault(d => d.Id == dropInfo.Item.Id);
+			var originalItem = _dropItems.SingleOrDefault(d => d.Id == dropInfo.Item!.Id);
 			var targetDropZone = dropInfo.DropzoneIdentifier;
 			if (originalItem is null)
 				return;

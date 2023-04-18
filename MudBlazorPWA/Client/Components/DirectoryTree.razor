@@ -1,0 +1,54 @@
+﻿@inject AdminEditorState State
+
+<div class="align-stretch d-flex flex-column gap-2 justify-center">
+
+  <MudTreeView T="DirectoryNode"
+      @bind-ActivatedValue="State.CurrentDirectory"
+      Items="@State.CurrentDirectory.Folders.ToHashSet()"
+      Hover="true"
+      Width="100%">
+    <ItemTemplate>
+      <MudTreeViewItem T="DirectoryNode"
+          Items="@context.Folders.ToHashSet()"
+          Value="@context"
+          Icon="@Icons.Material.Filled.Folder"
+          @bind-ActivatedValue="State.CurrentDirectory"
+          Text="@context.Name">
+        @* //TODO: add files also *@
+        @if (context.Folders.Any()) {
+          <MudTreeViewItem T="DirectoryNode"
+              Items="@context.Folders.ToHashSet()"
+              Value="@context"
+              Icon="@Icons.Material.Filled.Folder"
+              @bind-ActivatedValue="State.CurrentDirectory"
+              Text="@context.Name">
+
+          </MudTreeViewItem>
+        }
+
+
+      </MudTreeViewItem>
+    </ItemTemplate>
+  </MudTreeView>
+
+</div>
+
+<div>
+</div>
+
+@code{
+
+  private HashSet<DirectoryNode> TreeItems { get; set; } = new();
+
+  protected override void OnInitialized() {
+    base.OnInitialized();
+
+    State.NavigateToRoot();
+    foreach (var folder in State.CurrentDirectory.Folders) {
+      TreeItems.Add(folder);
+    }
+    TreeItems.Add(State.CurrentDirectory);
+  }
+
+
+}

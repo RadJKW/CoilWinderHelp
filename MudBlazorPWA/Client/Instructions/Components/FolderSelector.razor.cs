@@ -6,8 +6,7 @@ using MudBlazorPWA.Shared.Models;
 using MudExtensions;
 
 namespace MudBlazorPWA.Client.Instructions.Components;
-public partial class FolderSelector
-{
+public partial class FolderSelector: IDisposable {
 	[Parameter] public EventCallback<List<DropItem>> OnDropItemsUpdated { get; set; }
 
 	private const string FolderDropZoneId = "DZ-Folder";
@@ -33,7 +32,8 @@ public partial class FolderSelector
 		DirectoryHubClient.WindingCodeTypeChanged += async () => await OnWindingCodeTypeChanged();
 		DirectoryHubClient.WindingCodesDbUpdated += async () => await OnWindingCodeTypeChanged();
 		var windingCodes = await DirectoryHubClient.GetCodeList();
-		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null).ToList();
+		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null)
+			.ToList();
 		Logger.LogInformation("WindingCodesWithFolders: {@WindingCodesWithFolders}", _windingCodesWithFolders.Count);
 		_folders = await DirectoryHubClient.GetFoldersInPath();
 		await OnReceiveAllFolders();
@@ -61,7 +61,8 @@ public partial class FolderSelector
 		_dropItems.Clear();
 		_windingCodesWithFolders.Clear();
 		var windingCodes = await DirectoryHubClient.GetCodeList();
-		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null).ToList();
+		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null)
+			.ToList();
 		SetFolderAsRoot(_breadCrumbs[0]);
 		await ConvertDirectoryToDropItems(_breadCrumbs[0]);
 		await OnDropItemsUpdated.InvokeAsync(_dropItems);
@@ -72,7 +73,8 @@ public partial class FolderSelector
 
 	#region Methods
 	private async Task OnReceiveAllFolders() {
-		string[] folders = _folders.Select(f => f.Insert(0, DirectoryHubClient.WindingDocsFolder)).ToArray();
+		string[] folders = _folders.Select(f => f.Insert(0, DirectoryHubClient.WindingDocsFolder))
+			.ToArray();
 		RootFolder = BuildDirectoryTree(folders);
 		if (RootFolder == null) return;
 
@@ -144,13 +146,10 @@ public partial class FolderSelector
 				}
 			}
 		}
-		foreach (Folder subFolder in rootFolder.SubFolders) {
+		foreach (var subFolder in rootFolder.SubFolders) {
 			await ConvertDirectoryToDropItems(subFolder);
 		}
 	}
-
-
-
 	private IEnumerable<DropItem> AddFolderDropItems(Folder folder, string folderId) {
 		string? folderPath = folder.Path?.Replace(DirectoryHubClient.WindingDocsFolder, "");
 		var dropZoneId = $"{FolderDropZoneId}-{folderId}";
@@ -164,10 +163,13 @@ public partial class FolderSelector
 		};
 
 		// add copies of the original drop-item to the list, but with the identifier of the winding code's drop-zone
-		folderDropItems.AddRange(_windingCodesWithFolders
-			.Where(w =>
+		folderDropItems.AddRange(
+		_windingCodesWithFolders
+			.Where(
+			w =>
 				w.FolderPath == folderPath)
-			.Select(windingCode => new DropItem {
+			.Select(
+			windingCode => new DropItem {
 				Name = folder.Name,
 				Path = folder.Path.RelativePath(),
 				Type = DropItemType.Folder,
@@ -183,7 +185,8 @@ public partial class FolderSelector
 
 		List<DropItem> pdfDropItems = new() {
 			new() {
-				Name = pdf.Split("/").Last(),
+				Name = pdf.Split("/")
+					.Last(),
 				Path = pdf.RelativePath(),
 				Type = DropItemType.Pdf,
 				Identifier = dropZoneId
@@ -192,8 +195,10 @@ public partial class FolderSelector
 		pdfDropItems.AddRange(
 		_windingCodesWithFolders
 			.Where(w => w.Media.Pdf == pdf.RelativePath() || w.Media.Pdf == pdf)
-			.Select(windingCode => new DropItem {
-				Name = pdf.Split("/").Last(),
+			.Select(
+			windingCode => new DropItem {
+				Name = pdf.Split("/")
+					.Last(),
 				Path = pdf.RelativePath(),
 				Type = DropItemType.Pdf,
 				Identifier = $"DZ-Code-Pdf-{windingCode.Id}",
@@ -212,17 +217,21 @@ public partial class FolderSelector
 		// this list will always contain the original drop-item
 		List<DropItem> videoDropItems = new() {
 			new() {
-				Name = video.Split("/").Last(),
+				Name = video.Split("/")
+					.Last(),
 				Path = video.RelativePath(),
 				Type = DropItemType.Video,
 				Identifier = dropZoneId
 			}
 		};
 		// add copies of the original drop-item to the list, but with the identifier of the winding code's drop-zone
-		videoDropItems.AddRange(_windingCodesWithFolders
+		videoDropItems.AddRange(
+		_windingCodesWithFolders
 			.Where(w => w.Media.Video == video.RelativePath() || w.Media.Video == video)
-			.Select(windingCode => new DropItem {
-				Name = video.Split("/").Last(),
+			.Select(
+			windingCode => new DropItem {
+				Name = video.Split("/")
+					.Last(),
 				Path = video.RelativePath(),
 				Type = DropItemType.Video,
 				Identifier = $"DZ-Code-Video-{windingCode.Id}",
@@ -234,15 +243,20 @@ public partial class FolderSelector
 		return videoDropItems;
 	}
 	private IEnumerable<DropItem> AddRefDropItems(string file) {
-
 		var refDropItems = _windingCodesWithFolders
 			.Where(w => w.Media.RefMedia is not null && w.Media.RefMedia.Any(r => r == file.RelativePath()))
-			.Select(windingCode => new DropItem {
-				Name = file.Split("/").Last(),
+			.Select(
+			windingCode => new DropItem {
+				Name = file.Split("/")
+					.Last(),
 				Path = file.RelativePath(),
-				Type = file.IsPdf() ? DropItemType.Pdf : DropItemType.Video,
+				Type = file.IsPdf()
+					? DropItemType.Pdf
+					: DropItemType.Video,
 				Identifier = $"DZ-Code-Ref-{windingCode.Id}",
-				OriginalIdentifier = file.IsPdf() ? $"{PdfDropZoneId}-{windingCode.Id}" : $"{VideoDropZoneId}-{windingCode.Id}",
+				OriginalIdentifier = file.IsPdf()
+					? $"{PdfDropZoneId}-{windingCode.Id}"
+					: $"{VideoDropZoneId}-{windingCode.Id}",
 				IsCopy = true
 			});
 		return refDropItems;
@@ -269,10 +283,19 @@ public partial class FolderSelector
 			return null;
 		}
 		string firstPath = enumerable.First();
-		char splitChar = firstPath.Contains('\\') ? '\\' : '/';
-		var splitPaths = enumerable.Select(path => path.Split(splitChar)).ToList();
+		char splitChar = firstPath.Contains('\\')
+			? '\\'
+			: '/';
+		var splitPaths = enumerable.Select(path => path.Split(splitChar))
+			.ToList();
 		int commonParts = FindCommonParts(splitPaths);
-		var root = new Folder(splitPaths[0][commonParts], string.Join(splitChar, splitPaths[0].Take(commonParts + 1)), splitChar);
+		var root = new Folder(
+		splitPaths[0][commonParts],
+		string.Join(
+		splitChar,
+		splitPaths[0]
+			.Take(commonParts + 1)),
+		splitChar);
 		foreach (string[] splitPath in splitPaths)
 			AddRemainingParts(root, splitPath, commonParts);
 		return root;
@@ -295,9 +318,9 @@ public partial class FolderSelector
 		return commonParts;
 	}
 	private static void AddRemainingParts(Folder? root, IReadOnlyList<string> splitPath, int commonParts) {
-		Folder? current = root;
+		var current = root;
 		for (int i = commonParts + 1; i < splitPath.Count; i++) {
-			Folder? next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
+			var next = current?.SubFolders.FirstOrDefault(f => f.Name == splitPath[i]);
 			if (next == null) {
 				next = new(splitPath[i], current?.Path + current?.SplitChar + splitPath[i], current!.SplitChar);
 				current.SubFolders.Add(next);
