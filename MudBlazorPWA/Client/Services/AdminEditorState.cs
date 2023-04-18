@@ -2,46 +2,46 @@
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState {
 	public event Action? StateChanged;
-	public DirectoryNode CurrentDirectory => DirectoryNavigator.GetCurrentFolder();
+	public DirectoryNode CurrentDirectory => _directoryNavigator.GetCurrentFolder();
 
 	private readonly HubClientService _directoryHub;
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<AdminEditorState> _logger;
-	public readonly IDirectoryNavigator DirectoryNavigator;
+	private readonly IDirectoryNavigator _directoryNavigator;
 	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator) {
 		_directoryHub = directoryHub;
 		_logger = logger;
-		DirectoryNavigator = directoryNavigator;
+		_directoryNavigator = directoryNavigator;
 	}
 
 	public async Task FetchDirectoryTree() {
 
-			await DirectoryNavigator.InitializeAsync();
+			await _directoryNavigator.InitializeAsync();
 			var rootDirectory = await _directoryHub.GetDirectorySnapshot();
-			DirectoryNavigator.RootDirectory = rootDirectory;
+			_directoryNavigator.RootDirectory = rootDirectory;
 
-			if (DirectoryNavigator.NavigationHistory.Count == 0)
+			if (_directoryNavigator.NavigationHistory.Count == 0)
 			{
-				DirectoryNavigator.NavigateToFolder(rootDirectory);
+				_directoryNavigator.NavigateToFolder(rootDirectory);
 			}
 			NotifyStateChanged();
 	}
 
 	public void NavigateToFolder(DirectoryNode folder) {
-		DirectoryNavigator.NavigateToFolder(folder);
+		_directoryNavigator.NavigateToFolder(folder);
 		NotifyStateChanged();
 	}
 	public void NavigateBack() {
-		DirectoryNavigator.NavigateBack();
+		_directoryNavigator.NavigateBack();
 		NotifyStateChanged();
 	}
 
 	public void NavigateToRoot() {
-		DirectoryNavigator.NavigateToRoot();
+		_directoryNavigator.NavigateToRoot();
 		NotifyStateChanged();
 	}
 
-	public bool HasNavigationHistory => DirectoryNavigator.NavigationHistory.Count > 1;
+	public bool HasNavigationHistory => _directoryNavigator.NavigationHistory.Count > 1;
 
 	private void NotifyStateChanged() {
 		StateChanged?.Invoke();

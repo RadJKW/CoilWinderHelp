@@ -14,11 +14,11 @@
   <div>
 
     <MudIconButton Icon="@Icons.Material.Outlined.Home"
-        OnClick="() => _navigator.NavigateToRoot()">
+        OnClick="() => State.NavigateToRoot()">
     </MudIconButton>
     <MudIconButton Icon="@Icons.Material.Filled.ArrowLeft"
         OnClick="() => State.NavigateBack()"
-        Disabled="@( _navigator.NavigationHistory.Count == 1)"/>
+        Disabled="@(!State.HasNavigationHistory)"/>
   </div>
 
   if (State.CurrentDirectory is {Folders: not null}) {
@@ -46,11 +46,9 @@
 
 
   private bool _loading = true;
-  private IDirectoryNavigator _navigator = default!;
 
   protected override async Task OnInitializedAsync() {
     State.StateChanged += AdminStateChanged;
-    _navigator = State.DirectoryNavigator;
     await State.FetchDirectoryTree();
   }
   private void AdminStateChanged() {
