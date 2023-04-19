@@ -1,4 +1,6 @@
-﻿using MudBlazorPWA.Shared.Models;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState {
 	public event Action? StateChanged;
@@ -7,10 +9,14 @@ public class AdminEditorState {
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<AdminEditorState> _logger;
 	private readonly IDirectoryNavigator _directoryNavigator;
-	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator) {
+	private readonly IJSRuntime _jsRuntime;
+	private readonly NavigationManager _navigation;
+	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation) {
 		_directoryHub = directoryHub;
 		_logger = logger;
 		_directoryNavigator = directoryNavigator;
+		_jsRuntime = jsRuntime;
+		_navigation = navigation;
 	}
 
 	public DirectoryNode CurrentDirectory {
@@ -39,6 +45,13 @@ public class AdminEditorState {
 
 	private void NotifyStateChanged() {
 		StateChanged?.Invoke();
+	}
+
+	public async Task OpenFilePreview(string filePath) {
+		var url = _navigation.BaseUri
+		          + "files/"
+		          + filePath;
+		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
 }
 /*
