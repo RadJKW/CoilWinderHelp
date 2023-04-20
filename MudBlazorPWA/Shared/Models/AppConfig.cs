@@ -1,12 +1,17 @@
 ﻿using System.Runtime.InteropServices;
 
 namespace MudBlazorPWA.Shared.Models;
-public static class AppConfig
-{
+public static class AppConfig {
 	private static string WindowsPath => @"B:/CoilWinderTraining-Edit/";
 	private static string MacPath => @"/Users/jkw/WindingPractices/";
 
-	public static string BasePath => IsWindows ? WindowsPath : MacPath;
+	// create an array of allowed file types to be displayed
+	// .pdf .mp4 .json
+	public static readonly string[] AllowedFileTypes = { ".pdf", ".mp4", ".json" };
+
+	public static string BasePath => IsWindows
+		? WindowsPath
+		: MacPath;
 
 	public static string CorsPolicy => "AllowAll";
 
@@ -17,8 +22,7 @@ public static class AppConfig
 
 	public static string JsonDataSeedFile => GetJsonDataSeedFile();
 
-	private static string GetJsonDataSeedFile()
-	{
+	private static string GetJsonDataSeedFile() {
 		DirectoryInfo? projectDir = Directory.GetParent(Directory.GetCurrentDirectory());
 		string solutionDir = projectDir?.Parent?.FullName!;
 		string jsonFile = Path.Combine(solutionDir, "WindingCodes.json");

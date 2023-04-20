@@ -10,8 +10,8 @@
   --min-docview-height: calc(100vh - var(--mud-appbar-height));
   --max-docview-height: calc(100vh - var(--mud-appbar-height));
   margin-inline: auto;
-  height: 100vh;
-  padding-top: 0.5rem;
+  height: var(--max-docview-height);
+  padding-block: 0.5rem;
 }
 /*.docview.main-container :not(div) {}
 

@@ -3,23 +3,27 @@
 @inject AdminEditorState State
 @implements IDisposable
 
-@if  (_loading) {
+@if (_loading) {
   <div class="align-center d-flex justify-center mud-width-full"
       style="height: 50%">
     <MudProgressCircular Indeterminate
         Color="Color.Secondary"
         Size="Size.Large"/>
   </div>
-}
-else{
+} else {
+  <div class="directory-tree-grid">
 
-  <div style="display: grid; grid-template-columns: 2fr 3fr; align-items: stretch;justify-content: center;" >
-
-    <DirectoryTree class="align-stretch d-flex flex-column gap-2 justify-center" style="justify-self: start; width: 100%;"/>
-    <div class="d-flex justify-center align-center" style="justify-self: start;">
+    <div class="directory-tree-component dark-background rounded-lg">
+      <DirectoryTree class="directory-tree bordered"/>
+    </div>
+    <div class="align-center d-flex justify-center"
+        style="justify-self: start;">
       <MudSkeleton/>
-        <MudSkeleton SkeletonType="SkeletonType.Circle" Width="100px" Height="100%"/>
-        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="100%"/>
+      <MudSkeleton SkeletonType="SkeletonType.Circle"
+          Width="100px"
+          Height="100%"/>
+      <MudSkeleton SkeletonType="SkeletonType.Rectangle"
+          Height="100%"/>
     </div>
 
   </div>
@@ -35,20 +39,15 @@ else{
     State.StateChanged += AdminStateChanged;
     await State.FetchDirectoryTree();
   }
-  private void AdminStateChanged() {
-    StateHasChanged();
-  }
+  private void AdminStateChanged() { StateHasChanged(); }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     await base.OnAfterRenderAsync(firstRender);
     if (!firstRender) {
       _loading = false;
     }
-
   }
 
-  public void Dispose() {
-    State.StateChanged -= AdminStateChanged;
-  }
+  public void Dispose() { State.StateChanged -= AdminStateChanged; }
 
 }

@@ -1,0 +1,51 @@
+﻿.directory-tree-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.dark-background,
+::deep .dark-background {
+  background-color: var(--mud-palette-dark);
+}
+
+.bordered,
+::deep .bordered {
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 3px;
+  border-color: var(--mud-palette-lines-default);
+}
+
+.directory-tree-component {
+  padding: 4px;
+  display: flex;
+  min-width: 450px;
+}
+
+::deep .directory-tree {
+  justify-self: center;
+  align-self: start;
+  overflow: auto;
+  width: 100%;
+  margin-inline: auto;
+  height: 100%;
+}
+
+::deep
+.mud-treeview-item
+.mud-treeview-item-content:not(:has(div.mud-treeview-item-arrow)) {
+  padding: 4px 2px;
+}
+
+::deep .mud-treeview-item .mud-treeview-item-content:hover {
+  background-color: rgba(52, 52, 162, 0.24);
+}
+
+/* make .mud-treeview-item .p selectable with cursor */
+::deep .mud-treeview-item .mud-treeview-item-content p {
+  cursor: pointer;
+}

@@ -76,7 +76,8 @@ public class DirectoryHub : Hub<IHubClient> {
 	public async Task<List<string>> GetCallbackMethods() {
 		var hubType = GetType();
 		var methods = hubType.GetMethods()
-			.Where(m =>
+			.Where(
+			m =>
 				(m.Attributes & MethodAttributes.Virtual) == 0 &&// exclude overridden methods
 				m.ReturnType == typeof(Task) ||// include public Task methods
 				(m.ReturnType == typeof(void) && m.GetCustomAttribute(typeof(AsyncStateMachineAttribute)) != null)// include public async void methods
@@ -88,20 +89,20 @@ public class DirectoryHub : Hub<IHubClient> {
 
 	#region Directory Methods
 	public async Task<DirectoryNode> BuildDirectorySnapshot(string? path) {
-
 		var dirInfo = new DirectoryInfo(path ?? AppConfig.BasePath);
 
-		var node = new DirectoryNode
-			(dirInfo.Name, dirInfo.FullName);
+		var node = new DirectoryNode(dirInfo.Name, dirInfo.FullName.Remove(0, AppConfig.BasePath.Length));
 
 		foreach (var subdir in dirInfo.GetDirectories()) {
 			node.Folders.Add(await BuildDirectorySnapshot(subdir.FullName));
 		}
 
 		foreach (var file in dirInfo.GetFiles()) {
-			if (file.Name.StartsWith("."))
-				continue;
-			node.Files.Add(new(file.Name, file.FullName));
+			// return if the file type is not in AppConfig.AllowedFileTypes
+			if (!AppConfig.AllowedFileTypes.Contains(file.Extension)) continue;
+
+			var slicedPath = file.FullName.Remove(0, AppConfig.BasePath.Length);
+			node.Files.Add(new(file.Name, slicedPath));
 		}
 
 		return node;
@@ -151,9 +152,10 @@ public class DirectoryHub : Hub<IHubClient> {
 			? await windingCodes.ToListAsync()
 			: await windingCodes.Where(w => w.Division == division).ToListAsync();
 		_logger.LogInformation("Found {Count} winding codes for Type {WindingCodeType} and Division {Division}", results.Count, windingCodeType, division);
-		return results.Any() ? results : null;
+		return results.Any()
+			? results
+			: null;
 	}
-
 	public async Task<IWindingCode?> GetWindingCode(int codeId, WindingCodeType windingCodeType) {
 		IWindingCode? windingCode;
 		switch (windingCodeType) {
@@ -171,8 +173,6 @@ public class DirectoryHub : Hub<IHubClient> {
 				throw new ArgumentOutOfRangeException(nameof(windingCodeType), windingCodeType, null);
 		}
 	}
-
-
 	public async Task<bool> CreateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
 		if (WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;
@@ -192,7 +192,6 @@ public class DirectoryHub : Hub<IHubClient> {
 		await _dataContext.SaveChangesAsync();
 		return true;
 	}
-
 	public async Task<bool> UpdateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
 		if (!WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;
@@ -220,8 +219,6 @@ public class DirectoryHub : Hub<IHubClient> {
 		await Clients.All.WindingCodesDbUpdated();
 		return true;
 	}
-
-
 	public async Task DeleteWindingCode(int codeId, WindingCodeType windingCodeType) {
 		if (!WindingCodeExists(codeId, windingCodeType)) {
 			return;

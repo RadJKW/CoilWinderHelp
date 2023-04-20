@@ -11,7 +11,10 @@ public class AdminEditorState {
 	private readonly IDirectoryNavigator _directoryNavigator;
 	private readonly IJSRuntime _jsRuntime;
 	private readonly NavigationManager _navigation;
-	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation) {
+	public AdminEditorState(HubClientService directoryHub,
+		ILogger<AdminEditorState> logger,
+		IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime,
+		NavigationManager navigation) {
 		_directoryHub = directoryHub;
 		_logger = logger;
 		_directoryNavigator = directoryNavigator;
@@ -34,12 +37,15 @@ public class AdminEditorState {
 		NotifyStateChanged();
 	}
 
-	public void NavigateToFolder(DirectoryNode folder) =>
+	public void NavigateToFolder(DirectoryNode folder) {
 		_directoryNavigator.NavigateToFolder(folder);
-	public void NavigateBack() =>
+	}
+	public void NavigateBack() {
 		_directoryNavigator.NavigateBack();
-	public void NavigateToRoot() =>
+	}
+	public void NavigateToRoot() {
 		_directoryNavigator.NavigateToRoot();
+	}
 	public bool HasNavigationHistory =>
 		_directoryNavigator.NavigationHistory.Count > 1;
 
