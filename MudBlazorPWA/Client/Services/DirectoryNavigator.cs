@@ -29,6 +29,12 @@ public class DirectoryNavigator : IDirectoryNavigator {
 	public void NavigateToFolder(DirectoryNode folder) {
 		NavigationHistory.Push(folder);
 	}
+	public void NavigateToFolder(string folderPath) {
+		var folder = RootDirectory!.GetFolder(folderPath);
+		if (folder != null) {
+			NavigateToFolder(folder);
+		}
+	}
 	public void NavigateBack() {
 		if (NavigationHistory.Count > 1) {
 			NavigationHistory.Pop();
@@ -37,6 +43,16 @@ public class DirectoryNavigator : IDirectoryNavigator {
 	public void NavigateToRoot() {
 		NavigationHistory.Clear();
 		NavigationHistory.Push(RootDirectory!);
+	}
+
+	public DirectoryNode? GetFolder(string folderPath) {
+		if (folderPath == RootDirectory!.Path) return RootDirectory;
+		var folder = RootDirectory!.GetFolder(folderPath);
+		if (folder != null) {
+			return folder;
+		}
+		Console.WriteLine("Folder not found at path: " + folderPath);
+		return null;
 	}
 	public DirectoryNode GetCurrentFolder() {
 		return NavigationHistory.Peek();
@@ -48,7 +64,9 @@ public interface IDirectoryNavigator {
 	ObservableStack<DirectoryNode> NavigationHistory { get; }
 	Task InitializeAsync();
 	void NavigateToFolder(DirectoryNode folder);
+	void NavigateToFolder(string folderPath);
 	void NavigateBack();
 	void NavigateToRoot();
+	DirectoryNode? GetFolder(string folderPath);
 	DirectoryNode GetCurrentFolder();
 }

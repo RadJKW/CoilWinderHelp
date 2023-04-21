@@ -1,0 +1,22 @@
+﻿::deep .mud-expand-panel {
+  margin-bottom: 0 !important;
+  border-bottom: unset !important;
+}
+
+::deep .mud-expand-panel.mud-panel-expanded .mud-expand-panel-header {
+  border-bottom: 4px solid var(--mud-palette-dark);
+
+  box-shadow: var(--mud-elevation-2);
+
+  padding: 8px 12px;
+}
+
+::deep .mud-expand-panel .mud-expand-panel-header {
+  border-radius: 0 0 8px 8px;
+  padding: 8px 12px;
+}
+
+::deep .mud-expand-panel > .mud-collapse-container.mud-collapse-entered {
+  padding-bottom: 12px;
+  overflow: hidden auto;
+}

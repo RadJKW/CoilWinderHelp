@@ -99,7 +99,6 @@
   private List<DropZoneConfig> _dropZoneConfigs = new();
   private List<DropItem> _dropItemChanges = new();
   private bool _submitDisabled = true;
-
   #region Lifecycle
   protected override void OnInitialized() {
     AdminDashboard.OnDrop += AdminDashboard_OnDrop;
@@ -128,7 +127,6 @@
     };
   }
   #endregion
-
   private void AdminDashboard_OnDrop(string? identifier) {
     Console.WriteLine("OnDrop Event");
     if (identifier == null) {
@@ -136,8 +134,8 @@
       return;
     }
 
-   // get the last segment of the identifier which is the code id
-    // split by "-" and get the last segment
+  // get the last segment of the identifier which is the code id
+  // split by "-" and get the last segment
     var codeId = identifier.Split('-').Last();
     if (codeId != WindingCode.Id.ToString()) {
       Console.WriteLine("not the same code id");
@@ -179,7 +177,7 @@
   }
   private Task RevertItemChanges() {
     _submitDisabled = true;
-   FolderDropItems?.AddRange(_dropItemChanges);
+    FolderDropItems?.AddRange(_dropItemChanges);
     StateHasChanged();
     return Task.CompletedTask;
   }
@@ -198,7 +196,7 @@
     var refMedia = new List<string>();
 
     foreach (DropItem item in dropZoneItems) {
-      string? dropZonePrefix = item.Identifier?[..item.Identifier.LastIndexOf('-')];
+      string dropZonePrefix = item.Identifier[..item.Identifier.LastIndexOf('-')];
       switch (dropZonePrefix) {
         case DzCodeFolder:
           contextItem.FolderPath = item.Path;
@@ -211,10 +209,8 @@
           break;
         case DzCodeRefMedia: {
           Console.WriteLine("Case -> DzCodeRefMedia");
-          if (item.Path != null) {
-            Console.WriteLine("Item Path -> " + item.Path);
-            refMedia.Add(item.Path);
-          }
+          Console.WriteLine("Item Path -> " + item.Path);
+          refMedia.Add(item.Path);
         }
           break;
       }
@@ -237,16 +233,11 @@
     public static string Style => string.Empty;
 
     public string DropZoneClass { get; init; } = "drop-zone-gallery";
-    public string ContainerClass {
-      get => _containerClass;
-      init => _containerClass = $"{_containerClass} {value}";
-    }
+    public string ContainerClass { get => _containerClass; init => _containerClass = $"{_containerClass} {value}"; }
 
     public required string Identifier { get; init; }
     public required string HeaderText { get; init; }
   }
   #endregion
-  public void Dispose() {
-    AdminDashboard.OnDrop -= AdminDashboard_OnDrop;
-  }
+  public void Dispose() { AdminDashboard.OnDrop -= AdminDashboard_OnDrop; }
 }

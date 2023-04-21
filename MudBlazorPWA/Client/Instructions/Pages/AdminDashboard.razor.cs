@@ -7,9 +7,7 @@ using MudBlazorPWA.Client.ViewModels;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
-public partial class AdminDashboard: IDisposable
-{
-
+public partial class AdminDashboard : IDisposable {
 	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 	[Inject] private HubClientService HubClientService { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
@@ -42,26 +40,25 @@ public partial class AdminDashboard: IDisposable
 	#endregion
 
 	#region Event Handlers
-
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
-			var originalItem = _dropItems.SingleOrDefault(d => d.Id == dropInfo.Item!.Id);
-			var targetDropZone = dropInfo.DropzoneIdentifier;
-			if (originalItem is null)
-				return;
-			if (targetDropZone == originalItem.Identifier)
-				return;
-			// create a copy of the original Item
-			var copy = new DropItem {
-				Identifier = targetDropZone,
-				OriginalIdentifier = originalItem.Identifier,
-				Name = originalItem.Name,
-				Path = originalItem.Path,
-				Type = originalItem.Type,
-				IsCopy = true
-			};
-			// add the copy to the dropItems list
-			_dropItems.Add(copy);
-			OnDrop?.Invoke(copy.Identifier);
+		var originalItem = _dropItems.SingleOrDefault(d => d.Id == dropInfo.Item!.Id);
+		var targetDropZone = dropInfo.DropzoneIdentifier;
+		if (originalItem is null)
+			return;
+		if (targetDropZone == originalItem.Identifier)
+			return;
+		// create a copy of the original Item
+		var copy = new DropItem {
+			Identifier = targetDropZone,
+			OriginalIdentifier = originalItem.Identifier,
+			Name = originalItem.Name,
+			Path = originalItem.Path,
+			Type = originalItem.Type,
+			IsCopy = true
+		};
+		// add the copy to the dropItems list
+		_dropItems.Add(copy);
+		OnDrop?.Invoke(copy.Identifier);
 	}
 
 	/// <summary>
@@ -77,7 +74,6 @@ public partial class AdminDashboard: IDisposable
 		_dropItems.Clear();
 		_dropItems.AddRange(arg);
 		StateHasChanged();
-
 	}
 	#endregion
 
@@ -86,10 +82,12 @@ public partial class AdminDashboard: IDisposable
 		// ReSharper disable once UseObjectOrCollectionInitializer
 		var attributes = new Dictionary<string, object>();
 
-		attributes.Add( "id", "drop-zone-chip");
-		attributes.Add("data-name", context.Name!);
-		attributes.Add("data-path", context.Path!);
-		attributes.Add("ondblclick", EventCallback
+		attributes.Add("id", "drop-zone-chip");
+		attributes.Add("data-name", context.Name);
+		attributes.Add("data-path", context.Path);
+		attributes.Add(
+		"ondblclick",
+		EventCallback
 			.Factory.Create<MouseEventArgs>(this, () => OpenFilePreview(context.Path)));
 
 		if (context.Type is DropItemType.Pdf or DropItemType.Video)
@@ -115,5 +113,4 @@ public partial class AdminDashboard: IDisposable
 		OnDrop?.Invoke(arg.Identifier);
 	}
 	#endregion
-
 }

@@ -12,18 +12,18 @@
   </div>
 } else {
   <div class="directory-tree-grid">
-    <MudDropContainer T="DropItem"
-        id="admin-dashboard"
-        Items="@State.DropItems"
+    <MudDropContainer T="IDirectoryItem"
+        Items="@State.CurrentDirectoryFiles"
         Class="mud-height-full mud-width-full overflow-hidden"
+
         CanDropClass="mud-border-success cursor-cell"
         NoDropClass="mud-border-error cursor-not-allowed"
         DraggingClass="item-dragging"
         ApplyDropClassesOnDragStarted="false"
-        ItemsSelector="@((item, dropzone) => item.Identifier == dropzone)"
+        ItemsSelector="@((item, dropzone) => item.DropZoneId == dropzone)"
         ItemDropped="ItemUpdated">
 
-      <div class="dark-background directory-tree-component rounded-lg">
+      <div class="dark-background directory-tree-component overflow-hidden rounded-lg">
         <DirectoryTree class="bordered directory-tree"/>
       </div>
       <div class="align-center d-flex justify-center"
@@ -61,8 +61,8 @@
 
   public void Dispose() { State.StateChanged -= AdminStateChanged; }
 
-  private static void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
+  private static void ItemUpdated(MudItemDropInfo<IDirectoryItem> dropInfo) {
     if (dropInfo.Item != null)
-      dropInfo.Item.Identifier = dropInfo.DropzoneIdentifier;
+      dropInfo.Item.DropZoneId = dropInfo.DropzoneIdentifier;
   }
 }

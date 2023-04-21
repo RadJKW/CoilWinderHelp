@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using MudBlazorPWA.Client.ViewModels;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
@@ -13,68 +12,104 @@ public class AdminEditorState {
 	private readonly IDirectoryNavigator _directoryNavigator;
 	private readonly IJSRuntime _jsRuntime;
 	private readonly NavigationManager _navigation;
-	public AdminEditorState(HubClientService directoryHub,
-		ILogger<AdminEditorState> logger,
-		IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime,
-		NavigationManager navigation) {
+	private IDirectoryItem? _selectedItem;
+
+	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation) {
 		_directoryHub = directoryHub;
 		_logger = logger;
 		_directoryNavigator = directoryNavigator;
 		_jsRuntime = jsRuntime;
 		_navigation = navigation;
 	}
-	public List<DropItem> DropItems { get; private set; } = new();
-
-	public DirectoryNode CurrentDirectory {
-		get => _directoryNavigator.GetCurrentFolder();
-		set => _directoryNavigator.NavigateToFolder(value);
+	public IDirectoryItem? SelectedItem {
+		get => _selectedItem;
+		set {
+			_selectedItem = value;
+			_ = FetchSelectedDirectoryItems();
+			NotifyStateChanged();
+		}
 	}
+	public List<IDirectoryItem> CurrentDirectoryFolders { get; private set; } = new();
+	public List<IDirectoryItem> CurrentDirectoryFiles { get; private set; } = new();
+
+	public IDirectoryItem RootDirectoryItem { get; private set; } = default!;
+	private DirectoryNode CurrentDirectory { get; set; } = default!;
 	public async Task FetchDirectoryTree() {
 		await _directoryNavigator.InitializeAsync();
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
+
 		_directoryNavigator.RootDirectory = rootDirectory;
 
+		RootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true };
+
+		SelectedItem = RootDirectoryItem;
+
+		Console.WriteLine("SelectedItem.Path: " + SelectedItem.Path);
+
+		await FetchSelectedDirectoryItems();
+
 		if (_directoryNavigator.NavigationHistory.Count == 0)
-			_directoryNavigator.NavigateToFolder(rootDirectory);
+			NavigateToFolder(rootDirectory);
 		NotifyStateChanged();
 	}
-	public void NavigateToFolder(DirectoryNode folder) {
+	private void NavigateToFolder(DirectoryNode folder) {
 		_directoryNavigator.NavigateToFolder(folder);
-	}
-	public void NavigateBack() {
-		_directoryNavigator.NavigateBack();
+		CurrentDirectory = _directoryNavigator.GetCurrentFolder();
 	}
 	public void NavigateToRoot() {
 		_directoryNavigator.NavigateToRoot();
 	}
-	public bool HasNavigationHistory =>
-		_directoryNavigator.NavigationHistory.Count > 1;
-
-
 	private void NotifyStateChanged() {
 		StateChanged?.Invoke();
 	}
-
 	public async Task OpenFilePreview(string filePath) {
 		var url = _navigation.BaseUri
 		          + "files/"
 		          + filePath;
 		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
-	public Task AppendDropItems(IEnumerable<IDirectoryItem> itemTreeItems) {
-		DropItems.AddRange(
-		itemTreeItems
-			.OfType<DirectoryItem<FileNode>>()
-			.Select(
-			item => new DropItem {
-				Name = item.Name,
-				Path = item.Path,
-				Type = item.Name.EndsWith(".pdf")
-					? DropItemType.Pdf
-					: DropItemType.Video,
-				Identifier = item.Path
-			}));
+	private Task FetchSelectedDirectoryItems() {
+		if (SelectedItem == null || SelectedItem.TreeItems.Any()) return Task.CompletedTask;
+		var directoryNode = _directoryNavigator.GetFolder(SelectedItem.Path);
+		if (directoryNode == null) return Task.CompletedTask;
+
+		var treeItems = new List<IDirectoryItem>();
+		var folderTreeItems = directoryNode.Folders.Select(folder => new DirectoryItem<DirectoryNode>(folder)).ToList();
+		var fileTreeItems = directoryNode.Files.Select(file => new DirectoryItem<FileNode>(file)).ToList();
+
+		treeItems.AddRange(folderTreeItems);
+		treeItems.AddRange(fileTreeItems);
+		CurrentDirectoryFiles.AddRange(fileTreeItems);
+		CurrentDirectoryFolders.AddRange(folderTreeItems);
+
+		SelectedItem.TreeItems = treeItems.ToHashSet();
+
+		// if the SelectedItem is RootDirectoryItem, then we need to update the RootDirectoryItem.TreeItems
+		if (SelectedItem == RootDirectoryItem) {
+			RootDirectoryItem.TreeItems = treeItems.ToHashSet();
+		}
 		NotifyStateChanged();
 		return Task.CompletedTask;
 	}
+
+	public bool HasFolders(IDirectoryItem directoryItem) {
+		var directoryNode = _directoryNavigator.GetFolder(directoryItem.Path);
+		return
+			directoryNode != null
+			&&
+			directoryNode.Folders.Any();
+	}
+
+	/*private void FetchVisibleDirectoryItems() {
+		if (SelectedItem == null) return;
+
+		foreach (var folderItem in SelectedItem.TreeItems.OfType<DirectoryItem<DirectoryNode>>()) {
+			if (folderItem.TreeItems.Any()) continue;
+			var folder = _directoryNavigator.GetFolder(folderItem.Path);
+			if (folder == null) continue;
+			foreach (var item in folder.Folders.Select(f => new DirectoryItem<DirectoryNode>(f))) {
+				folderItem.TreeItems.Add(item);
+			}
+		}
+	}*/
 }

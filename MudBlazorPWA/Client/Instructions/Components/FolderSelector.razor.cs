@@ -6,7 +6,7 @@ using MudBlazorPWA.Shared.Models;
 using MudExtensions;
 
 namespace MudBlazorPWA.Client.Instructions.Components;
-public partial class FolderSelector: IDisposable {
+public partial class FolderSelector : IDisposable {
 	[Parameter] public EventCallback<List<DropItem>> OnDropItemsUpdated { get; set; }
 
 	private const string FolderDropZoneId = "DZ-Folder";
@@ -151,7 +151,7 @@ public partial class FolderSelector: IDisposable {
 		}
 	}
 	private IEnumerable<DropItem> AddFolderDropItems(Folder folder, string folderId) {
-		string? folderPath = folder.Path?.Replace(DirectoryHubClient.WindingDocsFolder, "");
+		string folderPath = folder.Path!.Replace(DirectoryHubClient.WindingDocsFolder, "");
 		var dropZoneId = $"{FolderDropZoneId}-{folderId}";
 		List<DropItem> folderDropItems = new() {
 			new() {
