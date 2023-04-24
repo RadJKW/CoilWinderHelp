@@ -12,7 +12,7 @@
 
     <ItemGroup>
         <PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.4.9" />
+        <PackageReference Include="CodeBeam.MudBlazor.Extensions" Version="6.4.11" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="7.0.5" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />

@@ -1,11 +1,8 @@
 ﻿using MudBlazor;
 using MudBlazorPWA.Shared.Interfaces;
 namespace MudBlazorPWA.Shared.Models;
-public class DirectoryItem<T> : IDirectoryItem where T : class {
+public class DirectoryItem<T> : DropItem, IDirectoryItem where T : class {
 	public T Item { get; set; }
-	public string Name { get; }
-	public string Path { get; }
-	public string Icon { get; }
 	public string DropZoneId {
 		get {
 			if (string.IsNullOrEmpty(_dropZoneId))
@@ -13,6 +10,32 @@ public class DirectoryItem<T> : IDirectoryItem where T : class {
 			return _dropZoneId;
 		}
 		set => _dropZoneId = value;
+	}
+	private static string GetParentFolderPath(string path) {
+		int lastSeparatorIndex = path.LastIndexOf('/');
+		if (lastSeparatorIndex == -1)
+			lastSeparatorIndex = path.LastIndexOf('\\');
+
+		return lastSeparatorIndex != -1
+			? path[..lastSeparatorIndex]
+			: string.Empty;
+	}
+	public bool CanExpand { get; }
+	public bool Expanded { get; set; }
+	public bool Loading { get; set; }
+
+	public bool Selected { get; set; }
+	public HashSet<IDirectoryItem> TreeItems { get; set; } = new();
+	public DirectoryItem(T item) {
+		Item = item;
+		(Name, Path, Icon, CanExpand) = item switch {
+			DirectoryNode directory
+				=> (directory.Name, directory.Path, Icons.Material.Filled.Folder, ShouldExpand(directory)),
+			FileNode file
+				=> (file.Name, file.Path, FileIcon(file), false),
+			_
+				=> ("", "", "", false)
+		};
 	}
 
 	private string _dropZoneId = string.Empty;
@@ -31,42 +54,6 @@ public class DirectoryItem<T> : IDirectoryItem where T : class {
 			}
 			default: return string.Empty;
 		}
-	}
-
-	private static string GetParentFolderPath(string path) {
-		int lastSeparatorIndex = path.LastIndexOf('/');
-		if (lastSeparatorIndex == -1)
-			lastSeparatorIndex = path.LastIndexOf('\\');
-
-		return lastSeparatorIndex != -1
-			? path[..lastSeparatorIndex]
-			: string.Empty;
-	}
-
-
-	public bool CanExpand { get; }
-	public bool Expanded { get; set; }
-	public bool Loading { get; set; }
-
-	public HashSet<IDirectoryItem> TreeItems { get; set; } = new();
-	public DirectoryItem(T item) {
-		Item = item;
-		(Name, Path, Icon, CanExpand) = item switch {
-			DirectoryNode directory
-				=> (directory.Name, directory.Path, Icons.Material.Filled.Folder, ShouldExpand(directory)),
-			FileNode file
-				=> (file.Name, file.Path, FileIcon(file), false),
-			_
-				=> ("", "", "", false)
-		};
-	}
-	private static bool ShouldExpand(DirectoryNode directory) {
-		return directory.Folders.Any() || directory.Files.Any();
-	}
-	private static string FileIcon(FileNode file) {
-		return file.Name.EndsWith(".pdf")
-			? Icons.Custom.FileFormats.FilePdf
-			: Icons.Custom.FileFormats.FileVideo;
 	}
 	public async Task FetchTreeItems() {
 		if (!Expanded || TreeItems.Any()) {
@@ -88,6 +75,34 @@ public class DirectoryItem<T> : IDirectoryItem where T : class {
 		});
 
 		Console.WriteLine("TreeItems Loaded");
+	}
+	public bool HasFiles() {
+		// iterate over the TreeItems if any and check if any are of the Type DirectoryItem<FileNode>
+		var hasFiles = TreeItems.Any(item => item is DirectoryItem<FileNode>);
+		Console.WriteLine($"HasFiles: {hasFiles}");
+		return hasFiles;
+	}
+	public HashSet<IDirectoryItem> GetFolders() {
+		var folders =
+			from item in TreeItems
+			where item is DirectoryItem<DirectoryNode>
+			select item;
+		return folders.ToHashSet();
+	}
+	public IEnumerable<IDirectoryItem> GetFiles() {
+		var files =
+			from item in TreeItems
+			where item is DirectoryItem<FileNode>
+			select item;
+		return files.ToList();
+	}
+	private static bool ShouldExpand(DirectoryNode directory) {
+		return directory.Folders.Any() || directory.Files.Any();
+	}
+	private static string FileIcon(FileNode file) {
+		return file.Name.EndsWith(".pdf")
+			? Icons.Custom.FileFormats.FilePdf
+			: Icons.Custom.FileFormats.FileVideo;
 	}
 }
 

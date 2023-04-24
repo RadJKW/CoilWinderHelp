@@ -13,7 +13,7 @@
 } else {
   <div class="directory-tree-grid">
     <MudDropContainer T="IDirectoryItem"
-        Items="@State.CurrentDirectoryFiles"
+        Items="@State.SelectedItem?.GetFiles()"
         Class="mud-height-full mud-width-full overflow-hidden"
 
         CanDropClass="mud-border-success cursor-cell"
@@ -53,10 +53,10 @@
   private void AdminStateChanged() { StateHasChanged(); }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
-    await base.OnAfterRenderAsync(firstRender);
     if (!firstRender) {
       _loading = false;
     }
+    await base.OnAfterRenderAsync(firstRender);
   }
 
   public void Dispose() { State.StateChanged -= AdminStateChanged; }

@@ -1,20 +1,5 @@
-﻿namespace MudBlazorPWA.Client.ViewModels;
+﻿namespace MudBlazorPWA.Shared.Models;
 public class DropItem {
-	private static int _counter;
-	public DropItem(string name, string path, string icon, string identifier) {
-		Identifier = identifier;
-		Name = name;
-		Path = path;
-		Icon = icon;
-		Type = AssignTypeType();
-		Id = GenerateUniqueId();
-	}
-
-	public DropItem() {
-		Id = GenerateUniqueId();
-	}
-
-	public int Id { get; set; }
 	public string? OriginalIdentifier { get; set; }
 	public string Identifier { get; set; } = null!;
 	public string Name { get; init; } = null!;
@@ -34,10 +19,6 @@ public class DropItem {
 				: DropItemType.Video;
 
 		return DropItemType.Folder;
-	}
-	private static int GenerateUniqueId() {
-		// return the incremented value of _counter as two hex digits
-		return _counter++;
 	}
 }
 

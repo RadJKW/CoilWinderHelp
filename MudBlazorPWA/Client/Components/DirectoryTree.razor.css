@@ -1,14 +1,24 @@
 ﻿::deep .mud-expand-panel {
   margin-bottom: 0 !important;
   border-bottom: unset !important;
+  cursor: default !important;
+}
+
+::deep .mud-expand-panel .mud-expand-panel-text {
+  color: var(--mud-palette-text-primary);
+}
+
+::deep .mud-expand-panel .mud-expand-panel-text > div > * {
+  color: inherit;
 }
 
 ::deep .mud-expand-panel.mud-panel-expanded .mud-expand-panel-header {
+  cursor: pointer !important;
   border-bottom: 4px solid var(--mud-palette-dark);
-
-  box-shadow: var(--mud-elevation-2);
-
   padding: 8px 12px;
+  background-color: var(--mud-palette-dark);
+  /* transition the background-color changing */
+  transition: background-color 0.3s ease-in-out;
 }
 
 ::deep .mud-expand-panel .mud-expand-panel-header {
@@ -17,6 +27,26 @@
 }
 
 ::deep .mud-expand-panel > .mud-collapse-container.mud-collapse-entered {
-  padding-bottom: 12px;
+  margin-top: -4px;
+  padding-block: 4px 12px;
+}
+
+::deep .mud-expand-panel > .mud-collapse-container {
   overflow: hidden auto;
+  border-left: 8px solid var(--mud-palette-dark);
+  border-right: 8px solid var(--mud-palette-dark);
+}
+
+.directory-tree-view {
+  height: 100%;
+  margin-inline: 6px;
+  overflow: hidden;
+}
+
+.directory-tree-view ::deep ul {
+  background-color: var(--mud-palette-surface);
+}
+
+.directory-tree-view ::deep ul li {
+  background-color: var(--mud-palette-surface);
 }

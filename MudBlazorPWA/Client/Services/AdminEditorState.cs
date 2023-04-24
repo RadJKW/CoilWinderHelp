@@ -29,22 +29,18 @@ public class AdminEditorState {
 			NotifyStateChanged();
 		}
 	}
-	public List<IDirectoryItem> CurrentDirectoryFolders { get; private set; } = new();
-	public List<IDirectoryItem> CurrentDirectoryFiles { get; private set; } = new();
-
 	public IDirectoryItem RootDirectoryItem { get; private set; } = default!;
+
+	// ReSharper disable once UnusedAutoPropertyAccessor.Local
 	private DirectoryNode CurrentDirectory { get; set; } = default!;
 	public async Task FetchDirectoryTree() {
 		await _directoryNavigator.InitializeAsync();
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
-
 		_directoryNavigator.RootDirectory = rootDirectory;
+		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true };
 
-		RootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true };
-
-		SelectedItem = RootDirectoryItem;
-
-		Console.WriteLine("SelectedItem.Path: " + SelectedItem.Path);
+		RootDirectoryItem = rootDirectoryItem;
+		SelectedItem = rootDirectoryItem;
 
 		await FetchSelectedDirectoryItems();
 
@@ -79,9 +75,6 @@ public class AdminEditorState {
 
 		treeItems.AddRange(folderTreeItems);
 		treeItems.AddRange(fileTreeItems);
-		CurrentDirectoryFiles.AddRange(fileTreeItems);
-		CurrentDirectoryFolders.AddRange(folderTreeItems);
-
 		SelectedItem.TreeItems = treeItems.ToHashSet();
 
 		// if the SelectedItem is RootDirectoryItem, then we need to update the RootDirectoryItem.TreeItems
@@ -99,17 +92,4 @@ public class AdminEditorState {
 			&&
 			directoryNode.Folders.Any();
 	}
-
-	/*private void FetchVisibleDirectoryItems() {
-		if (SelectedItem == null) return;
-
-		foreach (var folderItem in SelectedItem.TreeItems.OfType<DirectoryItem<DirectoryNode>>()) {
-			if (folderItem.TreeItems.Any()) continue;
-			var folder = _directoryNavigator.GetFolder(folderItem.Path);
-			if (folder == null) continue;
-			foreach (var item in folder.Folders.Select(f => new DirectoryItem<DirectoryNode>(f))) {
-				folderItem.TreeItems.Add(item);
-			}
-		}
-	}*/
 }

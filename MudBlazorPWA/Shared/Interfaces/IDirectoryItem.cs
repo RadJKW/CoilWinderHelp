@@ -7,6 +7,10 @@ public interface IDirectoryItem {
 	bool CanExpand { get; }
 	bool Expanded { get; set; }
 	bool Loading { get; set; }
+	bool Selected { get; set; }
 	HashSet<IDirectoryItem> TreeItems { get; set; }
 	Task FetchTreeItems();
+	IEnumerable<IDirectoryItem> GetFiles();
+	bool HasFiles();
+	HashSet<IDirectoryItem> GetFolders();
 }

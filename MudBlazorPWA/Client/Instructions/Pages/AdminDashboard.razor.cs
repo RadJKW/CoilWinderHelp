@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazorPWA.Client.Services;
-using MudBlazorPWA.Client.ViewModels;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
@@ -41,7 +40,7 @@ public partial class AdminDashboard : IDisposable {
 
 	#region Event Handlers
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
-		var originalItem = _dropItems.SingleOrDefault(d => d.Id == dropInfo.Item!.Id);
+		var originalItem = _dropItems.SingleOrDefault(d => d.Identifier == dropInfo.Item!.Identifier);
 		var targetDropZone = dropInfo.DropzoneIdentifier;
 		if (originalItem is null)
 			return;

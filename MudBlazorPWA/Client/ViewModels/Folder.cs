@@ -1,6 +1,6 @@
+using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.ViewModels;
-public class Folder
-{
+public class Folder {
 	private static int _counter;
 	public Folder(string name, string? path, char splitChar) {
 		Name = name;
@@ -27,8 +27,7 @@ public class Folder
 	}
 }
 
-public class MediaFiles
-{
+public class MediaFiles {
 	public List<string>? PdfFiles { get; set; }
 	public List<string>? VideoFiles { get; set; }
 }
