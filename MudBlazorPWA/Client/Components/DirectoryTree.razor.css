@@ -41,6 +41,10 @@
   height: 100%;
   margin-inline: 6px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  padding-bottom: 56px;
 }
 
 .directory-tree-view ::deep ul {

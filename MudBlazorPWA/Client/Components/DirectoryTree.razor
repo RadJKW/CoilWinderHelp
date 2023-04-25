@@ -24,16 +24,30 @@
   </MudListSubheaderExtended>
   <div class="directory-tree-view">
     <MudTreeView T="IDirectoryItem"
-        MaxHeight="60%"
+        MaxHeight="50%"
+        ExpandOnDoubleClick="true"
         Hover="true"
         SelectedValueChanged="UpdateSelectedItem"
         Dense="true"
         Width="100%">
+      <ChildContent>
+        @{
+          var rootItem = State.RootDirectoryItem;
+          <MudTreeViewItem T="IDirectoryItem"
+              Items="State.RootDirectoryItem.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet()"
+              Value="rootItem"
+              Text="@rootItem.Name"
+              Activated="@(rootItem == SelectedItem)"
+              @bind-Selected="@rootItem.Selected"
+              @bind-Expanded="@rootItem.Expanded"/>
+        }
+      </ChildContent>
       <ItemTemplate Context="item">
         <MudTreeViewItem T="IDirectoryItem"
             Items="@(item.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet())"
             Value="@item"
-            Expanded="@item.Expanded">
+            Expanded="@item.Expanded"
+            ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)">
 
           <Content>
             @if (item.CanExpand) {
@@ -70,35 +84,21 @@
 
         </MudTreeViewItem>
       </ItemTemplate>
-      <ChildContent>
-
-        @{
-          var rootItem = State.RootDirectoryItem;
-          <MudTreeViewItem T="IDirectoryItem"
-              Items="State.RootDirectoryItem.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet()"
-              Value="rootItem"
-              Text="@rootItem.Name"
-              Activated="@(rootItem == SelectedItem)"
-              @bind-Selected="@rootItem.Selected"
-              Expanded="rootItem.Expanded"/>
-        }
-
-      </ChildContent>
 
     </MudTreeView>
 
-    <div class="flex-1 mud-border-lines-default my-2 overflow-x-hidden overflow-y-auto">
+    <div class="flex-1 mud-border-lines-default pb-4 mt-4 overflow-x-hidden overflow-y-auto">
 
       @if (State.SelectedItem != null && !State.SelectedItem.HasFiles()) {
         <div class="align-center d-flex justify-center mx-auto"
-            style="margin-top: 2rem; width: 25vw;">
+            style="margin-top: 2rem;">
           <MudText Typo="Typo.h6">No Files in Current Directory</MudText>
         </div>
       }
 
       <MudDropZone T="IDirectoryItem"
           Class="overflow-hidden overflow-x-hidden"
-          Style="margin-top: 2rem; width: 25vw;"
+          Style="margin-top: 2rem;"
           Identifier="@State.SelectedItem?.DropZoneId">
         <ItemRenderer Context="item">
 
