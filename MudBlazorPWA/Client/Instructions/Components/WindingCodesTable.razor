@@ -1,4 +1,6 @@
-﻿<MudDataGrid T="IWindingCode"
+﻿@typeparam T where T : DropItem
+
+<MudDataGrid T="IWindingCode"
     id="winding-codes-data-grid"
     Class="mud-elevation-4"
     Items="@WindingCodes"
@@ -28,7 +30,7 @@
         Justify="Justify.FlexStart"
         Style="height: 100%; width: 100%;">
       <MudTooltip @ref="_menuTooltip"
-          UserAttributes="@(new() {{ "duration", 2000}})"
+          UserAttributes="@(new() {{ "duration", 2000 }})"
           Placement="Placement.Top"
           @bind-IsVisible="@MenuTooltipVisible"
           Text="Table Settings">
@@ -214,7 +216,8 @@
     </PropertyColumn>
   </Columns>
   <ChildRowContent>
-    <WindingCodeMediaDropZones Context="context"
+    <WindingCodeMediaDropZones T="T"
+        Context="context"
         FolderDropItems="_dropItems"
         WindingCode="context.Item"
         OnCommittedItemChanges="CommitItemChanges"/>

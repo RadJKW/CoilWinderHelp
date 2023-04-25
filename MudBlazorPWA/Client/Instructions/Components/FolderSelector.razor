@@ -95,7 +95,7 @@
           }
           @if (!hasSubFolders && !hasPdfs && !hasVideos) {
             <MudListItemExtended T="string"
-                Style="background-color: var(--mud-palette-surface);"
+                Style="background-color: var(--mud-palette-surface); justify-self: end;"
                 SecondaryText="End of Directory Tree">
 
             </MudListItemExtended>
@@ -119,8 +119,12 @@
             </MudText>
             @{
               // BUG: Other sticky subheaders overlap this button click when scrolling
-              string? icon = _dropItemsDense ? Icons.Material.Outlined.ViewCozy : Icons.Material.Outlined.ViewStream;
-              var color = _dropItemsDense ? Color.Secondary : Color.Primary;
+              string? icon = _dropItemsDense
+                ? Icons.Material.Outlined.ViewCozy
+                : Icons.Material.Outlined.ViewStream;
+              var color = _dropItemsDense
+                ? Color.Secondary
+                : Color.Primary;
 
               <MudIconButton Size="Size.Medium"
                   Icon="@icon"

@@ -84,7 +84,6 @@ public class AdminEditorState {
 		NotifyStateChanged();
 		return Task.CompletedTask;
 	}
-
 	public bool HasFolders(IDirectoryItem directoryItem) {
 		var directoryNode = _directoryNavigator.GetFolder(directoryItem.Path);
 		return

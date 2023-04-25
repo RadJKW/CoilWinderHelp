@@ -54,3 +54,7 @@
 .directory-tree-view ::deep ul li {
   background-color: var(--mud-palette-surface);
 }
+
+.directory-tree-view::deep:first-of-type(ul) > li:first-of-type {
+  padding-bottom: 12px;
+}

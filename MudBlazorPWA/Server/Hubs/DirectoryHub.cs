@@ -173,6 +173,7 @@ public class DirectoryHub : Hub<IHubClient> {
 				throw new ArgumentOutOfRangeException(nameof(windingCodeType), windingCodeType, null);
 		}
 	}
+
 	public async Task<bool> CreateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
 		if (WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;

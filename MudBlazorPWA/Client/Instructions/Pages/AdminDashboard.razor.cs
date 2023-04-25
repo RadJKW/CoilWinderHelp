@@ -17,7 +17,7 @@ public partial class AdminDashboard : IDisposable {
 	private MudDropContainer<DropItem> _dropContainer = default!;
 	private readonly List<DropItem> _dropItems = new();
 	private readonly List<IWindingCode> _windingCodesList = new();
-	public Action<string?>? OnDrop { get; set; }
+	public Action<string, DropItemAction>? OnDrop { get; set; }
 	#region LifeCycle Methods
 	protected override async Task OnInitializedAsync() {
 		HubClientService.WindingCodeTypeChanged += OnWindingCodeTypeChanged;
@@ -40,8 +40,13 @@ public partial class AdminDashboard : IDisposable {
 
 	#region Event Handlers
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
-		var originalItem = _dropItems.SingleOrDefault(d => d.Identifier == dropInfo.Item!.Identifier);
+		var originalItem = _dropItems.FirstOrDefault(d => d.Identifier == dropInfo.Item!.Identifier && !d.IsCopy);
 		var targetDropZone = dropInfo.DropzoneIdentifier;
+		if (targetDropZone == "trash" && dropInfo.Item!.IsCopy) {
+			_dropItems.Remove(dropInfo.Item);
+			OnDrop?.Invoke(dropInfo.Item.Identifier, DropItemAction.Removed);
+			return;
+		}
 		if (originalItem is null)
 			return;
 		if (targetDropZone == originalItem.Identifier)
@@ -57,7 +62,7 @@ public partial class AdminDashboard : IDisposable {
 		};
 		// add the copy to the dropItems list
 		_dropItems.Add(copy);
-		OnDrop?.Invoke(copy.Identifier);
+		OnDrop?.Invoke(copy.Identifier, DropItemAction.Added);
 	}
 
 	/// <summary>
@@ -109,7 +114,13 @@ public partial class AdminDashboard : IDisposable {
 	}
 	private void DropItemRemoved(DropItem arg) {
 		_dropItems.Remove(arg);
-		OnDrop?.Invoke(arg.Identifier);
+		OnDrop?.Invoke(arg.Identifier, DropItemAction.Removed);
 	}
 	#endregion
+
+	public enum DropItemAction {
+		Added,
+		Updated,
+		Removed,
+	}
 }

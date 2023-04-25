@@ -1,5 +1,8 @@
 ﻿@using MudBlazorPWA.Client.Instructions.Pages
+@using MudBlazorPWA.Client.Instructions.Dialogs
+@typeparam T where T : DropItem
 @inject IJSRuntime JSRuntime
+@inject IDialogService DialogService
 @implements IDisposable
 @inject NavigationManager NavigationManager
 @inject HubClientService HubClientService
@@ -12,7 +15,7 @@
     <MudCardHeader Class="gap-x-4 mud-background-gray">
       <MudText Typo="Typo.h6">
         <strong>
-          Assigned Media
+          @WindingCode.Division: @WindingCode.Name
         </strong>
       </MudText>
       <MudButton StartIcon="@Icons.Material.Outlined.Upgrade"
@@ -22,6 +25,13 @@
           OnClick="OpenCodeAutoDocs"
           Disabled="@(WindingCode.Media.Pdf == null && WindingCode.Media.Video == null)">
         View Media
+      </MudButton>
+      <MudButton StartIcon="@Icons.Material.Filled.ImportExport"
+          Size="Size.Small"
+          Color="Color.Default"
+          Variant="Variant.Outlined"
+          OnClick="OpenImportMediaDialog">
+        Import Media
       </MudButton>
     </MudCardHeader>
     <MudDivider/>
@@ -39,9 +49,8 @@
                   <strong>@config.HeaderText</strong>
                 </MudText>
               </div>
-              <MudDropZone T="DropItem"
+              <MudDropZone T="T"
                   Style="@DropZoneConfig.Style"
-                  ItemIsDisabled="@(item => item.IsCopy)"
                   Class="@config.DropZoneClass"
                   CanDrop="@((item) => CanAcceptDrop(item, identifier))"
                   Identifier="@identifier">
@@ -53,18 +62,28 @@
     </MudCardContent>
     <MudCardActions>
       <MudStack Row
-          Spacing="2">
+          Spacing="2"
+          AlignItems="AlignItems.Center">
         <MudButton StartIcon="@Icons.Material.Filled.Verified"
             Size="Size.Small"
             Disabled="_submitDisabled"
             OnClick="CommitItemChanges">
           Submit
         </MudButton>
-        @*<MudButton Size="Size.Small"
-            Disabled="_submitDisabled"
-            OnClick="RevertItemChanges">
-          Undo
-        </MudButton>*@
+
+        <MudDropZone T="T"
+            Class="align-center d-flex justify-center mud-alert-text-error mud-height-full"
+            OnlyZone="true"
+            Identifier="trash">
+
+          <MudIcon Icon="@Icons.Material.Outlined.Delete"
+              Color="Color.Error"
+              Class="mx-6 my-1"/>
+        </MudDropZone>
+        <MudIconButton Icon="@Icons.Material.Outlined.Print"
+            Color="Color.Secondary"
+            Size="Size.Small"
+            OnClick="LogFolderItems"/>
       </MudStack>
     </MudCardActions>
   </MudCard>
@@ -83,7 +102,7 @@
 
   [Parameter]
   [EditorRequired]
-  public List<DropItem>? FolderDropItems { get; set; }
+  public List<T>? FolderDropItems { get; set; }
 
   [Parameter]
   [EditorRequired]
@@ -97,7 +116,7 @@
   public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
   #endregion
   private List<DropZoneConfig> _dropZoneConfigs = new();
-  private List<DropItem> _dropItemChanges = new();
+  private List<T> _dropItemChanges = new();
   private bool _submitDisabled = true;
   #region Lifecycle
   protected override void OnInitialized() {
@@ -120,19 +139,40 @@
         HeaderText = "Video"
       },
       new() {
-        ContainerClass = "mud-alert-text-secondary",
+        ContainerClass = "mud-alert-text-primary",
         Identifier = DzCodeRefMedia,
         HeaderText = "Reference Media"
       }
     };
   }
   #endregion
-  private void AdminDashboard_OnDrop(string? identifier) {
+  private void AdminDashboard_OnDrop(string? identifier, AdminDashboard.DropItemAction action) {
     Console.WriteLine("OnDrop Event");
     if (identifier == null) {
       Console.WriteLine("is null");
       return;
     }
+
+    _submitDisabled = false;
+
+    switch (action) {
+  // if action is Remove, then remove the item from FolderDropItems
+      case AdminDashboard.DropItemAction.Removed: {
+        Console.WriteLine($"Remove item with identifier: {identifier} ");
+        return;
+      }
+  // if action is Add, then add the item to FolderDropItems
+      case AdminDashboard.DropItemAction.Added: {
+        Console.WriteLine($"Added item with identifier: {identifier}");
+        return;
+      }
+      case AdminDashboard.DropItemAction.Updated:
+        Console.WriteLine($"Updated item with identifier: {identifier}");
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(action), action, null);
+    }
+
 
   // get the last segment of the identifier which is the code id
   // split by "-" and get the last segment
@@ -144,7 +184,7 @@
     _submitDisabled = false;
   }
   #region Methods
-  private bool CanAcceptDrop(DropItem item, string dropZoneIdentifier) {
+  private bool CanAcceptDrop(T item, string dropZoneIdentifier) {
     if (FolderDropItems == null)
       return false;
 
@@ -193,32 +233,50 @@
     if (dropZoneItems.Length == 0)
       return false;
 
-    var refMedia = new List<string>();
+    var hasFolderItem = false;
+    var hasPdfItem = false;
+    var hasVideoItem = false;
+    var hasRefMediaItem = false;
 
-    foreach (DropItem item in dropZoneItems) {
+    Console.WriteLine("foreach item in dropZoneItems");
+    foreach (var item in dropZoneItems) {
       string dropZonePrefix = item.Identifier[..item.Identifier.LastIndexOf('-')];
+      Console.WriteLine("dropZonePrefix -> " + dropZonePrefix);
       switch (dropZonePrefix) {
         case DzCodeFolder:
           contextItem.FolderPath = item.Path;
+          hasFolderItem = true;
           break;
         case DzCodePdf:
           contextItem.Media.Pdf = item.Path;
+          hasPdfItem = true;
           break;
         case DzCodeVideo:
           contextItem.Media.Video = item.Path;
+          hasVideoItem = true;
           break;
         case DzCodeRefMedia: {
           Console.WriteLine("Case -> DzCodeRefMedia");
           Console.WriteLine("Item Path -> " + item.Path);
-          refMedia.Add(item.Path);
+          contextItem.Media.RefMedia?.Add(item.Path);
+          hasRefMediaItem = true;
         }
           break;
       }
     }
-    if (refMedia.Count > 0)
-      contextItem.Media.RefMedia = refMedia;
-    if (contextItem.Media.RefMedia != null)
-      Console.WriteLine("Refs ->" + string.Join(", ", contextItem.Media.RefMedia.ToArray()));
+
+    if (!hasFolderItem)
+      contextItem.FolderPath = null;
+
+    if (!hasPdfItem)
+      contextItem.Media.Pdf = null;
+
+    if (!hasVideoItem)
+      contextItem.Media.Video = null;
+    if (!hasRefMediaItem)
+      contextItem.Media.RefMedia = null;
+
+    Console.WriteLine("WindingCode -> " + contextItem);
     return true;
   }
   private async Task OpenCodeAutoDocs() {
@@ -240,4 +298,41 @@
   }
   #endregion
   public void Dispose() { AdminDashboard.OnDrop -= AdminDashboard_OnDrop; }
+  private Task LogFolderItems() {
+    if (FolderDropItems == null) {
+      Console.WriteLine("FolderDropItems is null");
+      return Task.CompletedTask;
+    }
+    string[] dropZoneNames = _dropZoneConfigs.Select(d => d.Identifier + "-" + Context.Item.Id).ToArray();
+    var dropZoneItems = FolderDropItems.Where(d => dropZoneNames.Contains(d.Identifier)).ToArray();
+    foreach (var item in dropZoneItems) {
+      Console.WriteLine($" Item of type {item.Type}");
+      Console.WriteLine($"Path: {item.Path}");
+    }
+    return Task.CompletedTask;
+  }
+  private async Task OpenImportMediaDialog() {
+    var parameters = new DialogParameters {
+      { "WindingCode", Context.Item }
+    };
+
+    var options = new DialogOptions() {
+      CloseButton = true,
+      MaxWidth = MaxWidth.ExtraSmall,
+      NoHeader = true
+    };
+
+    var dialog = await DialogService.ShowAsync<ImportMediaDialog>("Delete", parameters, options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled) {
+      var windingCode = result.Data as IWindingCode;
+
+      if (windingCode is null) return;
+      Context.Item.FolderPath = windingCode.FolderPath;
+      Context.Item.Media = windingCode.Media;
+      _submitDisabled = true;
+      await OnCommittedItemChanges.InvokeAsync(Context.Item);
+    }
+  }
 }

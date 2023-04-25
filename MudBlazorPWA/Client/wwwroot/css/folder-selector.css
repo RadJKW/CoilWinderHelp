@@ -29,12 +29,14 @@
 }
 
 #folder-selector .folder-item-flex-container {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 4px;
-  align-items: center;
+  flex: 0;
   width: 100%;
   padding: 4px;
+  max-height: 34vh;
+  justify-items: stretch;
+  align-items: center;
 }
 
 #folder-selector .mud-list-extended.mud-nested-list {
@@ -44,7 +46,10 @@
 
 #folder-selector .mud-list-drop-content {
   overflow: hidden auto;
-  padding-block: 0 1rem;
+  padding-block: 0 0.5rem;
+  flex: 0 1 auto;
+  background-color: var(--mud-palette-surface);
+  height: fit-content;
 }
 
 #folder-selector .drop-zone-header {
@@ -125,23 +130,24 @@
 #folder-selector .drop-zone-gallery .mud-drop-item {
   position: relative;
 }
+
 /* should be able to use this for a global tooltip in the drop zone*/
 #folder-selector .drop-zone-gallery.video-gallery:nth-last-child(-n + 4):hover {
   padding-bottom: 4rem;
 }
 
 #folder-selector
-  .drop-zone-gallery:not(.flex-column)
-  .mud-drop-item:nth-child(odd)
-  .drop-zone-item-tooltip {
+.drop-zone-gallery:not(.flex-column)
+.mud-drop-item:nth-child(odd)
+.drop-zone-item-tooltip {
   left: 0;
   right: unset;
 }
 
 #folder-selector
-  .drop-zone-gallery:not(.flex-column)
-  .mud-drop-item:nth-child(even)
-  .drop-zone-item-tooltip {
+.drop-zone-gallery:not(.flex-column)
+.mud-drop-item:nth-child(even)
+.drop-zone-item-tooltip {
   left: unset;
   right: 0;
   flex-direction: row-reverse;

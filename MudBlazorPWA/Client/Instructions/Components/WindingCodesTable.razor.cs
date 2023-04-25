@@ -1,16 +1,13 @@
-﻿using System.Text.Json;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazorPWA.Client.Services;
-using MudBlazorPWA.Client.ViewModels;
 using MudBlazorPWA.Shared.Models;
-
+using System.Text.Json;
 namespace MudBlazorPWA.Client.Instructions.Components;
-public partial class WindingCodesTable
-{
+public partial class WindingCodesTable<T> {
 	[Parameter] [EditorRequired] public required List<IWindingCode> WindingCodes { get; set; }
-	[Parameter] [EditorRequired] public required List<DropItem> DropItems { get; set; }
+	[Parameter] [EditorRequired] public required List<T> DropItems { get; set; }
 
 	// create an event callback for the parent component to handle for when CodeType is changed
 
@@ -21,12 +18,12 @@ public partial class WindingCodesTable
 
 	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
-	[Inject] private ILogger<WindingCodesTable> Logger { get; set; } = default!;
+	[Inject] private ILogger<WindingCodesTable<T>> Logger { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 
 
-	private List<DropItem> _dropItems = default!;
+	private List<T> _dropItems = default!;
 	private Division _selectedDivision = Division.All;
 	private Division SelectedDivision {
 		get => _selectedDivision;
@@ -94,7 +91,8 @@ public partial class WindingCodesTable
 	private void UpdateGridFilter() {
 		_dataGridFilter.Clear();
 		if (SelectedDivision != Division.All) {
-			_dataGridFilter.Add(new() {
+			_dataGridFilter.Add(
+			new() {
 				FilterFunction = x => x.Division == SelectedDivision
 			});
 		}
@@ -108,7 +106,7 @@ public partial class WindingCodesTable
 			return;
 		}
 		Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(item)}", Severity.Success);
-		IWindingCode? updatedItem = await HubClientService.GetWindingCode(item.Id);
+		var updatedItem = await HubClientService.GetWindingCode(item.Id);
 		if (updatedItem != null) {
 			int index = WindingCodes.FindIndex(x => x.Id == updatedItem.Id);
 			WindingCodes[index] = updatedItem;
@@ -139,12 +137,14 @@ public partial class WindingCodesTable
 			.Where(s => !string.IsNullOrEmpty(s));
 
 		foreach (string searchTerm in searchTerms) {
-			int delimiterIndex = searchTerm.IndexOfAny(new[] {
+			int delimiterIndex = searchTerm.IndexOfAny(
+			new[] {
 				'=', ':'
 			});
 
 			if (delimiterIndex < 0) {
-				bool matches = _columnMap.Values.Any(propertySelector =>
+				bool matches = _columnMap.Values.Any(
+				propertySelector =>
 					propertySelector(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 				if (!matches) {
 					return false;
@@ -155,7 +155,8 @@ public partial class WindingCodesTable
 				string searchTermValue = searchTerm[(delimiterIndex + 1)..].Trim();
 
 				// Ensuring case-insensitive column name comparison
-				var columnEntry = _columnMap.FirstOrDefault(entry =>
+				var columnEntry = _columnMap.FirstOrDefault(
+				entry =>
 					entry.Key.Equals(columnName, StringComparison.OrdinalIgnoreCase));
 
 				if (columnEntry.Key == null) {

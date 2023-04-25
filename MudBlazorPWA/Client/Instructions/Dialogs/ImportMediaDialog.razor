@@ -1,0 +1,64 @@
+﻿@inject HubClientService HubClientService
+<MudDialog DisableSidePadding="true"
+    ClassContent="pt-0">
+  <DialogContent>
+    <MudListSubheaderExtended T="string"
+        SecondaryBackground="true"
+        Class="mud-width-full"
+        DisableGutters="true">
+      <MudText Align="Align.Center"
+          Typo="Typo.h6">
+        @WindingCode.Division : @WindingCode.Code - @WindingCode.Id
+      </MudText>
+    </MudListSubheaderExtended>
+    <MudStack Row
+        Spacing="2"
+        Justify="Justify.Center"
+        AlignItems="AlignItems.Center">
+
+      <MudRadioGroup @bind-SelectedOption="WindingCode">
+        @foreach (var windingCode in WindingCodesForImport) {
+          <MudRadio Option="windingCode"
+              Color="Color.Secondary"
+              UnCheckedColor="Color.Info">
+            @windingCode.Division
+          </MudRadio>
+        }
+      </MudRadioGroup>
+    </MudStack>
+  </DialogContent>
+  <DialogActions>
+    <MudButton OnClick="Cancel">Cancel</MudButton>
+    <MudButton Color="@Color"
+        Variant="Variant.Filled"
+        OnClick="Submit">
+      @ButtonText
+    </MudButton>
+  </DialogActions>
+</MudDialog>
+
+@code {
+  [CascadingParameter]
+  public required MudDialogInstance MudDialog { get; set; }
+  [Parameter]
+  public required IWindingCode WindingCode { get; set; }
+  [Parameter]
+  public string ContentText { get; set; } = "Select Division to import data from";
+  [Parameter]
+  public string ButtonText { get; set; } = "Import Data";
+  [Parameter]
+  public Color Color { get; set; } = Color.Info;
+
+  private List<IWindingCode> WindingCodesForImport { get; set; } = new();
+  void Submit() => MudDialog.Close(DialogResult.Ok(WindingCode));
+  void Cancel() => MudDialog.Cancel();
+
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+  // look at the division for the WindingCode
+  // if the division is Division.D1, then we want to use HubClientServer to get Winding Codes for D2 and D3
+  // ignore Division.All. We don't want to import from All
+  // The same logic for if Code is D2 or D3
+    WindingCodesForImport = await HubClientService.GetWindingCodesForImport(WindingCode);
+  }
+}

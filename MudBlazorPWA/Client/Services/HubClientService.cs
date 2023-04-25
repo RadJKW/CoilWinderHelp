@@ -5,14 +5,12 @@ using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Services;
-public enum HubServers
-{
+public enum HubServers {
 	DirectoryHub,
 	ChatHub
 }
 
-public class HubClientService
-{
+public class HubClientService {
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
@@ -66,8 +64,8 @@ public class HubClientService
 		DirectoryHub = new HubConnectionBuilder()
 			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
 			.WithAutomaticReconnect()
-			.AddJsonProtocol(options =>
-			{
+			.AddJsonProtocol(
+			options => {
 				options.PayloadSerializerOptions.Converters.Add(new WindingCodeJsonConverter());
 			})
 			.Build();
@@ -82,14 +80,18 @@ public class HubClientService
 			.WithUrl(_navigationManager.ToAbsoluteUri("/chatHub"))
 			.Build();
 
-		ChatHub.On<string, string>(nameof(IChatHub.NewMessage), (user, message) => {
+		ChatHub.On<string, string>(
+		nameof(IChatHub.NewMessage),
+		(user, message) => {
 			NewChatMessage?.Invoke(user, message);
 		});
 
 		ChatHub.StartAsync();
 	}
 	private void RegisterHubEvents(HubConnection hubConnection) {
-		hubConnection.On<string[]>("ReceiveAllFolders", folders => {
+		hubConnection.On<string[]>(
+		"ReceiveAllFolders",
+		folders => {
 			ReceiveAllFolders?.Invoke(folders);
 		});
 		hubConnection.On<string, string[]?, string[]?>(
@@ -117,8 +119,7 @@ public class HubClientService
 		return files;
 	}
 
-	public async Task<List<string>> ListVideoFiles(string? path = null)
-	{
+	public async Task<List<string>> ListVideoFiles(string? path = null) {
 		var files = await DirectoryHub.InvokeAsync<List<string>>("ListVideoFiles", path);
 		return files;
 	}
@@ -156,6 +157,15 @@ public class HubClientService
 	public async Task<IWindingCode?> GetWindingCode(int codeId) {
 		return await DirectoryHub.InvokeAsync<IWindingCode>("GetWindingCode", codeId, WindingCodeType);
 	}
+
+	public async Task<List<IWindingCode>> GetWindingCodesForImport(IWindingCode code) {
+		var divisions = new List<Division>() { Division.D1, Division.D2, Division.D3 };
+
+		divisions.Remove(code.Division);
+		var windingCodes = await GetCodeList();
+		var windingCodesForImport = windingCodes.Where(wc => wc.Code == code.Code && divisions.Contains(wc.Division)).ToList();
+		return windingCodesForImport;
+	}
 	public async Task<bool> AddWindingCode(IWindingCode code) {
 		return await DirectoryHub.InvokeAsync<bool>("CreateWindingCode", code, WindingCodeType);
 	}
@@ -166,5 +176,4 @@ public class HubClientService
 		return await DirectoryHub.InvokeAsync<IWindingCode>("DeleteWindingCode", code, WindingCodeType);
 	}
 	#endregion
-
 }

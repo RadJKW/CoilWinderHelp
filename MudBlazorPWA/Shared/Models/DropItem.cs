@@ -1,6 +1,6 @@
 ﻿namespace MudBlazorPWA.Shared.Models;
 public class DropItem {
-	public string? OriginalIdentifier { get; set; }
+	public string OriginalIdentifier { get; set; } = null!;
 	public string Identifier { get; set; } = null!;
 	public string Name { get; init; } = null!;
 	public string Path { get; init; } = null!;

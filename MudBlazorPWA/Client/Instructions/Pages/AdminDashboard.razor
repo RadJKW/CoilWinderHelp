@@ -1,7 +1,6 @@
 @page "/AdminDashboard"
 @layout DocViewLayout
 
-
 <MudScrollbar Selector=""
     Width="6"
     Color="@Colors.DeepPurple.Accent3"
@@ -20,7 +19,9 @@
     ItemDropped="ItemUpdated">
   <ChildContent>
 
-    <MudStack Row
+    <CascadingValue Value="this">
+
+      <MudStack Row
           Class="dashboard-content"
           AlignItems="AlignItems.Stretch"
           Justify="Justify.FlexStart">
@@ -31,19 +32,23 @@
           case false:
             <FolderSelector OnDropItemsUpdated="DropItemsUpdated"/>
             <div class="data-grid-border mud-background-gray">
-              <WindingCodesTable WindingCodes="@_windingCodesList"
+              <WindingCodesTable T="DropItem"
+                  WindingCodes="@_windingCodesList"
                   DropItems="@_dropItems">
               </WindingCodesTable>
             </div>
             break;
         }
       </MudStack>
+    </CascadingValue>
   </ChildContent>
   <ItemRenderer>
     @{
       var chipClass = "border border-solid drop-zone-item";
       string chipIcon;
-      string? chipCloseIcon = context.IsCopy ? null : " ";
+      string? chipCloseIcon = context.IsCopy
+        ? null
+        : " ";
       switch (context.Type) {
         case DropItemType.Folder:
           chipClass += " " + "folder-item";
@@ -61,19 +66,19 @@
           throw new ArgumentOutOfRangeException();
       }
 
-        <div class="drop-zone-item-tooltip">
+      <div class="drop-zone-item-tooltip">
 
-          <div class="tooltip-icon">
-            <MudIconButton OnClick="@(() => OpenFilePreview(context.Path))"
-                Size="Size.Small"
-                Icon="@Icons.Material.Filled.OpenInNew"/>
-          </div>
-          <div class="tooltip-content">
-            <p>
-              @context.Path
-            </p>
-          </div>
+        <div class="tooltip-icon">
+          <MudIconButton OnClick="@(() => OpenFilePreview(context.Path))"
+              Size="Size.Small"
+              Icon="@Icons.Material.Filled.OpenInNew"/>
         </div>
+        <div class="tooltip-content">
+          <p>
+            @context.Path
+          </p>
+        </div>
+      </div>
       <MudChip Class="@chipClass"
           Icon="@chipIcon"
           Size="@Size.Small"
