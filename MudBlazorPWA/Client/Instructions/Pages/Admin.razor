@@ -11,33 +11,27 @@
         Size="Size.Large"/>
   </div>
 } else {
-  <div class="directory-tree-grid">
-    <MudDropContainer T="IDirectoryItem"
-        Items="@State.SelectedItem?.GetFiles()"
-        Class="mud-height-full mud-width-full overflow-hidden"
-
-        CanDropClass="mud-border-success cursor-cell"
-        NoDropClass="mud-border-error cursor-not-allowed"
-        DraggingClass="item-dragging"
-        ApplyDropClassesOnDragStarted="false"
-        ItemsSelector="@((item, dropzone) => item.DropZoneId == dropzone)"
-        ItemDropped="ItemUpdated">
+  <MudDropContainer T="IDirectoryItem"
+      Items="@State.SelectedItem?.GetFiles()"
+      Class="admin-drop-container mud-height-full"
+      CanDropClass="mud-border-success cursor-cell"
+      NoDropClass="mud-border-error cursor-not-allowed"
+      DraggingClass="item-dragging"
+      ApplyDropClassesOnDragStarted="false"
+      ItemsSelector="@((item, dropzone) => item.DropZoneId == dropzone)"
+      ItemDropped="ItemUpdated">
+    <div class="directory-tree-grid">
 
       <div class="dark-background directory-tree-component overflow-hidden rounded-lg">
         <DirectoryTree class="bordered directory-tree"/>
       </div>
-      <div class="align-center d-flex justify-center"
-          style="justify-self: start;">
-        <MudSkeleton/>
-        <MudSkeleton SkeletonType="SkeletonType.Circle"
-            Width="100px"
-            Height="100%"/>
-        <MudSkeleton SkeletonType="SkeletonType.Rectangle"
-            Height="100%"/>
-      </div>
 
-    </MudDropContainer>
-  </div>
+      <div class="bordered dark-background mud-height-full mud-width-full pa-2"
+          style="justify-self: start; ">
+        <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
+      </div>
+    </div>
+  </MudDropContainer>
 }
 
 @code{
@@ -48,7 +42,6 @@
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
     State.StateChanged += AdminStateChanged;
-    await State.FetchDirectoryTree();
   }
   private void AdminStateChanged() { StateHasChanged(); }
 

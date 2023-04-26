@@ -41,7 +41,7 @@
   [CascadingParameter]
   public required MudDialogInstance MudDialog { get; set; }
   [Parameter]
-  public required IWindingCode WindingCode { get; set; }
+  public required WindingCode WindingCode { get; set; }
   [Parameter]
   public string ContentText { get; set; } = "Select Division to import data from";
   [Parameter]
@@ -49,7 +49,7 @@
   [Parameter]
   public Color Color { get; set; } = Color.Info;
 
-  private List<IWindingCode> WindingCodesForImport { get; set; } = new();
+  private List<WindingCode> WindingCodesForImport { get; set; } = new();
   void Submit() => MudDialog.Close(DialogResult.Ok(WindingCode));
   void Cancel() => MudDialog.Cancel();
 

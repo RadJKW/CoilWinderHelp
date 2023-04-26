@@ -29,7 +29,7 @@
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LinebreaksInsideMultilineTag/@EntryValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/LinebreaksInsideTagsWithTags/@EntryValue">True</s:Boolean>
 	<s:String x:Key="/Default/CodeStyle/CodeFormatting/HtmlFormatter/TagAttributesFormat/@EntryValue">FirstAttributeOnSingleLine</s:String>
-	<s:String x:Key="/Default/CustomTools/CustomToolsData/@EntryValue"></s:String>
+	
 	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
   &lt;PhysicalFolder Path="C:\Users\jwest\.nuget\packages\mudblazor\6.2.2" Loaded="True" /&gt;&#xD;
   &lt;PhysicalFolder Path="C:\Users\jwest\.nuget\packages\codebeam.mudblazor.extensions\6.4.9" Loaded="True" /&gt;&#xD;

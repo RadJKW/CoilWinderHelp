@@ -15,7 +15,7 @@ public class DirectoryHub : Hub<IHubClient> {
 	private readonly IDirectoryService _directoryService;
 	private readonly ILogger<DirectoryHub> _logger;
 	private readonly IDataContext _dataContext;
-	private IWindingCode? _currentWindingStop;
+	private WindingCode? _currentWindingStop;
 	public DirectoryHub(IDirectoryService directoryService,
 		ILogger<DirectoryHub> logger,
 		IDataContext dataContext) {
@@ -142,11 +142,11 @@ public class DirectoryHub : Hub<IHubClient> {
 	#endregion
 
 	#region DataBase CRUD
-	public async Task<IEnumerable<IWindingCode>?> GetWindingCodes(Division? division, WindingCodeType windingCodeType) {
+	public async Task<IEnumerable<WindingCode>?> GetWindingCodes(Division? division, WindingCodeType windingCodeType) {
 		var windingCodes = windingCodeType switch {
 			WindingCodeType.Z80 => _dataContext.Z80WindingCodes.AsQueryable(),
 			WindingCodeType.Pc => _dataContext.PcWindingCodes.AsQueryable(),
-			_ => new List<IWindingCode>().AsQueryable()
+			_ => new List<WindingCode>().AsQueryable()
 		};
 		var results = division is null
 			? await windingCodes.ToListAsync()
@@ -156,8 +156,9 @@ public class DirectoryHub : Hub<IHubClient> {
 			? results
 			: null;
 	}
-	public async Task<IWindingCode?> GetWindingCode(int codeId, WindingCodeType windingCodeType) {
-		IWindingCode? windingCode;
+	// ReSharper disable once MemberCanBePrivate.Global
+	public async Task<WindingCode?> GetWindingCode(int codeId, WindingCodeType windingCodeType) {
+		WindingCode? windingCode;
 		switch (windingCodeType) {
 			case WindingCodeType.Z80: {
 				windingCode = await _dataContext.Z80WindingCodes
@@ -174,7 +175,7 @@ public class DirectoryHub : Hub<IHubClient> {
 		}
 	}
 
-	public async Task<bool> CreateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
+	public async Task<bool> CreateWindingCode(WindingCode windingCode, WindingCodeType windingCodeType) {
 		if (WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;
 		}
@@ -193,7 +194,7 @@ public class DirectoryHub : Hub<IHubClient> {
 		await _dataContext.SaveChangesAsync();
 		return true;
 	}
-	public async Task<bool> UpdateWindingCode(IWindingCode windingCode, WindingCodeType windingCodeType) {
+	public async Task<bool> UpdateWindingCode(WindingCode windingCode, WindingCodeType windingCodeType) {
 		if (!WindingCodeExists(windingCode.Id, windingCodeType)) {
 			return false;
 		}
@@ -259,7 +260,7 @@ public class DirectoryHub : Hub<IHubClient> {
 		}
 		await Clients.Group(clientIp!).CurrentWindingStopUpdated(_currentWindingStop);
 	}
-	public Task<IWindingCode?> GetCurrentWindingStop() {
+	public Task<WindingCode?> GetCurrentWindingStop() {
 		return Task.FromResult(_currentWindingStop);
 	}
 	#endregion

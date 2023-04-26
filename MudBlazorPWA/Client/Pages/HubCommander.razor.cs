@@ -3,143 +3,140 @@ using MudBlazorPWA.Client.Services;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Pages;
-
-public partial class HubCommander
-{
+public partial class HubCommander {
 	private HubConnection? _hubConnection;
-  private List<string>? CallbackMethods { get; set; }
-  private IEnumerable<IWindingCode>? WindingCodes { get; set; }
-  private string? _selectedCallbackMethod = string.Empty;
-  private string _selectedGroup = string.Empty;
-  private readonly List<string> _connectedClients = new();
-  private int _selectedRadio = 99;
-  private IWindingCode? _selectedWindingCode;
-  private int SelectedRadio {
-    get => _selectedRadio;
-    set {
-      _selectedRadio = value;
-      _ = SetHubConnection();
-    }
-  }
+	private List<string>? CallbackMethods { get; set; }
+	private IEnumerable<IWindingCode>? WindingCodes { get; set; }
+	private string? _selectedCallbackMethod = string.Empty;
+	private string _selectedGroup = string.Empty;
+	private readonly List<string> _connectedClients = new();
+	private int _selectedRadio = 99;
+	private IWindingCode? _selectedWindingCode;
+	private int SelectedRadio {
+		get => _selectedRadio;
+		set {
+			_selectedRadio = value;
+			_ = SetHubConnection();
+		}
+	}
 
-  private bool CheckForValidHubConnection => _hubConnection == null;
-  /*&& string.IsNullOrEmpty(_selectedCallbackMethod)
-    && string.IsNullOrEmpty(_selectedGroup);*/
-
-
-  protected override async Task OnInitializedAsync() {
-    await base.OnInitializedAsync();
-  }
-
-  private async Task SetHubConnection() {
-    // clear any of the selected values from callback and clients select
-    _selectedCallbackMethod = string.Empty;
-    _selectedGroup = string.Empty;
-    _selectedWindingCode = null;
-    _connectedClients.Clear();
-
-    if (SelectedRadio == 99) {
-      _hubConnection = null;
-      return;
-    }
-
-    _hubConnection = SelectedRadio switch {
-      (int)HubServers.ChatHub
-        => HubClientService.GetHubConnection(HubServers.ChatHub),
-      (int)HubServers.DirectoryHub
-        => HubClientService.GetHubConnection(HubServers.DirectoryHub),
-      _ => null
-      };
-
-    if (_hubConnection == null) {
-      return;
-    }
-
-    var connectedGroups = await _hubConnection
-        .InvokeAsync<List<string>>("GetConnectedClients");
-
-    _connectedClients
-      .AddRange(connectedGroups.Distinct());
-
-    // if only one item in the list, set it to the selected group
-    if (_connectedClients.Count == 1) {
-      _selectedGroup = _connectedClients[0];
-    }
-
-    CallbackMethods =
-      await _hubConnection
-        .InvokeAsync<List<string>>("GetCallbackMethods");
-
-    if (SelectedRadio == (int)HubServers.DirectoryHub) {
-      WindingCodes = await HubClientService.GetCodeList(Division.D1);
-      _selectedCallbackMethod = CallbackMethods.Find( x => x.Contains("Update", StringComparison.OrdinalIgnoreCase));
-        StateHasChanged();
-    }
-  }
+	private bool CheckForValidHubConnection => _hubConnection == null;
+	/*&& string.IsNullOrEmpty(_selectedCallbackMethod)
+	  && string.IsNullOrEmpty(_selectedGroup);*/
 
 
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
-    await base.OnAfterRenderAsync(firstRender);
+	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
+	}
 
-    if (firstRender) {
-      await SetHubConnection();
-    }
-  }
-  private bool IsNotifyDisabled => CanNotifyClients();
+	private async Task SetHubConnection() {
+		// clear any of the selected values from callback and clients select
+		_selectedCallbackMethod = string.Empty;
+		_selectedGroup = string.Empty;
+		_selectedWindingCode = null;
+		_connectedClients.Clear();
 
-  private bool CanNotifyClients() {
-    return SelectedRadio switch {
-      (int)HubServers.ChatHub
-        => string.IsNullOrEmpty(_selectedCallbackMethod) || string.IsNullOrEmpty(_selectedGroup) || _hubConnection == null,
-      (int)HubServers.DirectoryHub
-        => string.IsNullOrEmpty(_selectedCallbackMethod) ||  _selectedWindingCode == null,
-      _
-        => true
-      };
-  }
+		if (SelectedRadio == 99) {
+			_hubConnection = null;
+			return;
+		}
 
-  private async Task NotifyClients() {
-    switch (SelectedRadio) {
-      case (int)HubServers.ChatHub:
-        await NotifyChatHub();
-        break;
-      case (int)HubServers.DirectoryHub:
-        await NotifyDirectoryHub();
-        break;
-    }
-  }
+		_hubConnection = SelectedRadio switch {
+			(int)HubServers.ChatHub
+				=> HubClientService.GetHubConnection(HubServers.ChatHub),
+			(int)HubServers.DirectoryHub
+				=> HubClientService.GetHubConnection(HubServers.DirectoryHub),
+			_ => null
+		};
 
-  private async Task NotifyChatHub() {
-    if (string.IsNullOrEmpty(_selectedCallbackMethod) ||
-        string.IsNullOrEmpty(_selectedGroup) ||
-        _hubConnection == null) {
-      return;
-    }
+		if (_hubConnection == null) {
+			return;
+		}
 
-    if (!string.IsNullOrEmpty(_selectedGroup)) {
-      await _hubConnection
-        .InvokeAsync(
-          _selectedCallbackMethod,
-          "commander",
-          "sent from page",
-          _selectedGroup);
-    }
-  }
+		var connectedGroups = await _hubConnection
+			.InvokeAsync<List<string>>("GetConnectedClients");
 
-  private async Task NotifyDirectoryHub() {
-  // if _selectedCallbackMethod is null, return.
+		_connectedClients
+			.AddRange(connectedGroups.Distinct());
 
-    if (string.IsNullOrEmpty(_selectedCallbackMethod))
-      return;
+		// if only one item in the list, set it to the selected group
+		if (_connectedClients.Count == 1) {
+			_selectedGroup = _connectedClients[0];
+		}
 
-    if (_selectedCallbackMethod == "UpdateCurrentWindingStop" && _selectedWindingCode != null) {
-      HubClientService.SetCurrentCoilWinderStop(_selectedWindingCode.Id);
-      await HubClientService.SendChatMessage("commander", "updated current winding stop");
-    }
+		CallbackMethods =
+			await _hubConnection
+				.InvokeAsync<List<string>>("GetCallbackMethods");
 
-    if (_selectedCallbackMethod == "UpdateCurrentWindingStop" && _selectedWindingCode == null) {
-      await HubClientService.SendChatMessage("commander", "no winding stop selected");
-    }
-  }
+		if (SelectedRadio == (int)HubServers.DirectoryHub) {
+			WindingCodes = await HubClientService.GetWindingCodes(Division.D1);
+			_selectedCallbackMethod = CallbackMethods.Find(x => x.Contains("Update", StringComparison.OrdinalIgnoreCase));
+			StateHasChanged();
+		}
+	}
 
+
+	protected override async Task OnAfterRenderAsync(bool firstRender) {
+		await base.OnAfterRenderAsync(firstRender);
+
+		if (firstRender) {
+			await SetHubConnection();
+		}
+	}
+	private bool IsNotifyDisabled => CanNotifyClients();
+
+	private bool CanNotifyClients() {
+		return SelectedRadio switch {
+			(int)HubServers.ChatHub
+				=> string.IsNullOrEmpty(_selectedCallbackMethod) || string.IsNullOrEmpty(_selectedGroup) || _hubConnection == null,
+			(int)HubServers.DirectoryHub
+				=> string.IsNullOrEmpty(_selectedCallbackMethod) || _selectedWindingCode == null,
+			_
+				=> true
+		};
+	}
+
+	private async Task NotifyClients() {
+		switch (SelectedRadio) {
+			case (int)HubServers.ChatHub:
+				await NotifyChatHub();
+				break;
+			case (int)HubServers.DirectoryHub:
+				await NotifyDirectoryHub();
+				break;
+		}
+	}
+
+	private async Task NotifyChatHub() {
+		if (string.IsNullOrEmpty(_selectedCallbackMethod) ||
+		    string.IsNullOrEmpty(_selectedGroup) ||
+		    _hubConnection == null) {
+			return;
+		}
+
+		if (!string.IsNullOrEmpty(_selectedGroup)) {
+			await _hubConnection
+				.InvokeAsync(
+				_selectedCallbackMethod,
+				"commander",
+				"sent from page",
+				_selectedGroup);
+		}
+	}
+
+	private async Task NotifyDirectoryHub() {
+		// if _selectedCallbackMethod is null, return.
+
+		if (string.IsNullOrEmpty(_selectedCallbackMethod))
+			return;
+
+		if (_selectedCallbackMethod == "UpdateCurrentWindingStop" && _selectedWindingCode != null) {
+			HubClientService.SetCurrentCoilWinderStop(_selectedWindingCode.Id);
+			await HubClientService.SendChatMessage("commander", "updated current winding stop");
+		}
+
+		if (_selectedCallbackMethod == "UpdateCurrentWindingStop" && _selectedWindingCode == null) {
+			await HubClientService.SendChatMessage("commander", "no winding stop selected");
+		}
+	}
 }

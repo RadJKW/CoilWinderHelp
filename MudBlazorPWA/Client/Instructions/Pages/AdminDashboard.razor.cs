@@ -16,13 +16,13 @@ public partial class AdminDashboard : IDisposable {
 	//TODO: use a Dictionary to Track/Revert changes
 	private MudDropContainer<DropItem> _dropContainer = default!;
 	private readonly List<DropItem> _dropItems = new();
-	private readonly List<IWindingCode> _windingCodesList = new();
+	private readonly List<WindingCode> _windingCodesList = new();
 	public Action<string, DropItemAction>? OnDrop { get; set; }
 	#region LifeCycle Methods
 	protected override async Task OnInitializedAsync() {
 		HubClientService.WindingCodeTypeChanged += OnWindingCodeTypeChanged;
 		await base.OnInitializedAsync();
-		var windingCodes = await HubClientService.GetCodeList();
+		var windingCodes = await HubClientService.GetWindingCodes();
 		_windingCodesList.AddRange(windingCodes);
 	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
@@ -70,7 +70,7 @@ public partial class AdminDashboard : IDisposable {
 	/// </summary>
 	private async void OnWindingCodeTypeChanged() {
 		_windingCodesList.Clear();
-		var windingCodes = await HubClientService.GetCodeList();
+		var windingCodes = await HubClientService.GetWindingCodes();
 		_windingCodesList.AddRange(windingCodes);
 		await InvokeAsync(StateHasChanged);
 	}

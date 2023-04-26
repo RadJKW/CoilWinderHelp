@@ -1,23 +1,19 @@
-﻿@typeparam T where T : DropItem
-
-<MudDataGrid T="WindingCode"
+﻿<MudDataGrid T="WindingCode"
     id="winding-codes-data-grid"
     Class="mud-elevation-4"
     Items="@WindingCodes"
-    QuickFilter="@DataGridQuickFilter"
+    QuickFilter="DataGridQuickFilter"
     @bind-SelectedItem="@SelectedWindingCode"
     EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
     Virtualize="true"
     OverscanCount="2"
     ShowMenuIcon="true"
-
     Hover="true"
     ReadOnly="@(_enableEdit == false)"
     EditMode="DataGridEditMode.Form"
     EditTrigger="DataGridEditTrigger.OnRowClick"
-    StartedEditingItem="@StartedEditingItem"
-    CanceledEditingItem="@CanceledEditingItem"
     CommittedItemChanges="@CommitItemChanges"
+    Outlined="true"
     HorizontalScrollbar="false"
     FixedHeader="true"
     FilterMode="DataGridFilterMode.Simple"
@@ -130,9 +126,6 @@
     </MudStack>
   </ToolBarContent>
   <Columns>
-    <HierarchyColumn T="WindingCode"
-        ButtonDisabledFunc="AssignedMediaDisabled"
-        IconSize="Size.Small"/>
     <PropertyColumn Property="x => x.Id"
         T="WindingCode"
         TProperty="int"
@@ -215,11 +208,4 @@
       <EditTemplate/>
     </PropertyColumn>
   </Columns>
-  <ChildRowContent>
-    <WindingCodeMediaDropZones T="T"
-        Context="context"
-        FolderDropItems="_dropItems"
-        WindingCode="context.Item"
-        OnCommittedItemChanges="CommitItemChanges"/>
-  </ChildRowContent>
 </MudDataGrid>

@@ -106,14 +106,14 @@
 
   [Parameter]
   [EditorRequired]
-  public required CellContext<IWindingCode> Context { get; set; }
+  public required CellContext<WindingCode> Context { get; set; }
 
   [Parameter]
   [EditorRequired]
-  public required IWindingCode WindingCode { get; set; }
+  public required WindingCode WindingCode { get; set; }
 
   [Parameter]
-  public EventCallback<IWindingCode> OnCommittedItemChanges { get; set; }
+  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
   #endregion
   private List<DropZoneConfig> _dropZoneConfigs = new();
   private List<T> _dropItemChanges = new();
@@ -207,7 +207,7 @@
       };
   }
   private async Task CommitItemChanges() {
-    IWindingCode contextItem = Context.Item;
+    WindingCode contextItem = Context.Item;
     bool hasNewDropItems = MapDropZoneItemsToWindingCode(contextItem);
     if (!hasNewDropItems)
       return;
@@ -221,7 +221,7 @@
     StateHasChanged();
     return Task.CompletedTask;
   }
-  private bool MapDropZoneItemsToWindingCode(IWindingCode contextItem) {
+  private bool MapDropZoneItemsToWindingCode(WindingCode contextItem) {
     int id = contextItem.Id;
     string[] dropZoneNames = _dropZoneConfigs.Select(d => d.Identifier + "-" + id).ToArray();
 
@@ -326,7 +326,7 @@
     var result = await dialog.Result;
 
     if (!result.Canceled) {
-      var windingCode = result.Data as IWindingCode;
+      var windingCode = result.Data as WindingCode;
 
       if (windingCode is null) return;
       Context.Item.FolderPath = windingCode.FolderPath;

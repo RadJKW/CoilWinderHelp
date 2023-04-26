@@ -14,7 +14,7 @@ public class HubClientService {
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
-	public event EventHandler<IWindingCode>? CurrentWindingStopUpdated;
+	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
 
 	public event Action? WindingCodeTypeChanged;
 	public event Action<string, string>? NewChatMessage;
@@ -100,7 +100,7 @@ public class HubClientService {
 			ReceiveFolderContent?.Invoke(path, files, folders);
 		});
 		hubConnection.On("WindingCodesDbUpdated", () => { WindingCodesDbUpdated?.Invoke(); });
-		hubConnection.On<IWindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
+		hubConnection.On<WindingCode>("CurrentWindingStopUpdated", ParseWindingCodeMedia);
 	}
 
 	#region DirectoryInfo
@@ -125,8 +125,8 @@ public class HubClientService {
 	}
 	#endregion
 
-	public async Task<IWindingCode?> GetCurrentCoilWinderStop() {
-		return await DirectoryHub.InvokeAsync<IWindingCode>("GetCurrentWindingStop");
+	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
+		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");
 	}
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync("SendMessage", user, message, null);
@@ -134,7 +134,7 @@ public class HubClientService {
 	public async void SetCurrentCoilWinderStop(int id) {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", id, WindingCodeType);
 	}
-	private void ParseWindingCodeMedia(IWindingCode code) {
+	private void ParseWindingCodeMedia(WindingCode code) {
 		if (code.Media.Video != null)
 			code.Media.Video = FileServerUrl + code.Media.Video;
 		if (code.Media.Pdf != null)
@@ -150,30 +150,30 @@ public class HubClientService {
 	}
 
 	#region WindingCodeDB Crud
-	public async Task<IEnumerable<IWindingCode>> GetCodeList(Division? division = null) {
-		var windingCodesList = await DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", division, WindingCodeType);
-		return windingCodesList ?? new List<IWindingCode>();
+	public async Task<IEnumerable<WindingCode>> GetWindingCodes(Division? division = null) {
+		var windingCodesList = await DirectoryHub.InvokeAsync<List<WindingCode>?>("GetWindingCodes", division, WindingCodeType);
+		return windingCodesList ?? new List<WindingCode>();
 	}
-	public async Task<IWindingCode?> GetWindingCode(int codeId) {
-		return await DirectoryHub.InvokeAsync<IWindingCode>("GetWindingCode", codeId, WindingCodeType);
+	public async Task<WindingCode?> GetWindingCode(int codeId) {
+		return await DirectoryHub.InvokeAsync<WindingCode>("GetWindingCode", codeId, WindingCodeType);
 	}
 
-	public async Task<List<IWindingCode>> GetWindingCodesForImport(IWindingCode code) {
+	public async Task<List<WindingCode>> GetWindingCodesForImport(WindingCode code) {
 		var divisions = new List<Division>() { Division.D1, Division.D2, Division.D3 };
 
 		divisions.Remove(code.Division);
-		var windingCodes = await GetCodeList();
+		var windingCodes = await GetWindingCodes();
 		var windingCodesForImport = windingCodes.Where(wc => wc.Code == code.Code && divisions.Contains(wc.Division)).ToList();
 		return windingCodesForImport;
 	}
-	public async Task<bool> AddWindingCode(IWindingCode code) {
+	public async Task<bool> AddWindingCode(WindingCode code) {
 		return await DirectoryHub.InvokeAsync<bool>("CreateWindingCode", code, WindingCodeType);
 	}
-	public async Task<bool> UpdateWindingCodeDb(IWindingCode code) {
+	public async Task<bool> UpdateWindingCodeDb(WindingCode code) {
 		return await DirectoryHub.InvokeAsync<bool>("UpdateWindingCode", code, WindingCodeType);
 	}
-	public async Task<IWindingCode?> DeleteWindingCode(IWindingCode code) {
-		return await DirectoryHub.InvokeAsync<IWindingCode>("DeleteWindingCode", code, WindingCodeType);
+	public async Task<WindingCode?> DeleteWindingCode(WindingCode code) {
+		return await DirectoryHub.InvokeAsync<WindingCode>("DeleteWindingCode", code, WindingCodeType);
 	}
 	#endregion
 }

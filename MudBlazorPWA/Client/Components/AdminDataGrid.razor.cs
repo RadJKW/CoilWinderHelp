@@ -1,29 +1,23 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazorPWA.Client.Services;
 using MudBlazorPWA.Shared.Models;
 using System.Text.Json;
-namespace MudBlazorPWA.Client.Instructions.Components;
-public partial class WindingCodesTable<T> {
+namespace MudBlazorPWA.Client.Components;
+public partial class AdminDataGrid {
 	[Parameter] [EditorRequired] public required List<WindingCode> WindingCodes { get; set; }
-	[Parameter] [EditorRequired] public required List<T> DropItems { get; set; }
 
 	// create an event callback for the parent component to handle for when CodeType is changed
 
 
 
 	[Inject] private HubClientService HubClientService { get; set; } = default!;
-	[Inject] private NavigationManager NavigationManager { get; set; } = default!;
-
-	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
-
-	[Inject] private ILogger<WindingCodesTable<T>> Logger { get; set; } = default!;
+	// ReSharper disable once UnusedAutoPropertyAccessor.Local
+	[Inject] private ILogger<AdminDataGrid> Logger { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 
 
-	private List<T> _dropItems = default!;
 	private Division _selectedDivision = Division.All;
 	private Division SelectedDivision {
 		get => _selectedDivision;
@@ -65,10 +59,6 @@ public partial class WindingCodesTable<T> {
 		return base.OnInitializedAsync();
 	}
 
-	protected override Task OnParametersSetAsync() {
-		_dropItems = DropItems;
-		return Task.CompletedTask;
-	}
 
 
 
@@ -81,12 +71,6 @@ public partial class WindingCodesTable<T> {
 		// replace the list of WindingCodes with the new list
 		WindingCodes.Clear();
 		WindingCodes.AddRange(windingCodesList);
-	}
-	private void StartedEditingItem(WindingCode item) {
-		Snackbar.Add($"Started editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
-	}
-	private void CanceledEditingItem(WindingCode item) {
-		Snackbar.Add($"Canceled editing, Data = {JsonSerializer.Serialize(item)}", Severity.Info);
 	}
 	private void UpdateGridFilter() {
 		_dataGridFilter.Clear();

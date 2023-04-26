@@ -20,7 +20,6 @@
     <MudTreeView T="IDirectoryItem"
         MaxHeight="50%"
         ExpandOnDoubleClick="true"
-        Hover="true"
         SelectedValueChanged="UpdateSelectedItem"
         Dense="true"
         Width="100%">
@@ -80,8 +79,12 @@
       </ItemTemplate>
 
     </MudTreeView>
+    <MudDivider DividerType="DividerType.FullWidth"
+        Style="border-width: 10px; border-color: var(--mud-palette-surface); flex: 0;"/>
+    <MudDivider DividerType="DividerType.FullWidth"
+        Style="border-width: 10px; border-color: var(--mud-palette-dark); flex: 0;"/>
 
-    <div class="flex-1 mt-4 mud-border-lines-default overflow-x-hidden overflow-y-auto pb-4">
+    <div class="flex-1 mud-border-lines-default overflow-x-hidden overflow-y-auto pb-4">
 
       @if (State.SelectedItem != null && !State.SelectedItem.HasFiles()) {
         <div class="align-center d-flex justify-center mx-auto"
@@ -92,7 +95,6 @@
 
       <MudDropZone T="IDirectoryItem"
           Class="overflow-hidden overflow-x-hidden"
-          Style="margin-top: 2rem;"
           Identifier="@State.SelectedItem?.DropZoneId">
         <ItemRenderer Context="item">
 

@@ -20,7 +20,7 @@ public partial class FolderSelector : IDisposable {
 	private MudListItemExtended<Folder?>? SelectedItem { get; set; }
 	private Folder? SelectedValue { get; set; }
 	private Folder? RootFolder { get; set; }
-	private List<IWindingCode> _windingCodesWithFolders = default!;
+	private List<WindingCode> _windingCodesWithFolders = default!;
 	private List<DropItem> _dropItems = new();
 	private IEnumerable<string> _folders = default!;
 	private bool _rootFolderChanged;
@@ -31,7 +31,7 @@ public partial class FolderSelector : IDisposable {
 	protected override async Task OnInitializedAsync() {
 		DirectoryHubClient.WindingCodeTypeChanged += async () => await OnWindingCodeTypeChanged();
 		DirectoryHubClient.WindingCodesDbUpdated += async () => await OnWindingCodeTypeChanged();
-		var windingCodes = await DirectoryHubClient.GetCodeList();
+		var windingCodes = await DirectoryHubClient.GetWindingCodes();
 		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null)
 			.ToList();
 		Logger.LogInformation("WindingCodesWithFolders: {@WindingCodesWithFolders}", _windingCodesWithFolders.Count);
@@ -60,7 +60,7 @@ public partial class FolderSelector : IDisposable {
 	private async Task OnWindingCodeTypeChanged() {
 		_dropItems.Clear();
 		_windingCodesWithFolders.Clear();
-		var windingCodes = await DirectoryHubClient.GetCodeList();
+		var windingCodes = await DirectoryHubClient.GetWindingCodes();
 		_windingCodesWithFolders = windingCodes.Where(w => w.FolderPath != null)
 			.ToList();
 		SetFolderAsRoot(_breadCrumbs[0]);

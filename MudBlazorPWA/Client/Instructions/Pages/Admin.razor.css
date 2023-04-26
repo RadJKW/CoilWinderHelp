@@ -1,11 +1,15 @@
-﻿.directory-tree-grid {
+﻿.mud-drop-container.admin-drop-container {
   height: 100%;
+}
+
+.directory-tree-grid {
+  height: 100%;
+
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: stretch;
   justify-content: center;
   overflow: hidden;
-
 }
 
 .dark-background,
@@ -24,8 +28,7 @@
 .directory-tree-component {
   padding: 4px;
   display: flex;
-  min-width: 450px;
-  height: 100%;
+  width: 25vw;
 }
 
 ::deep .directory-tree {
@@ -49,5 +52,4 @@
 
 /* make .mud-treeview-item .p selectable with cursor */
 ::deep .mud-treeview-item .mud-treeview-item-content p {
-  cursor: pointer;
 }

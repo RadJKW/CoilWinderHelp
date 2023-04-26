@@ -10,16 +10,29 @@ public class AdminEditorState {
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<AdminEditorState> _logger;
 	private readonly IDirectoryNavigator _directoryNavigator;
+	private readonly WindingCodeManager _windingCodeManager;
 	private readonly IJSRuntime _jsRuntime;
 	private readonly NavigationManager _navigation;
 	private IDirectoryItem? _selectedItem;
 
-	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation) {
+	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation, WindingCodeManager windingCodeManager) {
 		_directoryHub = directoryHub;
 		_logger = logger;
 		_directoryNavigator = directoryNavigator;
 		_jsRuntime = jsRuntime;
 		_navigation = navigation;
+		_windingCodeManager = windingCodeManager;
+		OnInitialized();
+	}
+
+	private async void OnInitialized() {
+		_directoryHub.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
+		_directoryHub.WindingCodeTypeChanged += async () => await OnWindingCodesDbUpdated();
+		await FetchDirectoryTree();
+	}
+	private async Task OnWindingCodesDbUpdated() {
+		await _windingCodeManager.FetchWindingCodes();
+		NotifyStateChanged();
 	}
 	public IDirectoryItem? SelectedItem {
 		get => _selectedItem;
@@ -31,10 +44,11 @@ public class AdminEditorState {
 	}
 	public IDirectoryItem RootDirectoryItem { get; private set; } = default!;
 
-	// ReSharper disable once UnusedAutoPropertyAccessor.Local
-	private DirectoryNode CurrentDirectory { get; set; } = default!;
-	public async Task FetchDirectoryTree() {
-		await _directoryNavigator.InitializeAsync();
+	public IEnumerable<WindingCode> WindingCodes {
+		get => _windingCodeManager.WindingCodes;
+		set => _windingCodeManager.WindingCodes = value;
+	}
+	private async Task FetchDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
 		_directoryNavigator.RootDirectory = rootDirectory;
 		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true };
@@ -50,7 +64,7 @@ public class AdminEditorState {
 	}
 	private void NavigateToFolder(DirectoryNode folder) {
 		_directoryNavigator.NavigateToFolder(folder);
-		CurrentDirectory = _directoryNavigator.GetCurrentFolder();
+		_directoryNavigator.GetCurrentFolder();
 	}
 	public void NavigateToRoot() {
 		_directoryNavigator.NavigateToRoot();
