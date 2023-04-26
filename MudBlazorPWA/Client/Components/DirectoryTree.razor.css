@@ -14,9 +14,9 @@
 
 ::deep .mud-expand-panel.mud-panel-expanded .mud-expand-panel-header {
   cursor: pointer !important;
-  border-bottom: 4px solid var(--mud-palette-dark);
+  border-bottom: 4px solid var(--mud-palette-background-grey);
   padding: 8px 12px;
-  background-color: var(--mud-palette-dark);
+  background-color: var(--mud-palette-background-grey);
   /* transition the background-color changing */
   transition: background-color 0.3s ease-in-out;
 }
@@ -33,8 +33,8 @@
 
 ::deep .mud-expand-panel > .mud-collapse-container {
   overflow: hidden auto;
-  border-left: 8px solid var(--mud-palette-dark);
-  border-right: 8px solid var(--mud-palette-dark);
+  border-left: 8px solid var(--mud-palette-background-grey);
+  border-right: 8px solid var(--mud-palette-background-grey);
 }
 
 .directory-tree-view {
@@ -47,11 +47,9 @@
   padding-bottom: 56px;
 }
 
-.directory-tree-view ::deep ul {
-  background-color: var(--mud-palette-surface);
-}
-
-.directory-tree-view ::deep ul li {
+.directory-tree-view ::deep .mud-treeview,
+.mud-treeview ul,
+.mud-treeview ul li {
   background-color: var(--mud-palette-surface);
 }
 

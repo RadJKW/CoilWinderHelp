@@ -4,9 +4,9 @@
 
 .directory-tree-grid {
   height: 100%;
-
   display: grid;
   grid-template-columns: auto 1fr;
+  gap: 0.5rem;
   align-items: stretch;
   justify-content: center;
   overflow: hidden;
@@ -14,7 +14,7 @@
 
 .dark-background,
 ::deep .dark-background {
-  background-color: var(--mud-palette-dark);
+  background-color: var(--mud-palette-background-grey);
 }
 
 .bordered,
@@ -26,7 +26,6 @@
 }
 
 .directory-tree-component {
-  padding: 4px;
   display: flex;
   width: 25vw;
 }

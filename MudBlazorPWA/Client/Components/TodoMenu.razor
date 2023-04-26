@@ -1,33 +1,25 @@
-<MudBadge
-    Color="Color.Info"
+<MudBadge Color="Color.Info"
     Dot="true"
     Overlap="true"
     Visible="true">
-  <MudMenu
-      Icon="@Icons.Material.Outlined.Checklist"
+  <MudMenu Icon="@Icons.Material.Outlined.Checklist"
       Color="Color.Inherit"
       AnchorOrigin="Origin.BottomCenter"
       TransformOrigin="Origin.TopCenter"
       PopoverClass="todo-menu"
       ListClass=" pa-2 docs-menu-list">
-    <MudGrid
-        Spacing="0">
-      <MudItem
-          xs="8">
-        <div
-            class="align-center d-flex justify-start ml-8">
-          <MudText
-              Typo="Typo.body1">
+    <MudGrid Spacing="0">
+      <MudItem xs="8">
+        <div class="align-center d-flex justify-start ml-8">
+          <MudText Typo="Typo.body1">
             TODOs
           </MudText>
 
         </div>
       </MudItem>
-      <MudItem
-          Class="mt-n2"
+      <MudItem Class="mt-n2"
           xs="4">
-        <MudText
-            Style="font-size: 0.65rem"
+        <MudText Style="font-size: 0.65rem"
             Typo="Typo.caption">
           QTY: 21
         </MudText>
@@ -36,33 +28,26 @@
 
     <MudSpacer/>
 
-    <MudDivider
-        Class="mb-2 mt-1 mx-n2"
+    <MudDivider Class="mb-2 mt-1 mx-n2"
         DividerType="DividerType.FullWidth"/>
-    <div
-        class="mx-6">
+    <div class="mx-6">
 
-      @foreach (TodoItem? item in _todoList!) {
+      @foreach (var item in _todoList!) {
         // if this is not the first item, add a divider
         if (item != _todoList.First()) {
-          <MudDivider
-              Class="my-2"/>
+          <MudDivider Class="my-2"/>
         }
-        <div
-            class="item px-4 py-0 rounded todo-menu">
+        <div class="item px-4 py-0 rounded todo-menu">
 
-          <MudCheckBox
-              T="bool"
+          <MudCheckBox T="bool"
               Dense="true"
-              bind-Checked="item.Complete">
+              @bind-Checked="@item.Complete">
           </MudCheckBox>
-          <MudDivider
-              Light="true"
+          <MudDivider Light="true"
               FlexItem="true"
               DividerType="DividerType.FullWidth"
               Vertical="true"/>
-          <MudText
-              Typo="Typo.body2">
+          <MudText Typo="Typo.body2">
             @item.Title
           </MudText>
         </div>
@@ -74,7 +59,6 @@
 @code{
 
   private class TodoItem {
-
     public TodoItem(string title, string description, bool complete) {
       Title = title;
       Description = description;
@@ -83,7 +67,6 @@
     public string? Title { get; set; }
     public string? Description { get; set; }
     public bool Complete { get; set; }
-
   }
 
   private List<TodoItem>? _todoList;
@@ -97,25 +80,26 @@
   }
 
   private static List<TodoItem> GetTodoList() {
-
     var todoList = new List<TodoItem> {
+      new(
+        title: "WindingCode MediaCard",
+        description: "Add a MediaCard below DataGrid in AdminPage",
+        complete: false),
       new(
         title: "AdminPage",
         description: "Add a new page for Admin Stuff",
-        complete: false),
+        complete: true),
       new(
         title: " Raspberry Pi",
         description: "Implement signalR on pi",
-        complete: false),
+        complete: true),
     };
 
     return todoList;
   }
 
 
-  private void ToggleItemComplete(TodoItem item) {
-    item.Complete = !item.Complete;
-  }
+  private void ToggleItemComplete(TodoItem item) { item.Complete = !item.Complete; }
 }
 
 @*

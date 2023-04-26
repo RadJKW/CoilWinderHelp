@@ -105,4 +105,37 @@ public class AdminEditorState {
 			&&
 			directoryNode.Folders.Any();
 	}
+
+	private int _currentPage = 1;
+	public int CurrentPage {
+		get => _currentPage;
+		set {
+			_currentPage = value;
+			NotifyStateChanged();
+		}
+	}
+	public int PageItemsCount { get; set; } = 12;
+
+	public IEnumerable<IDirectoryItem> GetPaginatedFiles() {
+		var files = SelectedItem?.GetFiles();
+		if (files == null) return new List<IDirectoryItem>();
+		var directoryItems = files.ToList();
+		var count = directoryItems.Count;
+		if (count <= PageItemsCount) return directoryItems;
+		var pages = count / PageItemsCount;
+		if (count % PageItemsCount != 0) pages++;
+		if (CurrentPage > pages) CurrentPage = pages;
+		if (CurrentPage < 1) CurrentPage = 1;
+		var skip = (CurrentPage - 1) * PageItemsCount;
+		return directoryItems.Skip(skip).Take(PageItemsCount);
+	}
+	public int GetPaginationCount() {
+		// get the amount of pages required to display all of SelectedItem.GetFiles()
+		var files = SelectedItem?.GetFiles();
+		if (files == null) return 0;
+		var count = files.Count();
+		var pages = count / PageItemsCount;
+		if (count % PageItemsCount != 0) pages++;
+		return pages;
+	}
 }

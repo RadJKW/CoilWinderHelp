@@ -51,6 +51,8 @@ public partial class AdminDataGrid {
 	private WindingCode? SelectedWindingCode { get; set; }
 	private CancellationTokenSource _ctsMenuToolTip = new();
 
+
+	#region Lifecycle
 	protected override Task OnInitializedAsync() {
 		HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
 		SelectedDivision = Division.D1;
@@ -58,9 +60,7 @@ public partial class AdminDataGrid {
 		BuildColumnMap();
 		return base.OnInitializedAsync();
 	}
-
-
-
+	#endregion
 
 	#region DataGrid Methods
 	private static bool AssignedMediaDisabled(WindingCode windingCode) {
@@ -83,6 +83,17 @@ public partial class AdminDataGrid {
 	}
 	#endregion
 
+  #region Methods
+	private async Task HideMenuTooltip() {
+		try {
+			await Task.Delay((int)_menuTooltip.UserAttributes["duration"], _ctsMenuToolTip.Token);
+		}
+		catch (TaskCanceledException) {
+			return;
+		}
+		MenuTooltipVisible = false;
+		StateHasChanged();
+	}
 	private async Task CommitItemChanges(WindingCode item) {
 		bool result = await HubClientService.UpdateWindingCodeDb(item);
 		if (!result) {
@@ -97,6 +108,7 @@ public partial class AdminDataGrid {
 			StateHasChanged();
 		}
 	}
+#endregion
 
 	#region QuickFilterSearch
 	private Dictionary<string, Func<WindingCode, string>> _columnMap = new();
@@ -158,19 +170,12 @@ public partial class AdminDataGrid {
 	}
 	#endregion
 
+	#region EventHandlers
 	private async Task OnWindingCodesDbUpdated() {
 		Snackbar.Add("Winding Codes Database Updated", Severity.Success);
 		await RefreshWindingCodes();
 	}
+	#endregion
 
-	private async Task HideMenuTooltip() {
-		try {
-			await Task.Delay((int)_menuTooltip.UserAttributes["duration"], _ctsMenuToolTip.Token);
-		}
-		catch (TaskCanceledException) {
-			return;
-		}
-		MenuTooltipVisible = false;
-		StateHasChanged();
-	}
+
 }

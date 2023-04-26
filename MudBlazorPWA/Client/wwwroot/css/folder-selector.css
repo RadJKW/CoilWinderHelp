@@ -1,6 +1,6 @@
 #folder-selector {
   flex: 1 0;
-  background-color: var(--mud-palette-dark);
+  background-color: var(--mud-palette-background-grey);
   border-radius: 8px;
   overflow-y: hidden;
   min-width: 350px;
