@@ -178,4 +178,9 @@ public partial class AdminDataGrid {
 	#endregion
 
 
+	private string RowStyleFunc(WindingCode arg1, int arg2) {
+		return arg1 == State.SelectedWindingCode
+			? "background-color: rgb(40 70 44 / 49%);box-shadow: var(--mud-elevation-7);"
+			: string.Empty;
+	}
 }

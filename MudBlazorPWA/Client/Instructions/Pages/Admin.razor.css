@@ -12,6 +12,15 @@
   overflow: hidden;
 }
 
+::deep .mud-table.mud-data-grid {
+  --data-grid-toolbar-height: 72px;
+  overflow: hidden;
+}
+
+::deep .mud-table.mud-data-grid .mud-table-container {
+  max-height: calc(101% - var(--data-grid-toolbar-height));
+}
+
 .dark-background,
 ::deep .dark-background {
   background-color: var(--mud-palette-background-grey);

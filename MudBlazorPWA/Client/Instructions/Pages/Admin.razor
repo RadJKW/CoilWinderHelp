@@ -3,7 +3,8 @@
 @inject AdminEditorState State
 @implements IDisposable
 
-@if (_loading) {
+
+@if (Loading) {
   <div class="align-center d-flex justify-center mud-width-full"
       style="height: 50%">
     <MudProgressCircular Indeterminate
@@ -12,24 +13,28 @@
   </div>
 } else {
   <MudDropContainer T="IDirectoryItem"
+      @ref="MudDropContainer"
       Items="@State.GetPaginatedFiles()"
       Class="admin-drop-container mud-height-full"
       CanDropClass="mud-border-success cursor-cell"
       NoDropClass="mud-border-error cursor-not-allowed"
       DraggingClass="item-dragging"
-      ApplyDropClassesOnDragStarted="false"
+      ApplyDropClassesOnDragStarted="true"
       ItemsSelector="@((item, dropzone) => item.DropZoneId == dropzone)"
-      ItemDropped="ItemUpdated">
+      ItemDropped="ItemUpdated"
+      ItemDraggingClass="mud-alert-text-success">
     <div class="directory-tree-grid">
 
       <div class="dark-background directory-tree-component overflow-hidden rounded-lg">
         <DirectoryTree class="bordered directory-tree"/>
       </div>
 
-      <div class="bordered dark-background mud-height-full mud-width-full overflow-y-hidden pa-2"
-          style="justify-self: start; ">
+      <MudStack Justify="Justify.FlexStart"
+          AlignItems="AlignItems.Stretch"
+          Class="bordered dark-background mud-width-full overflow-y-hidden">
         <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
-      </div>
+        <AdminCodeMediaDropCard WindingCode="@State.SelectedWindingCode"></AdminCodeMediaDropCard>
+      </MudStack>
     </div>
   </MudDropContainer>
 }
@@ -37,25 +42,27 @@
 @code{
 
 
-  private bool _loading = true;
-
+  private MudDropContainer<IDirectoryItem> MudDropContainer { get; set; } = null!;
+  private bool Loading { get; set; } = true;
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
     State.StateChanged += AdminStateChanged;
   }
-  private void AdminStateChanged() { StateHasChanged(); }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (!firstRender) {
-      _loading = false;
-    }
+    if (State.SelectedItem != null) Loading = false;
     await base.OnAfterRenderAsync(firstRender);
   }
 
+
+  private void AdminStateChanged() { StateHasChanged(); }
+
   public void Dispose() { State.StateChanged -= AdminStateChanged; }
 
-  private static void ItemUpdated(MudItemDropInfo<IDirectoryItem> dropInfo) {
+  private void ItemUpdated(MudItemDropInfo<IDirectoryItem> dropInfo) {
     if (dropInfo.Item != null)
       dropInfo.Item.DropZoneId = dropInfo.DropzoneIdentifier;
+    MudDropContainer.Refresh();
   }
+
 }

@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
-public class AdminEditorState {
+public class AdminEditorState : IAsyncDisposable {
 	public event Action? StateChanged;
 
 	private readonly HubClientService _directoryHub;
@@ -38,12 +38,20 @@ public class AdminEditorState {
 		get => _selectedItem;
 		set {
 			_selectedItem = value;
+			CurrentPage = 1;
 			_ = FetchSelectedDirectoryItems();
 			NotifyStateChanged();
 		}
 	}
-	public IDirectoryItem RootDirectoryItem { get; private set; } = default!;
+	public IDirectoryItem? RootDirectoryItem { get; private set; }
 
+	public WindingCode? SelectedWindingCode {
+		get => _windingCodeManager.SelectedWindingCode;
+		set {
+			_windingCodeManager.SelectedWindingCode = value;
+			NotifyStateChanged();
+		}
+	}
 	public IEnumerable<WindingCode> WindingCodes {
 		get => _windingCodeManager.WindingCodes;
 		set => _windingCodeManager.WindingCodes = value;
@@ -55,12 +63,12 @@ public class AdminEditorState {
 
 		RootDirectoryItem = rootDirectoryItem;
 		SelectedItem = rootDirectoryItem;
+		NotifyStateChanged();
 
 		await FetchSelectedDirectoryItems();
 
 		if (_directoryNavigator.NavigationHistory.Count == 0)
 			NavigateToFolder(rootDirectory);
-		NotifyStateChanged();
 	}
 	private void NavigateToFolder(DirectoryNode folder) {
 		_directoryNavigator.NavigateToFolder(folder);
@@ -114,7 +122,7 @@ public class AdminEditorState {
 			NotifyStateChanged();
 		}
 	}
-	public int PageItemsCount { get; set; } = 12;
+	public const int PageItemsCount = 9;
 
 	public IEnumerable<IDirectoryItem> GetPaginatedFiles() {
 		var files = SelectedItem?.GetFiles();
@@ -138,4 +146,9 @@ public class AdminEditorState {
 		if (count % PageItemsCount != 0) pages++;
 		return pages;
 	}
+	ValueTask IAsyncDisposable.DisposeAsync() {
+		GC.SuppressFinalize(this);
+		return ValueTask.CompletedTask;
+	}
+	public int SelectedItemFileCount() { return SelectedItem?.GetFiles().Count() ?? 0; }
 }

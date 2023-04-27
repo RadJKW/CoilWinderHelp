@@ -1,11 +1,13 @@
-﻿<MudDataGrid T="WindingCode"
-    id="winding-codes-data-grid"
-    Class="mud-elevation-4"
+﻿@inject AdminEditorState State
+<MudDataGrid T="WindingCode"
+    Class="admin-data-grid"
     Items="@WindingCodes"
+    RowStyleFunc="@RowStyleFunc"
     QuickFilter="DataGridQuickFilter"
-    @bind-SelectedItem="@SelectedWindingCode"
+    @bind-SelectedItem="@State.SelectedWindingCode"
     EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
     Virtualize="true"
+    Striped="true"
     OverscanCount="2"
     ShowMenuIcon="true"
     Hover="true"
@@ -18,7 +20,6 @@
     FixedHeader="true"
     FilterMode="DataGridFilterMode.Simple"
     FilterDefinitions="@_dataGridFilter"
-    Bordered="true"
     Dense="true">
   <ToolBarContent>
     <MudStack Row
@@ -108,6 +109,16 @@
           </MudRadio>
         }
       </MudRadioGroup>
+      <MudButton Size="Size.Medium"
+          Color="Color.Warning"
+          Variant="Variant.Outlined"
+          Disabled="@(State.SelectedWindingCode is null)"
+          OnClick="@(() => State.SelectedWindingCode = null)">
+        <MudText Inline="true"
+            Align="Align.Center">
+          Clear Selection
+        </MudText>
+      </MudButton>
       <MudSpacer/>
       <MudTextField @bind-Value="_searchString"
           Variant="Variant.Text"
@@ -207,5 +218,6 @@
         Hidden="true">
       <EditTemplate/>
     </PropertyColumn>
+
   </Columns>
 </MudDataGrid>

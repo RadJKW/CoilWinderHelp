@@ -1,0 +1,222 @@
+﻿@using MudBlazorPWA.Client.Instructions.Pages
+@using MudBlazorPWA.Client.Instructions.Dialogs
+@using System.Diagnostics
+@inject IDialogService DialogService
+@implements IDisposable
+@inject AdminEditorState State
+<div id="media-card"
+    class="d-flex justify-center mud-width-full">
+  @if (WindingCode != null) {
+    <MudCard Elevation="4"
+        Class="mud-width-full"
+        Style="background-color: transparent"
+        Outlined="true">
+      <MudCardHeader Class="gap-x-4 mud-background-gray">
+        <MudText Typo="Typo.h6">
+          <strong>
+            @WindingCode.Division: @WindingCode.Name
+          </strong>
+        </MudText>
+        <MudButton StartIcon="@Icons.Material.Outlined.Upgrade"
+            Size="Size.Small"
+            Color="Color.Secondary"
+            Variant="Variant.Outlined"
+            Disabled="@(WindingCode.Media.Pdf == null && WindingCode.Media.Video == null)">
+          View Media
+        </MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.ImportExport"
+            Size="Size.Small"
+            Color="Color.Default"
+            Variant="Variant.Outlined"
+            OnClick="OpenImportMediaDialog">
+          Import Media
+        </MudButton>
+      </MudCardHeader>
+      <MudDivider/>
+      <MudCardContent>
+        <MudGrid Spacing="2"
+            Justify="Justify.Center">
+          @foreach (var config in _dropZoneConfigs) {
+            var dropZoneId = $"{config.DropZoneId}-{WindingCode.Id}";
+            <MudItem xs="9"
+                lg="6">
+              <div class="@config.ContainerClass">
+                <div class="d-flex justify-flex-start mud-width-full">
+                  <MudText Typo="Typo.button"
+                      Align="Align.Left">
+                    <strong>@config.HeaderText</strong>
+                  </MudText>
+                </div>
+                <MudDropZone T="IDirectoryItem"
+                    Style="@DropZoneConfig.Style"
+                    Class="@config.DropZoneClass"
+                    CanDrop="(_) => true"
+                    Identifier="@dropZoneId">
+                </MudDropZone>
+              </div>
+            </MudItem>
+          }
+        </MudGrid>
+      </MudCardContent>
+      <MudCardActions>
+        <MudStack Row
+            Spacing="2"
+            AlignItems="AlignItems.Center">
+          <MudButton StartIcon="@Icons.Material.Filled.Verified"
+              Size="Size.Small"
+              Disabled="_submitDisabled">
+            Submit
+          </MudButton>
+
+          <MudDropZone T="IDirectoryItem"
+              Class="align-center d-flex justify-center mud-alert-text-error mud-height-full"
+              OnlyZone="true"
+              Identifier="trash">
+
+            <MudIcon Icon="@Icons.Material.Outlined.Delete"
+                Color="Color.Error"
+                Class="mx-6 my-1"/>
+          </MudDropZone>
+          <MudIconButton Icon="@Icons.Material.Outlined.Print"
+              Color="Color.Secondary"
+              Size="Size.Small"/>
+        </MudStack>
+      </MudCardActions>
+    </MudCard>
+  } else {
+    <div class="align-center d-flex flex-1 flex-column justify-center my-auto"
+        style="min-height: 200px">
+      <MudProgressCircular Indeterminate="true"
+          Color="Color.Secondary"
+          Class="ma-4"/>
+      <MudText Color="Color.Default"
+          Typo="Typo.h5"
+          Align="Align.Center">
+        Select Code From table
+      </MudText>
+    </div>
+  }
+
+</div>
+
+@code{
+  #region Constants
+    private const string DzCodeFolder = "DZ-Code-Folder";
+    private const string DzCodePdf = "DZ-Code-Pdf";
+    private const string DzCodeVideo = "DZ-Code-Video";
+    private const string DzCodeRefMedia = "DZ-Code-Ref";
+  #endregion
+  #region Parameters
+  [Parameter]
+  [EditorRequired]
+  public required WindingCode? WindingCode { get; set; }
+
+  [Parameter]
+  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
+  #endregion
+  private List<DropZoneConfig> _dropZoneConfigs = new();
+  private bool _submitDisabled = true;
+  #region Lifecycle
+  protected override void OnInitialized() {
+    base.OnInitialized();
+    _dropZoneConfigs = new() {
+      new() {
+        ContainerClass = "mud-alert-text-success",
+        DropZoneId = DzCodeFolder,
+        HeaderText = "Folder Path"
+      },
+      new() {
+        ContainerClass = "mud-alert-text-warning",
+        DropZoneId = DzCodePdf,
+        HeaderText = "PDF"
+      },
+      new() {
+        ContainerClass = "mud-alert-text-info",
+        DropZoneId = DzCodeVideo,
+        HeaderText = "Video"
+      },
+      new() {
+        ContainerClass = "mud-alert-text-primary",
+        DropZoneId = DzCodeRefMedia,
+        HeaderText = "Reference Media"
+      }
+    };
+  }
+  #endregion
+  private void AdminDashboard_OnDrop(string? dropZoneId, AdminDashboard.DropItemAction action) {
+    Console.WriteLine("OnDrop Event");
+    if (dropZoneId == null) {
+      Console.WriteLine("is null");
+      return;
+    }
+
+    _submitDisabled = false;
+
+    switch (action) {
+  // if action is Remove, then remove the item from FolderDropItems
+      case AdminDashboard.DropItemAction.Removed: {
+        Console.WriteLine($"Remove item with DropZoneId: {dropZoneId} ");
+        return;
+      }
+  // if action is Add, then add the item to FolderDropItems
+      case AdminDashboard.DropItemAction.Added: {
+        Console.WriteLine($"Added item with DropZoneId: {dropZoneId}");
+        return;
+      }
+      case AdminDashboard.DropItemAction.Updated:
+        Console.WriteLine($"Updated item with DropZoneId: {dropZoneId}");
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(action), action, null);
+    }
+
+
+  // get the last segment of the DropZoneId which is the code id
+  // split by "-" and get the last segment
+    var codeId = dropZoneId.Split('-').Last();
+    if (codeId != WindingCode?.Id.ToString()) {
+      Console.WriteLine("not the same code id");
+      return;
+    }
+    _submitDisabled = false;
+  }
+  #region Classes
+  public class DropZoneConfig {
+    private readonly string _containerClass = "pa-2";
+
+    public static string Style => string.Empty;
+
+    public string DropZoneClass { get; init; } = "drop-zone-gallery";
+    public string ContainerClass { get => _containerClass; init => _containerClass = $"{_containerClass} {value}"; }
+
+    public required string DropZoneId { get; init; }
+    public required string HeaderText { get; init; }
+  }
+  #endregion
+  private async Task OpenImportMediaDialog() {
+    if (WindingCode is null) return;
+    var parameters = new DialogParameters {
+      { "WindingCode", WindingCode }
+    };
+
+    var options = new DialogOptions() {
+      CloseButton = true,
+      MaxWidth = MaxWidth.ExtraSmall,
+      NoHeader = true
+    };
+
+    var dialog = await DialogService.ShowAsync<ImportMediaDialog>("Delete", parameters, options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled) {
+      var windingCode = result.Data as WindingCode;
+
+      if (windingCode is null) return;
+      WindingCode.FolderPath = windingCode.FolderPath;
+      WindingCode.Media = windingCode.Media;
+      _submitDisabled = true;
+      await OnCommittedItemChanges.InvokeAsync(WindingCode);
+    }
+  }
+  void IDisposable.Dispose() { Debug.WriteLine("Disposing AdminDashboard.razor"); }
+}

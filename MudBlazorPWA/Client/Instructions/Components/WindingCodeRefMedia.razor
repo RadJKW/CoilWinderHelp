@@ -21,10 +21,10 @@
           <source src="@videoSrc"
               type="video/mp4"/>
         </video>
-        <img src="play-button.png"
+        <img src="images/play-button.png"
             class="video-play-btn"
             alt="Play Video"
-            @onclick="() => SetActiveVideo(item)"/>
+            onclick="@(() => SetActiveVideo(item))"/>
       }
     </div>
   }

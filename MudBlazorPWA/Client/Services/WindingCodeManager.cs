@@ -3,6 +3,7 @@ namespace MudBlazorPWA.Client.Services;
 public class WindingCodeManager {
 	private readonly HubClientService _directoryHub;
 	public IEnumerable<WindingCode> WindingCodes { get; set; } = new List<WindingCode>();
+	public WindingCode? SelectedWindingCode { get; set; }
 
 	public WindingCodeManager(HubClientService directoryHub) {
 		_directoryHub = directoryHub;
