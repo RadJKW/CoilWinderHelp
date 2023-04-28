@@ -2,7 +2,14 @@
 using Blazored.LocalStorage;
 namespace MudBlazorPWA.Client.Services;
 public class DirectoryNavigator : IDirectoryNavigator {
-	public DirectoryNode? RootDirectory { get; set; }
+	public DirectoryNode? RootDirectory {
+		get => _rootDirectory;
+		set {
+			_rootDirectory = value;
+			NavigationHistory.Push(value!);
+		}
+	}
+	private DirectoryNode? _rootDirectory;
 	public ObservableStack<DirectoryNode> NavigationHistory { get; private set; } = new();
 
 	private readonly ILocalStorageService _localStorage;
@@ -46,21 +53,22 @@ public class DirectoryNavigator : IDirectoryNavigator {
 	}
 
 	public DirectoryNode? GetFolder(string folderPath) {
-		if (folderPath == RootDirectory!.Path) return RootDirectory;
-		var folder = RootDirectory!.GetFolder(folderPath);
-		if (folder != null) {
-			return folder;
+		// if the folderPath is string.Empty, return the root directory
+		if (string.IsNullOrEmpty(folderPath)) {
+			return RootDirectory;
 		}
-		Console.WriteLine("Folder not found at path: " + folderPath);
-		return null;
+		var folder = RootDirectory!.GetFolder(folderPath);
+		return folder ?? null;
 	}
 	public DirectoryNode GetCurrentFolder() {
-		return NavigationHistory.Peek();
+		return NavigationHistory.Count == 0
+			? RootDirectory!
+			: NavigationHistory.Peek();
 	}
 }
 
 public interface IDirectoryNavigator {
-	DirectoryNode? RootDirectory { set; }
+	DirectoryNode? RootDirectory { get; set; }
 	ObservableStack<DirectoryNode> NavigationHistory { get; }
 	void NavigateToFolder(DirectoryNode folder);
 	void NavigateToFolder(string folderPath);

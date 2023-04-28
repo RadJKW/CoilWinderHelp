@@ -1,8 +1,13 @@
-﻿using MudBlazor;
-using MudBlazorPWA.Shared.Interfaces;
+﻿using MudBlazorPWA.Shared.Interfaces;
 namespace MudBlazorPWA.Shared.Models;
-public class DirectoryItem<T> : DropItem, IDirectoryItem where T : class {
+public class DirectoryItem<T> : IDirectoryItem where T : class {
 	public T Item { get; set; }
+
+	public ItemType ItemType => Item switch {
+		FileNode => ItemType.File,
+		DirectoryNode => ItemType.Directory,
+		_ => throw new ArgumentOutOfRangeException(nameof(Item))
+	};
 	public string DropZoneId {
 		get {
 			if (string.IsNullOrEmpty(_dropZoneId))
@@ -11,34 +16,61 @@ public class DirectoryItem<T> : DropItem, IDirectoryItem where T : class {
 		}
 		set => _dropZoneId = value;
 	}
-	private static string GetParentFolderPath(string path) {
-		int lastSeparatorIndex = path.LastIndexOf('/');
-		if (lastSeparatorIndex == -1)
-			lastSeparatorIndex = path.LastIndexOf('\\');
+	private string _dropZoneId = string.Empty;
 
-		return lastSeparatorIndex != -1
-			? path[..lastSeparatorIndex]
-			: string.Empty;
+	public string Name => Item switch {
+		FileNode file => file.Name,
+		DirectoryNode directory => directory.Name,
+		_ => string.Empty
+	};
+
+	public string Path => Item switch {
+		FileNode file => file.Path,
+		DirectoryNode directory => directory.Path,
+		_ => string.Empty
+	};
+	public bool CanExpand { get; set; }
+
+	private static bool ShouldExpand(DirectoryNode directory) {
+		return directory.Folders.Any() || directory.Files.Any();
 	}
-	public bool CanExpand { get; }
 	public bool Expanded { get; set; }
 	public bool Loading { get; set; }
 
 	public bool Selected { get; set; }
-	public HashSet<IDirectoryItem> TreeItems { get; set; } = new();
+	public HashSet<IDirectoryItem> TreeItems { get; set; }
 	public DirectoryItem(T item) {
 		Item = item;
-		(Name, Path, Icon, CanExpand) = item switch {
-			DirectoryNode directory
-				=> (directory.Name, directory.Path, Icons.Material.Filled.Folder, ShouldExpand(directory)),
-			FileNode file
-				=> (file.Name, file.Path, FileIcon(file), false),
-			_
-				=> ("", "", "", false)
+		CanExpand = item switch {
+			DirectoryNode directory => ShouldExpand(directory),
+			_ => false
+		};
+		TreeItems = item switch {
+			DirectoryNode directory => BuildTreeItems(directory),
+			_ => new()
 		};
 	}
+	private static HashSet<IDirectoryItem> BuildTreeItems(DirectoryNode item) {
+		var treeItems = new HashSet<IDirectoryItem>();
+		foreach (var folder in item.Folders) {
+			treeItems.Add(new DirectoryItem<DirectoryNode>(folder));
+		}
+		foreach (var file in item.Files) {
+			treeItems.Add(new DirectoryItem<FileNode>(file));
+		}
+		return treeItems;
+	}
 
-	private string _dropZoneId = string.Empty;
+	public IEnumerable<DropItem> GetFileDropItems() {
+		var dropItems = new List<DropItem>();
+		dropItems.AddRange(GetFiles().Select(x => new DropItem(x)));
+		return dropItems;
+	}
+
+	public IEnumerable<IDirectoryItem> GetFiles() {
+		return TreeItems.Where(x => x.ItemType == ItemType.File);
+	}
+
 	private string GenerateUniqueId() {
 		switch (Item) {
 			case FileNode file: {
@@ -79,31 +111,31 @@ public class DirectoryItem<T> : DropItem, IDirectoryItem where T : class {
 	public bool HasFiles() {
 		// iterate over the TreeItems if any and check if any are of the Type DirectoryItem<FileNode>
 		var hasFiles = TreeItems.Any(item => item is DirectoryItem<FileNode>);
-		Console.WriteLine($"HasFiles: {hasFiles}");
 		return hasFiles;
 	}
-	public HashSet<IDirectoryItem> GetFolders() {
-		var folders =
-			from item in TreeItems
-			where item is DirectoryItem<DirectoryNode>
-			select item;
-		return folders.ToHashSet();
+
+	private static string GetParentFolderPath(string path) {
+		int lastSeparatorIndex = path.LastIndexOf('/');
+		if (lastSeparatorIndex == -1)
+			lastSeparatorIndex = path.LastIndexOf('\\');
+
+		return lastSeparatorIndex != -1
+			? path[..lastSeparatorIndex]
+			: string.Empty;
 	}
-	public IEnumerable<IDirectoryItem> GetFiles() {
-		var files =
-			from item in TreeItems
-			where item is DirectoryItem<FileNode>
-			select item;
-		return files.ToList();
+
+	public bool HasChildFiles() {
+		return TreeItems.Any(item => item is DirectoryItem<FileNode>);
 	}
-	private static bool ShouldExpand(DirectoryNode directory) {
-		return directory.Folders.Any() || directory.Files.Any();
+
+	public bool HasChildFolders() {
+		return TreeItems.Any(item => item is DirectoryItem<DirectoryNode>);
 	}
-	private static string FileIcon(FileNode file) {
-		return file.Name.EndsWith(".pdf")
-			? Icons.Custom.FileFormats.FilePdf
-			: Icons.Custom.FileFormats.FileVideo;
-	}
+}
+
+public enum ItemType {
+	File,
+	Directory
 }
 
 public static class DirectoryItemHelper {

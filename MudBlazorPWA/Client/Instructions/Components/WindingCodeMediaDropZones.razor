@@ -188,8 +188,8 @@
     if (FolderDropItems == null)
       return false;
 
-    bool isNotDuplicate = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
-    bool isDropZoneEmpty = FolderDropItems.All(d => d.Identifier != dropZoneIdentifier);
+    bool isNotDuplicate = FolderDropItems.All(d => d.DropZoneId != dropZoneIdentifier);
+    bool isDropZoneEmpty = FolderDropItems.All(d => d.DropZoneId != dropZoneIdentifier);
     return dropZoneIdentifier[..dropZoneIdentifier.LastIndexOf('-')] switch {
       DzCodeFolder => item is { Type: DropItemType.Folder, IsCopy: false }
                       && isNotDuplicate
@@ -228,7 +228,7 @@
     if (FolderDropItems == null)
       return false;
 
-    var dropZoneItems = FolderDropItems.Where(d => dropZoneNames.Contains(d.Identifier)).ToArray();
+    var dropZoneItems = FolderDropItems.Where(d => dropZoneNames.Contains(d.DropZoneId)).ToArray();
 
     if (dropZoneItems.Length == 0)
       return false;
@@ -240,7 +240,7 @@
 
     Console.WriteLine("foreach item in dropZoneItems");
     foreach (var item in dropZoneItems) {
-      string dropZonePrefix = item.Identifier[..item.Identifier.LastIndexOf('-')];
+      string dropZonePrefix = item.DropZoneId[..item.DropZoneId.LastIndexOf('-')];
       Console.WriteLine("dropZonePrefix -> " + dropZonePrefix);
       switch (dropZonePrefix) {
         case DzCodeFolder:
@@ -304,7 +304,7 @@
       return Task.CompletedTask;
     }
     string[] dropZoneNames = _dropZoneConfigs.Select(d => d.Identifier + "-" + Context.Item.Id).ToArray();
-    var dropZoneItems = FolderDropItems.Where(d => dropZoneNames.Contains(d.Identifier)).ToArray();
+    var dropZoneItems = FolderDropItems.Where(d => dropZoneNames.Contains(d.DropZoneId)).ToArray();
     foreach (var item in dropZoneItems) {
       Console.WriteLine($" Item of type {item.Type}");
       Console.WriteLine($"Path: {item.Path}");

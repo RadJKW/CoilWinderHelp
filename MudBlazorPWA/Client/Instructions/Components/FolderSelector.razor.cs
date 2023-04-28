@@ -157,8 +157,7 @@ public partial class FolderSelector : IDisposable {
 			new() {
 				Name = folder.Name,
 				Path = folderPath,
-				Type = DropItemType.Folder,
-				Identifier = dropZoneId
+				DropZoneId = dropZoneId
 			}
 		};
 
@@ -172,8 +171,7 @@ public partial class FolderSelector : IDisposable {
 			windingCode => new DropItem {
 				Name = folder.Name,
 				Path = folder.Path.RelativePath(),
-				Type = DropItemType.Folder,
-				Identifier = $"DZ-Code-Folder-{windingCode.Id}",
+				DropZoneId = $"DZ-Code-Folder-{windingCode.Id}",
 				OriginalIdentifier = dropZoneId,
 				IsCopy = true
 			}));
@@ -188,8 +186,7 @@ public partial class FolderSelector : IDisposable {
 				Name = pdf.Split("/")
 					.Last(),
 				Path = pdf.RelativePath(),
-				Type = DropItemType.Pdf,
-				Identifier = dropZoneId
+				DropZoneId = dropZoneId
 			}
 		};
 		pdfDropItems.AddRange(
@@ -200,8 +197,7 @@ public partial class FolderSelector : IDisposable {
 				Name = pdf.Split("/")
 					.Last(),
 				Path = pdf.RelativePath(),
-				Type = DropItemType.Pdf,
-				Identifier = $"DZ-Code-Pdf-{windingCode.Id}",
+				DropZoneId = $"DZ-Code-Pdf-{windingCode.Id}",
 				OriginalIdentifier = dropZoneId,
 				IsCopy = true
 			}));
@@ -220,8 +216,7 @@ public partial class FolderSelector : IDisposable {
 				Name = video.Split("/")
 					.Last(),
 				Path = video.RelativePath(),
-				Type = DropItemType.Video,
-				Identifier = dropZoneId
+				DropZoneId = dropZoneId
 			}
 		};
 		// add copies of the original drop-item to the list, but with the identifier of the winding code's drop-zone
@@ -233,8 +228,7 @@ public partial class FolderSelector : IDisposable {
 				Name = video.Split("/")
 					.Last(),
 				Path = video.RelativePath(),
-				Type = DropItemType.Video,
-				Identifier = $"DZ-Code-Video-{windingCode.Id}",
+				DropZoneId = $"DZ-Code-Video-{windingCode.Id}",
 				OriginalIdentifier = dropZoneId,
 				IsCopy = true
 			}));
@@ -250,10 +244,7 @@ public partial class FolderSelector : IDisposable {
 				Name = file.Split("/")
 					.Last(),
 				Path = file.RelativePath(),
-				Type = file.IsPdf()
-					? DropItemType.Pdf
-					: DropItemType.Video,
-				Identifier = $"DZ-Code-Ref-{windingCode.Id}",
+				DropZoneId = $"DZ-Code-Ref-{windingCode.Id}",
 				OriginalIdentifier = file.IsPdf()
 					? $"{PdfDropZoneId}-{windingCode.Id}"
 					: $"{VideoDropZoneId}-{windingCode.Id}",

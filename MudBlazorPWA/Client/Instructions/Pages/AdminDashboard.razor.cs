@@ -40,29 +40,28 @@ public partial class AdminDashboard : IDisposable {
 
 	#region Event Handlers
 	private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
-		var originalItem = _dropItems.FirstOrDefault(d => d.Identifier == dropInfo.Item!.Identifier && !d.IsCopy);
+		var originalItem = _dropItems.FirstOrDefault(d => d.DropZoneId == dropInfo.Item!.DropZoneId && !d.IsCopy);
 		var targetDropZone = dropInfo.DropzoneIdentifier;
 		if (targetDropZone == "trash" && dropInfo.Item!.IsCopy) {
 			_dropItems.Remove(dropInfo.Item);
-			OnDrop?.Invoke(dropInfo.Item.Identifier, DropItemAction.Removed);
+			OnDrop?.Invoke(dropInfo.Item.DropZoneId, DropItemAction.Removed);
 			return;
 		}
 		if (originalItem is null)
 			return;
-		if (targetDropZone == originalItem.Identifier)
+		if (targetDropZone == originalItem.DropZoneId)
 			return;
 		// create a copy of the original Item
 		var copy = new DropItem {
-			Identifier = targetDropZone,
-			OriginalIdentifier = originalItem.Identifier,
+			DropZoneId = targetDropZone,
+			OriginalIdentifier = originalItem.DropZoneId,
 			Name = originalItem.Name,
 			Path = originalItem.Path,
-			Type = originalItem.Type,
 			IsCopy = true
 		};
 		// add the copy to the dropItems list
 		_dropItems.Add(copy);
-		OnDrop?.Invoke(copy.Identifier, DropItemAction.Added);
+		OnDrop?.Invoke(copy.DropZoneId, DropItemAction.Added);
 	}
 
 	/// <summary>
@@ -100,7 +99,7 @@ public partial class AdminDashboard : IDisposable {
 		var copies = _dropItems.Where(d => d.Name == context.Name && d.IsCopy).ToList();
 		if (!copies.Any())
 			return attributes;
-		attributes.Add("data-title", string.Join("<br />", copies.Select(c => c.Identifier)));
+		attributes.Add("data-title", string.Join("<br />", copies.Select(c => c.DropZoneId)));
 
 		return attributes;
 	}
@@ -114,7 +113,7 @@ public partial class AdminDashboard : IDisposable {
 	}
 	private void DropItemRemoved(DropItem arg) {
 		_dropItems.Remove(arg);
-		OnDrop?.Invoke(arg.Identifier, DropItemAction.Removed);
+		OnDrop?.Invoke(arg.DropZoneId, DropItemAction.Removed);
 	}
 	#endregion
 

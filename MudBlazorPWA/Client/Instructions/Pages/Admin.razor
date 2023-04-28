@@ -12,9 +12,9 @@
         Size="Size.Large"/>
   </div>
 } else {
-  <MudDropContainer T="IDirectoryItem"
+  <MudDropContainer T="DropItem"
       @ref="MudDropContainer"
-      Items="@State.GetPaginatedFiles()"
+      Items="@State.GetPaginatedFileDropItems()"
       Class="admin-drop-container mud-height-full"
       CanDropClass="mud-border-success cursor-cell"
       NoDropClass="mud-border-error cursor-not-allowed"
@@ -31,6 +31,7 @@
 
       <MudStack Justify="Justify.FlexStart"
           AlignItems="AlignItems.Stretch"
+          Spacing="0"
           Class="bordered dark-background mud-width-full overflow-y-hidden">
         <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
         <AdminCodeMediaDropCard WindingCode="@State.SelectedWindingCode"></AdminCodeMediaDropCard>
@@ -42,15 +43,22 @@
 @code{
 
 
-  private MudDropContainer<IDirectoryItem> MudDropContainer { get; set; } = null!;
-  private bool Loading { get; set; } = true;
+  private MudDropContainer<DropItem> MudDropContainer { get; set; } = null!;
+  private bool Loading { get; set; }
+
+  protected override void OnParametersSet() {
+    base.OnParametersSet();
+    Console.WriteLine("OnParametersSet");
+    Console.WriteLine(State.SelectedFolder?.Name);
+    Loading = State.SelectedFolder == null;
+  }
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
     State.StateChanged += AdminStateChanged;
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
-    if (State.SelectedItem != null) Loading = false;
+    Loading = State.SelectedFolder == null;
     await base.OnAfterRenderAsync(firstRender);
   }
 
@@ -59,10 +67,23 @@
 
   public void Dispose() { State.StateChanged -= AdminStateChanged; }
 
-  private void ItemUpdated(MudItemDropInfo<IDirectoryItem> dropInfo) {
-    if (dropInfo.Item != null)
-      dropInfo.Item.DropZoneId = dropInfo.DropzoneIdentifier;
-    MudDropContainer.Refresh();
+  private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
+    var targetDropZone = dropInfo.DropzoneIdentifier;
+    var dropItem = dropInfo.Item;
+
+    if (dropItem == null) return;
+  // if the dropItem is not a copy, then we need to create a copy of it where the DropZoneId is the targetDropZone
+
+    if (dropItem.IsCopy) return;
+    if (dropItem.DropZoneId == targetDropZone) return;
+
+    var copy = new DropItem {
+      DropZoneId = targetDropZone,
+      IsCopy = true,
+      Name = dropItem.Name,
+      Path = dropItem.Path,
+    };
+    State.AddDropItem(copy);
   }
 
 }

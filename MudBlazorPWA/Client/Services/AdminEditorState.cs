@@ -13,7 +13,7 @@ public class AdminEditorState : IAsyncDisposable {
 	private readonly WindingCodeManager _windingCodeManager;
 	private readonly IJSRuntime _jsRuntime;
 	private readonly NavigationManager _navigation;
-	private IDirectoryItem? _selectedItem;
+	private IDirectoryItem? _selectedFolder;
 
 	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation, WindingCodeManager windingCodeManager) {
 		_directoryHub = directoryHub;
@@ -34,17 +34,21 @@ public class AdminEditorState : IAsyncDisposable {
 		await _windingCodeManager.FetchWindingCodes();
 		NotifyStateChanged();
 	}
-	public IDirectoryItem? SelectedItem {
-		get => _selectedItem;
+	public IDirectoryItem? SelectedFolder {
+		get => _selectedFolder;
 		set {
-			_selectedItem = value;
+			_selectedFolder = value;
 			CurrentPage = 1;
-			_ = FetchSelectedDirectoryItems();
-			NotifyStateChanged();
+			if (value != null)
+				_ = PopulateDropItems(value);
 		}
 	}
+	private Task PopulateDropItems(IDirectoryItem value) {
+		DropItems.AddRange(value.GetFiles().Where(item => item.ItemType is ItemType.File).Select(item => new DropItem(item) { DropZoneId = value.DropZoneId }));
+		NotifyStateChanged();
+		return Task.CompletedTask;
+	}
 	public IDirectoryItem? RootDirectoryItem { get; private set; }
-
 	public WindingCode? SelectedWindingCode {
 		get => _windingCodeManager.SelectedWindingCode;
 		set {
@@ -56,16 +60,19 @@ public class AdminEditorState : IAsyncDisposable {
 		get => _windingCodeManager.WindingCodes;
 		set => _windingCodeManager.WindingCodes = value;
 	}
+
+	public List<DropItem> DropItems { get; } = new();
+	private List<DropItem> AssignedDropItems { get; } = new();
+
+
 	private async Task FetchDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
 		_directoryNavigator.RootDirectory = rootDirectory;
 		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true };
 
 		RootDirectoryItem = rootDirectoryItem;
-		SelectedItem = rootDirectoryItem;
+		SelectedFolder = rootDirectoryItem;
 		NotifyStateChanged();
-
-		await FetchSelectedDirectoryItems();
 
 		if (_directoryNavigator.NavigationHistory.Count == 0)
 			NavigateToFolder(rootDirectory);
@@ -86,26 +93,6 @@ public class AdminEditorState : IAsyncDisposable {
 		          + filePath;
 		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
-	private Task FetchSelectedDirectoryItems() {
-		if (SelectedItem == null || SelectedItem.TreeItems.Any()) return Task.CompletedTask;
-		var directoryNode = _directoryNavigator.GetFolder(SelectedItem.Path);
-		if (directoryNode == null) return Task.CompletedTask;
-
-		var treeItems = new List<IDirectoryItem>();
-		var folderTreeItems = directoryNode.Folders.Select(folder => new DirectoryItem<DirectoryNode>(folder)).ToList();
-		var fileTreeItems = directoryNode.Files.Select(file => new DirectoryItem<FileNode>(file)).ToList();
-
-		treeItems.AddRange(folderTreeItems);
-		treeItems.AddRange(fileTreeItems);
-		SelectedItem.TreeItems = treeItems.ToHashSet();
-
-		// if the SelectedItem is RootDirectoryItem, then we need to update the RootDirectoryItem.TreeItems
-		if (SelectedItem == RootDirectoryItem) {
-			RootDirectoryItem.TreeItems = treeItems.ToHashSet();
-		}
-		NotifyStateChanged();
-		return Task.CompletedTask;
-	}
 	public bool HasFolders(IDirectoryItem directoryItem) {
 		var directoryNode = _directoryNavigator.GetFolder(directoryItem.Path);
 		return
@@ -124,31 +111,73 @@ public class AdminEditorState : IAsyncDisposable {
 	}
 	public const int PageItemsCount = 9;
 
-	public IEnumerable<IDirectoryItem> GetPaginatedFiles() {
-		var files = SelectedItem?.GetFiles();
-		if (files == null) return new List<IDirectoryItem>();
+	public IEnumerable<DropItem> GetPaginatedFileDropItems() {
+		var files = SelectedFolder?.GetFiles();
+		if (files == null) return new List<DropItem>();
 		var directoryItems = files.ToList();
 		var count = directoryItems.Count;
-		if (count <= PageItemsCount) return directoryItems;
+		if (count <= PageItemsCount) return DropItems.Where(x => x.DropZoneId == SelectedFolder!.DropZoneId);
 		var pages = count / PageItemsCount;
 		if (count % PageItemsCount != 0) pages++;
 		if (CurrentPage > pages) CurrentPage = pages;
 		if (CurrentPage < 1) CurrentPage = 1;
 		var skip = (CurrentPage - 1) * PageItemsCount;
-		return directoryItems.Skip(skip).Take(PageItemsCount);
+		return DropItems.Skip(skip).Take(PageItemsCount).ToList();
 	}
-	public int GetPaginationCount() {
-		// get the amount of pages required to display all of SelectedItem.GetFiles()
-		var files = SelectedItem?.GetFiles();
-		if (files == null) return 0;
+	public int PageStart() {
+		var start = 0;
+		var files = SelectedFolder?.GetFiles();
+		if (files == null) return start;
 		var count = files.Count();
+		if (count <= PageItemsCount) return start;
 		var pages = count / PageItemsCount;
 		if (count % PageItemsCount != 0) pages++;
+		if (CurrentPage > pages) CurrentPage = pages;
+		if (CurrentPage < 1) CurrentPage = 1;
+		start = (CurrentPage - 1) * PageItemsCount;
+		Console.WriteLine("start: " + start);
+		return start;
+	}
+	public int PageEnd() {
+		var end = 0;
+
+		var files = SelectedFolder?.GetFiles();
+		if (files == null) return end;
+		var count = files.Count();
+		if (count <= PageItemsCount) return count;
+		var pages = count / PageItemsCount;
+		if (count % PageItemsCount != 0) pages++;
+		if (CurrentPage > pages) CurrentPage = pages;
+		if (CurrentPage < 1) CurrentPage = 1;
+		end = CurrentPage * PageItemsCount;
+		if (end > count) end = count;
+		Console.WriteLine("end: " + end);
+		return end;
+	}
+	public int GetPaginationCount() {
+		var pages = 0;
+		var files = SelectedFolder?.GetFiles();
+		if (files == null) {
+			Console.WriteLine("pages: " + pages);
+			return pages;
+		}
+		var count = files.Count();
+		pages = count / PageItemsCount;
+		if (count % PageItemsCount != 0) pages++;
+		Console.WriteLine("pages: " + pages);
 		return pages;
 	}
 	ValueTask IAsyncDisposable.DisposeAsync() {
 		GC.SuppressFinalize(this);
 		return ValueTask.CompletedTask;
 	}
-	public int SelectedItemFileCount() { return SelectedItem?.GetFiles().Count() ?? 0; }
+	public int SelectedItemFileCount() { return SelectedFolder?.GetFiles().Count() ?? 0; }
+	public void AddDropItem(DropItem item) {
+		if (item.IsCopy) {
+			AssignedDropItems.Add(item);
+		}
+		else {
+			DropItems.Add(item);
+		}
+	}
 }

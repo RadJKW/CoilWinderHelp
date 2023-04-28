@@ -1,4 +1,5 @@
 ﻿@inject AdminEditorState State
+@using System.Text.Json
 @implements IDisposable
 
 @if (State.RootDirectoryItem != null) {
@@ -11,6 +12,10 @@
           Spacing="6"
           AlignItems="AlignItems.Center"
           Justify="Justify.Center">
+        <MudIconButton Icon="@Icons.Material.Filled.Print"
+            Size="Size.Small"
+            Color="Color.Primary"
+            OnClick="ConsoleLogDropItems"/>
         <MudIcon Icon="@Icons.Material.Filled.DatasetLinked"/>
         <MudText Typo="Typo.h5">
           <strong >Winding Instructions</strong>
@@ -42,22 +47,17 @@
             <MudTreeViewItem T="IDirectoryItem"
                 Items="@(item.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet())"
                 Value="@item"
-                Expanded="@item.Expanded"
-                ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)">
+                @bind-Expanded="@item.Expanded">
 
               <Content>
                 @if (item.CanExpand) {
                   <MudTreeViewItemToggleButton Loading="item.Loading"
-                      Expanded="@item.Expanded"
-                      ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)"
-                      Visible="@State.HasFolders(item)"
-                      ExpandedIcon="@Icons.Material.Filled.ChevronRight"
-                      LoadingIcon="@Icons.Material.Filled.Loop"
-                      LoadingIconColor="Color.Info"/>
+                      @bind-Expanded="@item.Expanded"
+                      Visible="@State.HasFolders(item)"/>
                 } else if (item is {CanExpand: false} and DirectoryItem<DirectoryNode>) {
                   <MudTreeViewItemToggleButton/>
                 }
-                <MudIcon Icon="@item.Icon"/>
+                <MudIcon Icon="@Icons.Material.Filled.Folder"/>
                 <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%">
                   <MudText Class="pl-2"
                       Style="justify-self: start;">
@@ -86,13 +86,13 @@
 
       <div class="directory-dropzone">
 
-        @if (State.SelectedItem != null && !State.SelectedItem.HasFiles()) {
+        @if (State.SelectedFolder != null && !State.SelectedFolder.GetFiles().Any()) {
           <div class="align-center d-flex justify-center mx-auto"
               style="margin-top: 2rem;">
             <MudText Typo="Typo.h6">No Files in Current Directory</MudText>
           </div>
         }
-        @if (State.SelectedItem?.GetFiles().Count() > AdminEditorState.PageItemsCount) {
+        @if (State.GetPaginationCount() > AdminEditorState.PageItemsCount) {
           <div class="align-center d-flex flex-column">
 
             <MudPagination @bind-Selected="@State.CurrentPage"
@@ -113,8 +113,8 @@
             _ => "justify-flex-start gap-8"
             };
 
-          <MudDropZone T="IDirectoryItem"
-              Identifier="@State.SelectedItem?.DropZoneId"
+          <MudDropZone T="DropItem"
+              Identifier="@State.SelectedFolder?.DropZoneId"
               Class="@dzClass">
             <ItemRenderer Context="item">
 
@@ -167,7 +167,7 @@
   [Parameter(CaptureUnmatchedValues = true)]
   public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
   private MudTreeView<IDirectoryItem> MudTreeRoot { get; set; } = new();
-  private IDirectoryItem? SelectedItem { get => State.SelectedItem; set => State.SelectedItem = value; }
+  private IDirectoryItem? SelectedItem { get => State.SelectedFolder; set => State.SelectedFolder = value; }
 
 
 
@@ -182,27 +182,7 @@
     if (item is not DirectoryItem<FileNode> file) return;
     await State.OpenFilePreview(file.Item.Path);
   }
-  private async Task OnItemExpanded(IDirectoryItem item, bool expanded) {
-  // prevents parent from collapsing when child or grandchild is selected
 
-
-    if (item.Expanded != expanded) {
-      item.Expanded = expanded;
-      StateHasChanged();
-      await InvokeFetchTreeItems(item);
-    }
-  }
-  private async Task InvokeFetchTreeItems(IDirectoryItem item) {
-    if (!item.TreeItems.Any()) {
-      item.Loading = true;
-      StateHasChanged();
-      await Task.Delay(500);
-      await item.FetchTreeItems();
-      StateHasChanged();
-      item.Loading = false;
-      StateHasChanged();
-    }
-  }
   private Task UpdateSelectedItem(IDirectoryItem? arg) {
     if (arg is null) return Task.CompletedTask;
     if (arg == SelectedItem) return Task.CompletedTask;
@@ -225,7 +205,7 @@
       State.RootDirectoryItem.Expanded = expanded;
       return;
     }
-    if (State.SelectedItem is null) {
+    if (State.SelectedFolder is null) {
       State.RootDirectoryItem.Expanded = expanded;
       StateHasChanged();
     } else {
@@ -245,17 +225,27 @@
   // use the path of the selectedItem to determine which parent or parents need to be expanded.
   // expand each parent.
 
-    if (State.SelectedItem is null) return;
+    if (State.SelectedFolder is null) return;
 
-    var path = State.SelectedItem.Path;
+    var path = State.SelectedFolder.Path;
     var pathParts = path.Split('\\');
     foreach (var part in pathParts) {
       var item = stateRootDirectoryItem.TreeItems.FirstOrDefault(x => x.Name == part);
       if (item is null) continue;
-      if (item == State.SelectedItem) return;
-      await OnItemExpanded(item, true);
+      if (item == State.SelectedFolder) return;
+      item.Expanded = true;
       await ExpandToSelected(item);
     }
   }
 
+  private void ConsoleLogDropItems() {
+  //Console.Writeline all the items in the State.DropItems list where the dropItem.DropZoneId == State.SelectedFolder?.DropZoneId
+  // serialize teh item and write it to the console.
+
+    var items = State.DropItems.Where(x => x.DropZoneId == State.SelectedFolder?.DropZoneId);
+    foreach (var item in items) {
+      var json = JsonSerializer.Serialize(item);
+      Console.WriteLine(json);
+    }
+  }
 }

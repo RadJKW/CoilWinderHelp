@@ -7,10 +7,12 @@ public class DirectoryNode {
 	public string Name { get; set; }
 	public string Path { get; set; }
 	public List<DirectoryNode> Folders { get; set; } = new();
-	public List<FileNode> Files { get; set; } = new List<FileNode>();
+	public List<FileNode> Files { get; set; } = new();
 	public DirectoryNode? GetFolder(string folderPath) {
-		return Folders.FirstOrDefault(f => f.Path == folderPath) ??
-		       Folders.Select(f => f.GetFolder(folderPath)).FirstOrDefault(f => f != null);
+		var folderNode =
+			Folders.FirstOrDefault(f => f.Path == folderPath)
+			?? Folders.Select(f => f.GetFolder(folderPath)).FirstOrDefault(f => f != null);
+		return folderNode ?? null;
 	}
 }
 

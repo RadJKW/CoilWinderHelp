@@ -1,5 +1,6 @@
-﻿#media-card .drop-zone-gallery {
-  /*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*/
+﻿/*
+#media-card .drop-zone-gallery {
+  !*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*!
   display: flex;
   position: relative;
   gap: 4px;
@@ -31,3 +32,4 @@
   left: unset;
   right: unset;
 }
+*/

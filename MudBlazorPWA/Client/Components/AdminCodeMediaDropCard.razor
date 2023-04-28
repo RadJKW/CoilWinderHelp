@@ -11,7 +11,7 @@
         Class="mud-width-full"
         Style="background-color: transparent"
         Outlined="true">
-      <MudCardHeader Class="gap-x-4 mud-background-gray">
+      <MudCardHeader Class="gap-x-4 mud-background-gray pa-3">
         <MudText Typo="Typo.h6">
           <strong>
             @WindingCode.Division: @WindingCode.Name
@@ -47,11 +47,56 @@
                     <strong>@config.HeaderText</strong>
                   </MudText>
                 </div>
-                <MudDropZone T="IDirectoryItem"
+                <MudDropZone T="DropItem"
                     Style="@DropZoneConfig.Style"
                     Class="@config.DropZoneClass"
                     CanDrop="(_) => true"
                     Identifier="@dropZoneId">
+                  <ItemRenderer>
+                    @{
+                      var chipClass = "border border-solid drop-zone-item";
+                      string chipIcon;
+                      /*string? chipCloseIcon = context.IsCopy
+                          ? null
+                          : " ";*/
+                      switch (context.Type) {
+                        case DropItemType.Folder:
+                          chipClass += " " + "folder-item";
+                          chipIcon = Icons.Material.Filled.Folder;
+                          break;
+                        case DropItemType.Pdf:
+                          chipClass += " " + "pdf-item";
+                          chipIcon = Icons.Material.Filled.PictureAsPdf;
+                          break;
+                        case DropItemType.Video:
+                          chipClass += " " + "video-item";
+                          chipIcon = Icons.Material.Filled.VideoLibrary;
+                          break;
+                        default:
+                          throw new ArgumentOutOfRangeException();
+                      }
+
+                      <div class="drop-zone-item-tooltip">
+
+                        <div class="tooltip-icon">
+                          <MudIconButton OnClick="@(() => State.OpenFilePreview(context.Path))"
+                              Size="Size.Small"
+                              Icon="@Icons.Material.Filled.OpenInNew"/>
+                        </div>
+                        <div class="tooltip-content">
+                          <p>
+                            @context.Path
+                          </p>
+                        </div>
+                      </div>
+                      <MudChip Class="@chipClass"
+                          Icon="@chipIcon"
+                          Size="@Size.Small"
+                          Label="@true">
+                        <p class="mud-typography-button">@context.Name</p>
+                      </MudChip>
+                    }
+                  </ItemRenderer>
                 </MudDropZone>
               </div>
             </MudItem>
