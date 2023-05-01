@@ -4,20 +4,17 @@ using MudBlazorPWA.Client.Services;
 using MudBlazorPWA.Shared.Models;
 using System.Text.Json;
 namespace MudBlazorPWA.Client.Components;
-public partial class AdminDataGrid {
+public partial class AdminDataGrid : IDisposable {
 	[Parameter] [EditorRequired] public required List<WindingCode> WindingCodes { get; set; }
 
 	// create an event callback for the parent component to handle for when CodeType is changed
 
-
-
-	[Inject] private HubClientService HubClientService { get; set; } = default!;
-	// ReSharper disable once UnusedAutoPropertyAccessor.Local
 	[Inject] private ILogger<AdminDataGrid> Logger { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 
-
+	private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
+  #region Properties
 	private Division _selectedDivision = Division.All;
 	private Division SelectedDivision {
 		get => _selectedDivision;
@@ -27,11 +24,6 @@ public partial class AdminDataGrid {
 		}
 	}
 	private MudTooltip _menuTooltip = default!;
-	private readonly List<FilterDefinition<WindingCode>> _dataGridFilter = new();
-	private WindingCodeType CurrentWindingCodeType {
-		get => HubClientService.WindingCodeType;
-		set => HubClientService.WindingCodeType = value;
-	}
 	private bool _enableEdit;
 	private string? _searchString;
 	private bool _menuTooltipVisible;
@@ -48,29 +40,28 @@ public partial class AdminDataGrid {
 			}
 		}
 	}
-	private WindingCode? SelectedWindingCode { get; set; }
 	private CancellationTokenSource _ctsMenuToolTip = new();
-
+	#endregion
 
 	#region Lifecycle
 	protected override Task OnInitializedAsync() {
-		HubClientService.WindingCodesDbUpdated += async () => await OnWindingCodesDbUpdated();
+		State.StateChanged += OnStateChanged;
 		SelectedDivision = Division.D1;
 		UpdateGridFilter();
 		BuildColumnMap();
 		return base.OnInitializedAsync();
+	}
+	private void OnStateChanged() => StateHasChanged();
+
+	public void Dispose() {
+		State.StateChanged -= OnStateChanged;
+		GC.SuppressFinalize(this);
 	}
 	#endregion
 
 	#region DataGrid Methods
 	private static bool AssignedMediaDisabled(WindingCode windingCode) {
 		return windingCode.FolderPath == null;
-	}
-	private async Task RefreshWindingCodes() {
-		var windingCodesList = await HubClientService.GetWindingCodes();
-		// replace the list of WindingCodes with the new list
-		WindingCodes.Clear();
-		WindingCodes.AddRange(windingCodesList);
 	}
 	private void UpdateGridFilter() {
 		_dataGridFilter.Clear();
@@ -95,18 +86,16 @@ public partial class AdminDataGrid {
 		StateHasChanged();
 	}
 	private async Task CommitItemChanges(WindingCode item) {
-		bool result = await HubClientService.UpdateWindingCodeDb(item);
+
+		// add the item to the State.ModifiedWindingCodes list
+		// use State.ModifyWindingCode(item) to add the item to the list
+
+		bool result = await State.ModifyWindingCode(item);
 		if (!result) {
 			Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(item)}", Severity.Error);
 			return;
 		}
 		Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(item)}", Severity.Success);
-		var updatedItem = await HubClientService.GetWindingCode(item.Id);
-		if (updatedItem != null) {
-			int index = WindingCodes.FindIndex(x => x.Id == updatedItem.Id);
-			WindingCodes[index] = updatedItem;
-			StateHasChanged();
-		}
 	}
 #endregion
 
@@ -169,14 +158,6 @@ public partial class AdminDataGrid {
 		return true;
 	}
 	#endregion
-
-	#region EventHandlers
-	private async Task OnWindingCodesDbUpdated() {
-		Snackbar.Add("Winding Codes Database Updated", Severity.Success);
-		await RefreshWindingCodes();
-	}
-	#endregion
-
 
 	private string RowStyleFunc(WindingCode arg1, int arg2) {
 		return arg1 == State.SelectedWindingCode

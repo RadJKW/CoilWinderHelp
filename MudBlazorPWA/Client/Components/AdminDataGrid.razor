@@ -45,7 +45,7 @@
               <MudText Color="Color.Secondary"
                   Inline="true"
                   Style="text-overflow: ellipsis;">
-                @($"{CurrentWindingCodeType.ToString().ToUpper()} - Stops Table")
+                @($"{State.SelectedWindingCodeType.ToString().ToUpper()} - Stops Table")
               </MudText>
             </MudButton>
           </ActivatorContent>
@@ -61,11 +61,11 @@
                 Elevation="4">
               @foreach (var type in Enum.GetValues(typeof(WindingCodeType))
                 .Cast<WindingCodeType>()
-                .Where(t => t != CurrentWindingCodeType)) {
+                .Where(t => t != State.SelectedWindingCodeType)) {
                 <MudButton StartIcon="@Icons.Material.Outlined.SwapVert"
                     Size="Size.Small"
                     FullWidth="true"
-                    OnClick="@(() => CurrentWindingCodeType = type)"
+                    OnClick="@(() => State.SelectedWindingCodeType = type)"
                     Variant="Variant.Outlined"
                     Color="Color.Secondary"
                     IconSize="Size.Small">

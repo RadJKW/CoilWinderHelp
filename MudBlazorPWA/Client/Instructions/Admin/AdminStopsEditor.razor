@@ -73,7 +73,7 @@
     var targetDropZone = dropInfo.DropzoneIdentifier;
     var dropItem = dropInfo.Item;
 
-    Console.WriteLine("ItemUpdated");
+    Console.WriteLine("Start ItemUpdated");
     Console.WriteLine(JsonSerializer.Serialize(dropInfo));
 
     if (dropItem == null) return;
@@ -92,6 +92,9 @@
       Path = dropItem.Path,
     };
     State.AddDropItem(copy);
+
+    Console.WriteLine("End ItemUpdated");
+    Console.WriteLine(JsonSerializer.Serialize(copy));
   }
 
   private bool SelectPaginatedDropItems(DropItem dropItem, string identifier) {

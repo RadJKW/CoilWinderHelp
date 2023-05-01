@@ -92,7 +92,7 @@
             <MudText Typo="Typo.h6">No Files in Current Directory</MudText>
           </div>
         }
-        @if (State.SelectedItemFileCount() > AdminEditorState.PageItemsCount) {
+        @if (State.SelectedFolderFileCount() > AdminEditorState.PageItemsCount) {
           <div class="align-center d-flex flex-column">
 
             <MudPagination @bind-Selected="@State.CurrentPage"
@@ -109,7 +109,7 @@
 
         @{
           const string dzBaseClass = "d-flex flex-column mud-width-full mud-height-full  align-stretch";
-          var dzClass = dzBaseClass + " " + State.SelectedItemFileCount() switch {
+          var dzClass = dzBaseClass + " " + State.SelectedFolderFileCount() switch {
             >= 6 => "justify-space-evenly",
             _ => "pt-12 justify-flex-start gap-2"
             };

@@ -1,7 +1,9 @@
 ﻿@using MudBlazorPWA.Client.Instructions.Pages
 @using MudBlazorPWA.Client.Instructions.Dialogs
 @using System.Diagnostics
+@using System.Text.Json
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 @implements IDisposable
 @inject AdminEditorState State
 <div id="media-card"
@@ -111,7 +113,8 @@
             AlignItems="AlignItems.Center">
           <MudButton StartIcon="@Icons.Material.Filled.Verified"
               Size="Size.Small"
-              Disabled="_submitDisabled">
+              Disabled="_submitDisabled"
+              OnClick="@SaveChangesToDatabaseAsync">
             Submit
           </MudButton>
 
@@ -151,15 +154,15 @@
   [Parameter]
   [EditorRequired]
   public required WindingCode? WindingCode { get; set; }
-
-  [Parameter]
-  public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
   #endregion
+  #region Locals
   private List<DropZoneConfig> _dropZoneConfigs = new();
   private bool _submitDisabled = true;
+  #endregion
   #region Lifecycle
   protected override void OnInitialized() {
     base.OnInitialized();
+    State.DropItemsChanged += StateOnDropItemsChanged;
     _dropZoneConfigs = new() {
       new() {
         ContainerClass = "mud-alert-text-success",
@@ -183,44 +186,103 @@
       }
     };
   }
+  void IDisposable.Dispose() { Debug.WriteLine("Disposing AdminDashboard.razor"); }
   #endregion
-  private void AdminDashboard_OnDrop(string? dropZoneId, AdminDashboard.DropItemAction action) {
-    Console.WriteLine("OnDrop Event");
-    if (dropZoneId == null) {
-      Console.WriteLine("is null");
+  #region Methods
+  private async Task SaveChangesToDatabaseAsync() {
+    var windingCode = MapDropItemsToWindingCode();
+    if (windingCode is null) return;
+    var result = await State.ModifyWindingCode(windingCode);
+    if (!result) {
+      Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Error);
       return;
     }
-
-    _submitDisabled = false;
-
-    switch (action) {
-  // if action is Remove, then remove the item from FolderDropItems
-      case AdminDashboard.DropItemAction.Removed: {
-        Console.WriteLine($"Remove item with DropZoneId: {dropZoneId} ");
-        return;
-      }
-  // if action is Add, then add the item to FolderDropItems
-      case AdminDashboard.DropItemAction.Added: {
-        Console.WriteLine($"Added item with DropZoneId: {dropZoneId}");
-        return;
-      }
-      case AdminDashboard.DropItemAction.Updated:
-        Console.WriteLine($"Updated item with DropZoneId: {dropZoneId}");
-        break;
-      default:
-        throw new ArgumentOutOfRangeException(nameof(action), action, null);
-    }
-
-
-  // get the last segment of the DropZoneId which is the code id
-  // split by "-" and get the last segment
-    var codeId = dropZoneId.Split('-').Last();
-    if (codeId != WindingCode?.Id.ToString()) {
-      Console.WriteLine("not the same code id");
-      return;
-    }
-    _submitDisabled = false;
+    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Info);
+    var updatedItem = await State.GetWindingCode(windingCode.Id);
+    Snackbar.Add($"Updated item, Data = {JsonSerializer.Serialize(updatedItem)}", Severity.Success);
   }
+  private async Task OpenImportMediaDialog() {
+    if (WindingCode is null) return;
+    var parameters = new DialogParameters {
+      { "WindingCode", WindingCode }
+    };
+
+    var options = new DialogOptions() {
+      CloseButton = true,
+      MaxWidth = MaxWidth.ExtraSmall,
+      NoHeader = true
+    };
+
+    var dialog = await DialogService.ShowAsync<ImportMediaDialog>("Delete", parameters, options);
+    var result = await dialog.Result;
+
+    if (!result.Canceled) {
+      var windingCode = result.Data as WindingCode;
+
+      if (windingCode is null) return;
+
+      // TODO: update the state to show the new drop items
+
+      WindingCode.FolderPath = windingCode.FolderPath;
+      WindingCode.Media = windingCode.Media;
+      _submitDisabled = true;
+    }
+  }
+  private void StateOnDropItemsChanged() { _submitDisabled = false; }
+
+  private WindingCode? MapDropItemsToWindingCode() {
+    var code = State.SelectedWindingCode;
+    if (code is null) return null;
+
+    var dropZoneItems = State.AssignedDropItems;
+
+    var hasFolderItem = false;
+    var hasPdfItem = false;
+    var hasVideoItem = false;
+    var hasRefMediaItem = false;
+
+    Console.WriteLine("foreach item in dropZoneItems");
+    foreach (var item in dropZoneItems) {
+      string dropZonePrefix = item.DropZoneId[..item.DropZoneId.LastIndexOf('-')];
+      Console.WriteLine("dropZonePrefix -> " + dropZonePrefix);
+      switch (dropZonePrefix) {
+        case AdminEditorState.DzCodeFolder:
+          code.FolderPath = item.Path;
+          hasFolderItem = true;
+          break;
+        case AdminEditorState.DzCodePdf:
+          code.Media.Pdf = item.Path;
+          hasPdfItem = true;
+          break;
+        case AdminEditorState.DzCodeVideo:
+          code.Media.Video = item.Path;
+          hasVideoItem = true;
+          break;
+        case AdminEditorState.DzCodeRefMedia: {
+          Console.WriteLine("Case -> DzCodeRefMedia");
+          Console.WriteLine("Item Path -> " + item.Path);
+          code.Media.RefMedia?.Add(item.Path);
+          hasRefMediaItem = true;
+        }
+          break;
+      }
+    }
+
+    if (!hasFolderItem)
+      code.FolderPath = null;
+
+    if (!hasPdfItem)
+      code.Media.Pdf = null;
+
+    if (!hasVideoItem)
+      code.Media.Video = null;
+    if (!hasRefMediaItem)
+      code.Media.RefMedia = null;
+
+    Console.WriteLine("WindingCode -> " + code);
+    return code;
+  }
+  #endregion
   #region Classes
   public class DropZoneConfig {
     private readonly string _containerClass = "pa-1";
@@ -255,30 +317,4 @@
     }
   }
   #endregion
-  private async Task OpenImportMediaDialog() {
-    if (WindingCode is null) return;
-    var parameters = new DialogParameters {
-      { "WindingCode", WindingCode }
-    };
-
-    var options = new DialogOptions() {
-      CloseButton = true,
-      MaxWidth = MaxWidth.ExtraSmall,
-      NoHeader = true
-    };
-
-    var dialog = await DialogService.ShowAsync<ImportMediaDialog>("Delete", parameters, options);
-    var result = await dialog.Result;
-
-    if (!result.Canceled) {
-      var windingCode = result.Data as WindingCode;
-
-      if (windingCode is null) return;
-      WindingCode.FolderPath = windingCode.FolderPath;
-      WindingCode.Media = windingCode.Media;
-      _submitDisabled = true;
-      await OnCommittedItemChanges.InvokeAsync(WindingCode);
-    }
-  }
-  void IDisposable.Dispose() { Debug.WriteLine("Disposing AdminDashboard.razor"); }
 }
