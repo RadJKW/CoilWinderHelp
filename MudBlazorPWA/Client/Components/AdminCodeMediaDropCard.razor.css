@@ -19,6 +19,7 @@
 .drop-zone-gallery
 .mud-drop-item {
   width: unset;
+  overflow: hidden;
 }
 
 #media-card
@@ -27,6 +28,7 @@
 .drop-zone-gallery
 .mud-drop-item {
   width: unset;
+  overflow: hidden;
 }
 
 #media-card ::deep #drop-zone-chip.drop-zone-item {

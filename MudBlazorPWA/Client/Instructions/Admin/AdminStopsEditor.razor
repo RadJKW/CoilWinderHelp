@@ -1,0 +1,108 @@
+﻿@page "/Admin/StopsEditor"
+@layout DocViewLayout
+@inject AdminEditorState State
+@using System.Text.Json
+@implements IDisposable
+
+
+@if (Loading) {
+  <div class="align-center d-flex justify-center mud-width-full"
+      style="height: 50%">
+    <MudProgressCircular Indeterminate
+        Color="Color.Secondary"
+        Size="Size.Large"/>
+  </div>
+} else {
+  <MudDropContainer T="DropItem"
+      @ref="MudDropContainer"
+      Items="@State.DropItems"
+      Class="admin-drop-container mud-height-full"
+      CanDropClass="mud-border-success cursor-cell"
+      NoDropClass="mud-border-error cursor-not-allowed"
+      DraggingClass="item-dragging"
+      ApplyDropClassesOnDragStarted="true"
+      ItemsSelector="@SelectPaginatedDropItems"
+      ItemDropped="ItemUpdated"
+      ItemDraggingClass="mud-alert-text-success">
+    <div class="directory-tree-grid">
+
+      <div class="dark-background directory-tree-component overflow-hidden rounded-lg">
+        <DirectoryTree class="bordered directory-tree"/>
+      </div>
+
+      <MudStack Justify="Justify.FlexStart"
+          AlignItems="AlignItems.Stretch"
+          Spacing="0"
+          Class="bordered dark-background mud-width-full overflow-hidden"
+          Style="row-gap: 1rem;">
+        <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
+        <AdminCodeMediaDropCard WindingCode="@State.SelectedWindingCode"></AdminCodeMediaDropCard>
+      </MudStack>
+    </div>
+  </MudDropContainer>
+}
+
+@code{
+
+
+  private MudDropContainer<DropItem> MudDropContainer { get; set; } = null!;
+  private bool Loading { get; set; }
+
+  protected override void OnParametersSet() {
+    base.OnParametersSet();
+    Console.WriteLine("OnParametersSet");
+    Console.WriteLine(State.SelectedFolder?.Name);
+    Loading = State.SelectedFolder == null;
+  }
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    State.StateChanged += AdminStateChanged;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    Loading = State.SelectedFolder == null;
+    await base.OnAfterRenderAsync(firstRender);
+  }
+
+
+  private void AdminStateChanged() { StateHasChanged(); }
+
+  public void Dispose() { State.StateChanged -= AdminStateChanged; }
+
+  private void ItemUpdated(MudItemDropInfo<DropItem> dropInfo) {
+    var targetDropZone = dropInfo.DropzoneIdentifier;
+    var dropItem = dropInfo.Item;
+
+    Console.WriteLine("ItemUpdated");
+    Console.WriteLine(JsonSerializer.Serialize(dropInfo));
+
+    if (dropItem == null) return;
+  // if the dropItem is not a copy, then we need to create a copy of it where the DropZoneId is the targetDropZone
+
+    if (dropItem.DropZoneId == targetDropZone) return;
+
+    if (targetDropZone == "trash") {
+      State.RemoveDropItem(dropItem);
+      return;
+    }
+    var copy = new DropItem {
+      DropZoneId = targetDropZone,
+      IsCopy = true,
+      Name = dropItem.Name,
+      Path = dropItem.Path,
+    };
+    State.AddDropItem(copy);
+  }
+
+  private bool SelectPaginatedDropItems(DropItem dropItem, string identifier) {
+    if (dropItem.DropZoneId != identifier) return false;
+
+  // return true only if the dropItems is withing the page range of the current page
+  // use State.GetPageRange() to get the start and end index of the current page
+    var (start, end) = State.GetPageRange();
+    var filteredDropItems = State.DropItems.Where(x => x.DropZoneId == identifier).ToList();
+    var index = filteredDropItems.IndexOf(dropItem);
+
+    return index >= start && index <= end;
+  }
+}

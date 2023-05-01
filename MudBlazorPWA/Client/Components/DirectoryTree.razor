@@ -92,7 +92,7 @@
             <MudText Typo="Typo.h6">No Files in Current Directory</MudText>
           </div>
         }
-        @if (State.GetPaginationCount() > AdminEditorState.PageItemsCount) {
+        @if (State.SelectedItemFileCount() > AdminEditorState.PageItemsCount) {
           <div class="align-center d-flex flex-column">
 
             <MudPagination @bind-Selected="@State.CurrentPage"
@@ -100,8 +100,9 @@
                 Class="gap-0 mud-background-gray"
                 BoundaryCount="2"
                 MiddleCount="5"
-                Count="State.GetPaginationCount()"/>
+                Count="@State.SelectedItemPageCount"/>
           </div>
+          <MudDivider/>
         } else {
           <MudSpacer/>
         }
@@ -109,8 +110,8 @@
         @{
           const string dzBaseClass = "d-flex flex-column mud-width-full mud-height-full  align-stretch";
           var dzClass = dzBaseClass + " " + State.SelectedItemFileCount() switch {
-            >= 6 => "justify-space-evenly gap-2",
-            _ => "justify-flex-start gap-8"
+            >= 6 => "justify-space-evenly",
+            _ => "pt-12 justify-flex-start gap-2"
             };
 
           <MudDropZone T="DropItem"
@@ -127,12 +128,13 @@
                   _ => "mud-success-hover"
 
                   };
-                <div class="@itemClass gap-"
+                <div class="@itemClass"
                     style="width:80%; border:1px solid; padding-inline:10px;">
 
                   <MudIcon Icon="@item.Icon"
-                      Size="Size.Large"/>
-                  <div style="display: grid;grid-template-columns: 1fr auto;align-items: center;justify-content: stretch;width: 100%;gap: 2rem;">
+                      Size="Size.Large"
+                      Class="pa-1"/>
+                  <div style="display: grid;grid-template-columns: repeat(2, auto);align-items: center;justify-content: stretch;width: 100%;gap: normal;">
 
                     <MudText Class="pl-2"
                         Style="justify-self: start;">
@@ -239,7 +241,7 @@
   }
 
   private void ConsoleLogDropItems() {
-  //Console.Writeline all the items in the State.DropItems list where the dropItem.DropZoneId == State.SelectedFolder?.DropZoneId
+  //Console.WriteLine all the items in the State.DropItems list where the dropItem.DropZoneId == State.SelectedFolder?.DropZoneId
   // serialize teh item and write it to the console.
 
     var items = State.DropItems.Where(x => x.DropZoneId == State.SelectedFolder?.DropZoneId);

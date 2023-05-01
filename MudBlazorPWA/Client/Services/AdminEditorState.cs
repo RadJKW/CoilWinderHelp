@@ -4,6 +4,10 @@ using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState : IAsyncDisposable {
+	public const string DzCodeFolder = "DZ-Code-Folder";
+	public const string DzCodePdf = "DZ-Code-Pdf";
+	public const string DzCodeVideo = "DZ-Code-Video";
+	public const string DzCodeRefMedia = "DZ-Code-Ref";
 	public event Action? StateChanged;
 
 	private readonly HubClientService _directoryHub;
@@ -52,9 +56,61 @@ public class AdminEditorState : IAsyncDisposable {
 	public WindingCode? SelectedWindingCode {
 		get => _windingCodeManager.SelectedWindingCode;
 		set {
+			if (value != null)
+				BuildCodeDropItems(value);
 			_windingCodeManager.SelectedWindingCode = value;
 			NotifyStateChanged();
 		}
+	}
+	private void BuildCodeDropItems(IWindingCode windingCode) {
+		// if any of the following are not null, create a drop item for it
+		// - windingCode.FolderPath
+		// - windingCode.Media.Pdf
+		// - windingCode.Media.Video
+		// - windingCode.Media.RefMedia (list of pdf and video files)
+		//   * ensure that any items in refMedia are not already in the list
+
+
+		var dropItems = new List<DropItem>();
+		if (windingCode.FolderPath != null) {
+			var assignedDropZoneId = DzCodeFolder + "-" + windingCode.Id;
+			var name = windingCode.FolderPath.Split('/').Last();
+			var path = windingCode.FolderPath;
+			// create the new dropItem and add it to the list
+			dropItems.Add(new() { DropZoneId = assignedDropZoneId, Path = path, Name = name, IsCopy = true });
+		}
+
+		if (windingCode.Media.Pdf != null) {
+			var assignedDropZoneId = DzCodePdf + "-" + windingCode.Id;
+			var name = windingCode.Media.Pdf.Split('/').Last();
+			var path = windingCode.Media.Pdf;
+			// create the new dropItem and add it to the list
+			dropItems.Add(new() { DropZoneId = assignedDropZoneId, Path = path, Name = name, IsCopy = true });
+		}
+
+		if (windingCode.Media.Video != null) {
+			var assignedDropZoneId = DzCodeVideo + "-" + windingCode.Id;
+			var name = windingCode.Media.Video.Split('/').Last();
+			var path = windingCode.Media.Video;
+			// create the new dropItem and add it to the list
+			dropItems.Add(new() { DropZoneId = assignedDropZoneId, Path = path, Name = name, IsCopy = true });
+		}
+
+		if (windingCode.Media.RefMedia != null) {
+			var assignedDropZoneId = DzCodeRefMedia + "-" + windingCode.Id;
+			dropItems.AddRange(
+			from media in windingCode.Media.RefMedia
+			let name = media.Split('/').Last()
+			let path = media
+			select new DropItem() {
+				DropZoneId = assignedDropZoneId,
+				Path = path,
+				Name = name,
+				IsCopy = true
+			});
+		}
+
+		AssignedDropItems = dropItems;
 	}
 	public IEnumerable<WindingCode> WindingCodes {
 		get => _windingCodeManager.WindingCodes;
@@ -62,7 +118,18 @@ public class AdminEditorState : IAsyncDisposable {
 	}
 
 	public List<DropItem> DropItems { get; } = new();
-	private List<DropItem> AssignedDropItems { get; } = new();
+	// ReSharper disable once CollectionNeverQueried.Local
+	private List<DropItem> _assignedDropItems = new();
+
+	private List<DropItem> AssignedDropItems {
+		get => _assignedDropItems;
+		set {
+			DropItems.RemoveAll(item => _assignedDropItems.Any(dropItem => dropItem.Path == item.Path && dropItem.IsCopy));
+			_assignedDropItems = value;
+			DropItems.AddRange(_assignedDropItems);
+			NotifyStateChanged();
+		}
+	}
 
 
 	private async Task FetchDirectoryTree() {
@@ -80,9 +147,6 @@ public class AdminEditorState : IAsyncDisposable {
 	private void NavigateToFolder(DirectoryNode folder) {
 		_directoryNavigator.NavigateToFolder(folder);
 		_directoryNavigator.GetCurrentFolder();
-	}
-	public void NavigateToRoot() {
-		_directoryNavigator.NavigateToRoot();
 	}
 	private void NotifyStateChanged() {
 		StateChanged?.Invoke();
@@ -111,50 +175,9 @@ public class AdminEditorState : IAsyncDisposable {
 	}
 	public const int PageItemsCount = 9;
 
-	public IEnumerable<DropItem> GetPaginatedFileDropItems() {
-		var files = SelectedFolder?.GetFiles();
-		if (files == null) return new List<DropItem>();
-		var directoryItems = files.ToList();
-		var count = directoryItems.Count;
-		if (count <= PageItemsCount) return DropItems.Where(x => x.DropZoneId == SelectedFolder!.DropZoneId);
-		var pages = count / PageItemsCount;
-		if (count % PageItemsCount != 0) pages++;
-		if (CurrentPage > pages) CurrentPage = pages;
-		if (CurrentPage < 1) CurrentPage = 1;
-		var skip = (CurrentPage - 1) * PageItemsCount;
-		return DropItems.Skip(skip).Take(PageItemsCount).ToList();
-	}
-	public int PageStart() {
-		var start = 0;
-		var files = SelectedFolder?.GetFiles();
-		if (files == null) return start;
-		var count = files.Count();
-		if (count <= PageItemsCount) return start;
-		var pages = count / PageItemsCount;
-		if (count % PageItemsCount != 0) pages++;
-		if (CurrentPage > pages) CurrentPage = pages;
-		if (CurrentPage < 1) CurrentPage = 1;
-		start = (CurrentPage - 1) * PageItemsCount;
-		Console.WriteLine("start: " + start);
-		return start;
-	}
-	public int PageEnd() {
-		var end = 0;
+	public int SelectedItemPageCount => CalculatePageCount();
 
-		var files = SelectedFolder?.GetFiles();
-		if (files == null) return end;
-		var count = files.Count();
-		if (count <= PageItemsCount) return count;
-		var pages = count / PageItemsCount;
-		if (count % PageItemsCount != 0) pages++;
-		if (CurrentPage > pages) CurrentPage = pages;
-		if (CurrentPage < 1) CurrentPage = 1;
-		end = CurrentPage * PageItemsCount;
-		if (end > count) end = count;
-		Console.WriteLine("end: " + end);
-		return end;
-	}
-	public int GetPaginationCount() {
+	private int CalculatePageCount() {
 		var pages = 0;
 		var files = SelectedFolder?.GetFiles();
 		if (files == null) {
@@ -167,17 +190,48 @@ public class AdminEditorState : IAsyncDisposable {
 		Console.WriteLine("pages: " + pages);
 		return pages;
 	}
-	ValueTask IAsyncDisposable.DisposeAsync() {
-		GC.SuppressFinalize(this);
-		return ValueTask.CompletedTask;
+
+	public int SelectedItemFileCount() {
+		return SelectedFolder?.GetFiles().Count() ?? 0;
 	}
-	public int SelectedItemFileCount() { return SelectedFolder?.GetFiles().Count() ?? 0; }
 	public void AddDropItem(DropItem item) {
 		if (item.IsCopy) {
 			AssignedDropItems.Add(item);
 		}
-		else {
-			DropItems.Add(item);
+		DropItems.Add(item);
+	}
+	public void RemoveDropItem(DropItem item) {
+		if (item.IsCopy) {
+			AssignedDropItems.Remove(item);
 		}
+		DropItems.Remove(item);
+	}
+	public (int start, int end) GetPageRange() {
+		// determine the total number of files in SelectedFolder
+		// determine the start and end of the page range depending on PageItemsCount
+		var files = SelectedFolder?.GetFiles();
+		if (files == null) return (0, 0);
+		var count = files.Count();
+		int start;
+		int end;
+
+		if (count <= PageItemsCount) {
+			start = 0;
+			end = count;
+		}
+		else {
+			var pages = count / PageItemsCount;
+			if (count % PageItemsCount != 0) pages++;
+			if (CurrentPage > pages) CurrentPage = pages;
+			if (CurrentPage < 1) CurrentPage = 1;
+			start = (CurrentPage - 1) * PageItemsCount;
+			end = CurrentPage * PageItemsCount;
+			if (end > count) end = count;
+		}
+		return (start, end);
+	}
+	ValueTask IAsyncDisposable.DisposeAsync() {
+		GC.SuppressFinalize(this);
+		return ValueTask.CompletedTask;
 	}
 }

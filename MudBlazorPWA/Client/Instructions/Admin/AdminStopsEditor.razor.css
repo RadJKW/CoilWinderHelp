@@ -1,0 +1,63 @@
+﻿.mud-drop-container.admin-drop-container {
+  height: 100%;
+}
+
+.directory-tree-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+}
+
+::deep .mud-table.mud-data-grid {
+  --data-grid-toolbar-height: 72px;
+  overflow: hidden;
+}
+
+::deep .mud-table.mud-data-grid .mud-table-container {
+  max-height: calc(101% - var(--data-grid-toolbar-height));
+}
+
+.dark-background,
+::deep .dark-background {
+  background-color: var(--mud-palette-background-grey);
+}
+
+.bordered,
+::deep .bordered {
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 3px;
+  border-color: var(--mud-palette-lines-default);
+}
+
+.directory-tree-component {
+  display: flex;
+  width: 25vw;
+}
+
+::deep .directory-tree {
+  justify-self: center;
+  align-self: start;
+  overflow: hidden;
+  width: 100%;
+  margin-inline: auto;
+  height: 100%;
+}
+
+::deep
+.mud-treeview-item
+.mud-treeview-item-content:not(:has(div.mud-treeview-item-arrow)) {
+  padding: 4px 2px;
+}
+
+::deep .mud-treeview-item .mud-treeview-item-content:hover {
+  background-color: rgba(52, 52, 162, 0.24);
+}
+
+/* make .mud-treeview-item .p selectable with cursor */
+::deep .mud-treeview-item .mud-treeview-item-content p {
+}

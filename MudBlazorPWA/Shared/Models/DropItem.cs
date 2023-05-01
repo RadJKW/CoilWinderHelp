@@ -29,6 +29,7 @@ public class DropItem {
 	public DropItem() {
 	}
 
+
 	public DropItem(IDirectoryItem item) {
 		// Set common properties
 		DropZoneId = item.DropZoneId;
@@ -47,5 +48,7 @@ public class DropItem {
 public enum DropItemType {
 	Folder,
 	Video,
-	Pdf
+	Pdf,
+	Media,
+	Unknown
 }
