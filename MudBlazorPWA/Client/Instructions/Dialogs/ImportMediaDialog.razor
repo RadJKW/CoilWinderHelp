@@ -1,4 +1,5 @@
-﻿@inject HubClientService HubClientService
+﻿@using System.Text.Json
+@inject HubClientService HubClientService
 <MudDialog DisableSidePadding="true"
     ClassContent="pt-0">
   <DialogContent>
@@ -16,7 +17,7 @@
         Justify="Justify.Center"
         AlignItems="AlignItems.Center">
 
-      <MudRadioGroup @bind-SelectedOption="WindingCode">
+      <MudRadioGroup @bind-SelectedOption="SelectedWindingCode">
         @foreach (var windingCode in WindingCodesForImport) {
           <MudRadio Option="windingCode"
               Color="Color.Secondary"
@@ -49,16 +50,43 @@
   [Parameter]
   public Color Color { get; set; } = Color.Info;
 
+  private WindingCode? SelectedWindingCode { get; set; }
+
   private List<WindingCode> WindingCodesForImport { get; set; } = new();
-  void Submit() => MudDialog.Close(DialogResult.Ok(WindingCode));
+  void Submit() {
+  // transfer the SelectedWindingCode.[FolderPath, Media] to WindingCode.[FolderPath, Media]
+  // and return the WindingCode to the parent component
+    Console.WriteLine($"Original WindingCode: {JsonSerializer.Serialize(WindingCode)}");
+    if (SelectedWindingCode is null) {
+      Cancel();
+      return;
+    }
+    Console.WriteLine($"Selected WindingCode: {JsonSerializer.Serialize(SelectedWindingCode)}");
+
+  // compare the selected WindingCode to the original WindingCode
+  // code.FolderPath, code.Media.Pdf, code.Media.video, code.Media.refMedia should be evaluated
+    var tempWindingCode = WindingCode.Clone();
+    tempWindingCode.Id = SelectedWindingCode.Id;
+    tempWindingCode.Division = SelectedWindingCode.Division;
+
+    var original = JsonSerializer.Serialize(tempWindingCode);
+    var selected = JsonSerializer.Serialize(SelectedWindingCode);
+
+    if (original.Equals(selected)) {
+      Console.WriteLine("Selected WindingCode is the same as the original WindingCode");
+      Cancel();
+      return;
+    }
+
+    WindingCode.FolderPath = SelectedWindingCode.FolderPath;
+    WindingCode.Media = SelectedWindingCode.Media;
+    Console.WriteLine($"Updated WindingCode: {JsonSerializer.Serialize(WindingCode)}");
+    MudDialog.Close(DialogResult.Ok(WindingCode));
+  }
   void Cancel() => MudDialog.Cancel();
 
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-  // look at the division for the WindingCode
-  // if the division is Division.D1, then we want to use HubClientServer to get Winding Codes for D2 and D3
-  // ignore Division.All. We don't want to import from All
-  // The same logic for if Code is D2 or D3
     WindingCodesForImport = await HubClientService.GetWindingCodesForImport(WindingCode);
   }
 }

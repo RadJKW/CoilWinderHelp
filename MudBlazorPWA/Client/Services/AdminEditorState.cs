@@ -178,7 +178,7 @@ public class AdminEditorState : IAsyncDisposable {
 		DropItems.Remove(item);
 		NotifyDropItemsChanged();
 	}
-	private void BuildCodeDropItems(IWindingCode windingCode) {
+	public Task BuildCodeDropItems(IWindingCode windingCode) {
 		var dropItems = new List<DropItem>();
 		(string prefix, string? path)[] paths = {
 			(DzCodeFolder, windingCode.FolderPath),
@@ -198,6 +198,7 @@ public class AdminEditorState : IAsyncDisposable {
 		}
 
 		AssignedDropItems = dropItems;
+		return Task.CompletedTask;
 	}
 	private static DropItem CreateDropItem(string assignedDropZoneId, string path) {
 		var name = path.Split('/').Last();

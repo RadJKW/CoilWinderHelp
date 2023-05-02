@@ -1,16 +1,14 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MudBlazorPWA.Shared.Models;
-public class Z80WindingCode : WindingCode
-{
+public class Z80WindingCode : WindingCode {
 }
 
-public class PcWindingCode : WindingCode
-{
+public class PcWindingCode : WindingCode {
 }
 
-public class WindingCode : IWindingCode
-{
+public class WindingCode : IWindingCode {
 	public int Id { get; set; }
 	public required string Code { get; set; }
 	public Division Division { get; set; }
@@ -19,10 +17,14 @@ public class WindingCode : IWindingCode
 	public CodeTypeId CodeTypeId { get; set; }
 	public Media Media { get; set; } = null!;
 	public CodeType? CodeType { get; set; }
+
+	public WindingCode Clone() {
+		var json = JsonSerializer.Serialize(this);
+		return JsonSerializer.Deserialize<WindingCode>(json) ?? throw new NullReferenceException();
+	}
 }
 
-public interface IWindingCode
-{
+public interface IWindingCode {
 	public int Id { get; set; }
 	public string Code { get; set; }
 	public Division Division { get; set; }
@@ -31,16 +33,15 @@ public interface IWindingCode
 	public CodeTypeId CodeTypeId { get; set; }
 	public Media Media { get; set; }
 	[JsonIgnore] public CodeType? CodeType { get; set; }
+	public WindingCode Clone();
 }
 
-public enum WindingCodeType
-{
+public enum WindingCodeType {
 	Z80,
 	Pc
 }
 
-public enum Division
-{
+public enum Division {
 	All = 0,
 	D1 = 1,
 	D2 = 2,

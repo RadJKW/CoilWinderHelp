@@ -1,11 +1,10 @@
-﻿@using MudBlazorPWA.Client.Instructions.Pages
-@using MudBlazorPWA.Client.Instructions.Dialogs
-@using System.Diagnostics
-@using System.Text.Json
+﻿@using System.Text.Json
+
 @inject IDialogService DialogService
 @inject ISnackbar Snackbar
-@implements IDisposable
 @inject AdminEditorState State
+@implements IDisposable
+
 <div id="media-card"
     class="d-flex justify-center mud-width-full">
   @if (WindingCode != null) {
@@ -186,20 +185,21 @@
       }
     };
   }
-  void IDisposable.Dispose() { Debug.WriteLine("Disposing AdminDashboard.razor"); }
+  void IDisposable.Dispose() { Console.WriteLine("Disposing AdminDashboard.razor"); }
   #endregion
   #region Methods
   private async Task SaveChangesToDatabaseAsync() {
     var windingCode = MapDropItemsToWindingCode();
     if (windingCode is null) return;
+    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Info);
     var result = await State.ModifyWindingCode(windingCode);
     if (!result) {
       Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Error);
       return;
     }
-    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Info);
     var updatedItem = await State.GetWindingCode(windingCode.Id);
     Snackbar.Add($"Updated item, Data = {JsonSerializer.Serialize(updatedItem)}", Severity.Success);
+    _submitDisabled = true;
   }
   private async Task OpenImportMediaDialog() {
     if (WindingCode is null) return;
@@ -216,17 +216,15 @@
     var dialog = await DialogService.ShowAsync<ImportMediaDialog>("Delete", parameters, options);
     var result = await dialog.Result;
 
-    if (!result.Canceled) {
-      var windingCode = result.Data as WindingCode;
-
-      if (windingCode is null) return;
-
-      // TODO: update the state to show the new drop items
-
-      WindingCode.FolderPath = windingCode.FolderPath;
-      WindingCode.Media = windingCode.Media;
-      _submitDisabled = true;
+    if (result.Canceled) {
+      Console.WriteLine("Dialog was canceled");
+      Snackbar.Add($"Canceled Import Media Dialog", Severity.Info);
+      return;
     }
+    if (result.Data is not WindingCode windingCode) return;
+
+    await State.BuildCodeDropItems(windingCode);
+    _submitDisabled = false;
   }
   private void StateOnDropItemsChanged() { _submitDisabled = false; }
 

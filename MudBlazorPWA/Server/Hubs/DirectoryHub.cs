@@ -107,15 +107,6 @@ public class DirectoryHub : Hub<IHubClient> {
 
 		return node;
 	}
-	public async Task<List<string>> ListVideoFiles(string? path) {
-		var result = await _directoryService.ListVideoFiles(path);
-		return result;
-	}
-	public async Task<List<string>> ListPdfFiles(string? path) {
-		// var clientIP = HubExtensions.GetConnectionIp(Context);
-		var files = await _directoryService.ListPdfFiles(path);
-		return files;
-	}
 	public Task<List<string>> ListMediaFiles(string? path) {
 		/*var files = await _directoryService.ListMediaFiles(path);
 		return files;*/
