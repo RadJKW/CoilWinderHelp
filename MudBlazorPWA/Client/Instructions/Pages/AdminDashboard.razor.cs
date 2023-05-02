@@ -54,7 +54,6 @@ public partial class AdminDashboard : IDisposable {
 		// create a copy of the original Item
 		var copy = new DropItem {
 			DropZoneId = targetDropZone,
-			OriginalIdentifier = originalItem.DropZoneId,
 			Name = originalItem.Name,
 			Path = originalItem.Path,
 			IsCopy = true

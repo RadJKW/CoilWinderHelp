@@ -10,14 +10,18 @@ var hostAddress = new Uri(builder.HostEnvironment.BaseAddress);
 var webDirectory = new Uri(hostAddress, "WindingPractices");
 
 builder.Services
-       .AddHttpClient("PwaServer", configureClient: client =>
-	       client
-		       .BaseAddress = new(builder.HostEnvironment.BaseAddress));
+	.AddHttpClient(
+	"PwaServer",
+	configureClient: client =>
+		client
+			.BaseAddress = new(builder.HostEnvironment.BaseAddress));
 
 builder.Services
-  .AddHttpClient("ApiFileServer", configureClient: client =>
-    client
-      .BaseAddress = webDirectory);
+	.AddHttpClient(
+	"ApiFileServer",
+	configureClient: client =>
+		client
+			.BaseAddress = webDirectory);
 
 // get the services required for AdminEditorState and await InitializeAsync
 builder.Services.AddClientServices();

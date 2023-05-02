@@ -44,41 +44,45 @@
             }
           </ChildContent>
           <ItemTemplate Context="item">
-            <MudTreeViewItem T="IDirectoryItem"
-                Items="@(item.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet())"
-                Value="@item"
-                @bind-Expanded="@item.Expanded">
+            <MudDropZone T="DropItem"
+                Identifier="@($"Directory-{item.DropZoneId}")">
 
-              <Content>
-                @if (item.CanExpand) {
-                  <MudTreeViewItemToggleButton Loading="item.Loading"
-                      @bind-Expanded="@item.Expanded"
-                      Visible="@State.HasFolders(item)"/>
-                } else if (item is {CanExpand: false} and DirectoryItem<DirectoryNode>) {
-                  <MudTreeViewItemToggleButton/>
-                }
-                <MudIcon Icon="@Icons.Material.Filled.Folder"/>
-                <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%">
-                  <MudText Class="pl-2"
-                      Style="justify-self: start;">
-                    @item.Name
-                  </MudText>
-                  @if (item is DirectoryItem<FileNode>) {
-                    <div style="justify-self: end;">
+              <MudTreeViewItem T="IDirectoryItem"
+                  Items="@(item.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet())"
+                  Value="@item"
+                  @bind-Expanded="@item.Expanded">
 
-                      <MudIconButton Icon="@Icons.Material.Filled.OpenInBrowser"
-                          OnClick="@(() => OpenFilePreview(item))"
-                          Size="Size.Small"
-                          Color="Color.Inherit"/>
-                      <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
-                          Size="Size.Medium"
-                          Color="Color.Inherit"/>
-                    </div>
+                <Content>
+                  @if (item.CanExpand) {
+                    <MudTreeViewItemToggleButton Loading="item.Loading"
+                        @bind-Expanded="@item.Expanded"
+                        Visible="@State.HasFolders(item)"/>
+                  } else if (item is {CanExpand: false} and DirectoryItem<DirectoryNode>) {
+                    <MudTreeViewItemToggleButton/>
                   }
-                </div>
-              </Content>
+                  <MudIcon Icon="@Icons.Material.Filled.Folder"/>
+                  <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%">
+                    <MudText Class="pl-2"
+                        Style="justify-self: start;">
+                      @item.Name
+                    </MudText>
+                    @if (item is DirectoryItem<FileNode>) {
+                      <div style="justify-self: end;">
 
-            </MudTreeViewItem>
+                        <MudIconButton Icon="@Icons.Material.Filled.OpenInBrowser"
+                            OnClick="@(() => OpenFilePreview(item))"
+                            Size="Size.Small"
+                            Color="Color.Inherit"/>
+                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                            Size="Size.Medium"
+                            Color="Color.Inherit"/>
+                      </div>
+                    }
+                  </div>
+                </Content>
+
+              </MudTreeViewItem>
+            </MudDropZone>
           </ItemTemplate>
 
         </MudTreeView>
@@ -121,13 +125,15 @@
 
               @{
                 const string baseClass = "align-center d-flex justify-center flex-auto mx-auto";
-                var itemClass = baseClass + " " + item.Name switch {
-                  // if name ends with .pdf or .PDF
-                  var name when name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) => "mud-error-hover",
-                  var name when name.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) => "mud-info-hover",
-                  _ => "mud-success-hover"
 
+                var itemClass = baseClass + " " + item.Type switch {
+                  // if name ends with .pdf or .PD
+                  DropItemType.Pdf => "mud-error-hover",
+                  DropItemType.Video => "mud-info-hover",
+                  DropItemType.Folder => "mud-success-hover",
+                  _ => "mud-warning-hover"
                   };
+
                 <div class="@itemClass"
                     style="width:80%; border:1px solid; padding-inline:10px;">
 
@@ -246,8 +252,7 @@
 
     var items = State.DropItems.Where(x => x.DropZoneId == State.SelectedFolder?.DropZoneId);
     foreach (var item in items) {
-      var json = JsonSerializer.Serialize(item);
-      Console.WriteLine(json);
+      Console.WriteLine(State.Serialize(item));
     }
   }
 }

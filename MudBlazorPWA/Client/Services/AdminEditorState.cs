@@ -2,6 +2,8 @@
 using Microsoft.JSInterop;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState : IAsyncDisposable {
 	#region Constructor
@@ -33,6 +35,13 @@ public class AdminEditorState : IAsyncDisposable {
 	#endregion
 
 	#region Properties
+	private readonly JsonSerializerOptions _jsonOptions = new() {
+		PropertyNameCaseInsensitive = true,
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+		Converters = {
+			new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+		}
+	};
 	private int _currentPage = 1;
 	public int CurrentPage {
 		get => _currentPage;
@@ -60,10 +69,10 @@ public class AdminEditorState : IAsyncDisposable {
 
 	#region Events
 	public event Action? StateChanged;
-	public event Action? DropItemsChanged;
+	public event Action? CanSubmitWindingCodeChanges;
 
 	private void NotifyStateChanged() => StateChanged?.Invoke();
-	private void NotifyDropItemsChanged() => DropItemsChanged?.Invoke();
+	private void NotifyCanSubmit() => CanSubmitWindingCodeChanges?.Invoke();
 	#endregion
 
 	#region Directory
@@ -75,6 +84,7 @@ public class AdminEditorState : IAsyncDisposable {
 			CurrentPage = 1;
 			if (value != null)
 				_ = BuildDirectoryDropItems(value);
+			NotifyStateChanged();
 		}
 	}
 	public int SelectedFolderFileCount() {
@@ -87,22 +97,11 @@ public class AdminEditorState : IAsyncDisposable {
 
 		RootDirectoryItem = rootDirectoryItem;
 		SelectedFolder = rootDirectoryItem;
-		NotifyStateChanged();
 
 		if (_directoryNavigator.NavigationHistory.Count == 0)
 			NavigateToFolder(rootDirectory);
 	}
-	private Task BuildDirectoryDropItems(IDirectoryItem value) {
-		DropItems.AddRange(
-		value
-			.GetFiles()
-			.Where(item => item.ItemType is ItemType.File)
-			.Select(
-			item => new DropItem(item)
-				{ DropZoneId = value.DropZoneId }));
-		NotifyStateChanged();
-		return Task.CompletedTask;
-	}
+
 	private int CalculatePageCount() {
 		var pages = 0;
 		var files = SelectedFolder?.GetFiles();
@@ -120,11 +119,12 @@ public class AdminEditorState : IAsyncDisposable {
 		// determine the total number of files in SelectedFolder
 		// determine the start and end of the page range depending on PageItemsCount
 		var files = SelectedFolder?.GetFiles();
-		if (files == null) return (0, 0);
-		var count = files.Count();
-		int start;
-		int end;
+		var folders = SelectedFolder?.GetFolders();
+		var count = files?.Count() ?? 0;
+		count += folders?.Count() ?? 0;
+		if (count == 0) return (0, 0);
 
+		int start, end;
 		if (count <= PageItemsCount) {
 			start = 0;
 			end = count;
@@ -163,20 +163,45 @@ public class AdminEditorState : IAsyncDisposable {
 			DropItems.AddRange(_assignedDropItems);
 		}
 	}
+
 	public List<DropItem> DropItems { get; } = new();
 	public void AddDropItem(DropItem item) {
 		if (item.IsCopy) {
 			AssignedDropItems.Add(item);
 		}
 		DropItems.Add(item);
-		NotifyDropItemsChanged();
+		NotifyCanSubmit();
+	}
+	private Task BuildDirectoryDropItems(IDirectoryItem value) {
+		var dropItems = new List<DropItem>();
+		dropItems.AddRange(
+		value
+			.GetFolders()
+			.Select(
+			item
+				=> new DropItem(item, value.DropZoneId)));
+		dropItems.AddRange(
+		value
+			.GetFiles()
+			.Select(
+			item
+				=> new DropItem(item, value.DropZoneId)));
+		dropItems.Sort(
+		(a, b) =>
+			a.IsFolder switch {
+				true when !b.IsFolder => -1,
+				false when b.IsFolder => 1,
+				_ => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
+			});
+		DropItems.AddRange(dropItems);
+		return Task.CompletedTask;
 	}
 	public void RemoveDropItem(DropItem item) {
 		if (item.IsCopy) {
 			AssignedDropItems.Remove(item);
 		}
 		DropItems.Remove(item);
-		NotifyDropItemsChanged();
+		NotifyCanSubmit();
 	}
 	public Task BuildCodeDropItems(IWindingCode windingCode) {
 		var dropItems = new List<DropItem>();
@@ -221,7 +246,9 @@ public class AdminEditorState : IAsyncDisposable {
 		get => _directoryHub.WindingCodeType;
 		set => _directoryHub.WindingCodeType = value;
 	}
-
+	public async Task<WindingCode?> GetWindingCode(int windingCodeId) {
+		return await _windingCodeManager.FetchWindingCode(windingCodeId);
+	}
 	public async Task<bool> ModifyWindingCode(WindingCode windingCode) {
 		return await _windingCodeManager.UpdateWindingCode(windingCode);
 	}
@@ -242,8 +269,10 @@ public class AdminEditorState : IAsyncDisposable {
 		          + filePath;
 		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
-	#endregion
-	public async Task<WindingCode?> GetWindingCode(int windingCodeId) {
-		return await _windingCodeManager.FetchWindingCode(windingCodeId);
+
+	public string Serialize<T>(T value) {
+		var json = JsonSerializer.Serialize(value, _jsonOptions);
+		return json;
 	}
+	#endregion
 }

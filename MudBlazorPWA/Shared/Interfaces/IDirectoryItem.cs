@@ -12,8 +12,6 @@ public interface IDirectoryItem {
 	bool Loading { get; set; }
 	bool Selected { get; set; }
 	HashSet<IDirectoryItem> TreeItems { get; set; }
-	Task FetchTreeItems();
 	IEnumerable<IDirectoryItem> GetFiles();
-	bool HasFiles();
-	IEnumerable<DropItem> GetFileDropItems();
+	IEnumerable<IDirectoryItem> GetFolders();
 }

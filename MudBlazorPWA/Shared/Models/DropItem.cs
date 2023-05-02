@@ -3,46 +3,75 @@ using MudBlazorPWA.Shared.Interfaces;
 using System.Text.Json.Serialization;
 namespace MudBlazorPWA.Shared.Models;
 public class DropItem {
-	public string OriginalIdentifier { get; init; } = null!;
-	public string DropZoneId { get; set; } = null!;
+	public string DropZoneId { get; init; } = null!;
 	public string Name { get; init; } = null!;
 	public string Path { get; init; } = null!;
-
-	[JsonIgnore]
-	public string Icon { get; private set; } = null!;
-	public DropItemType Type => AssignedType();
-
-	public bool IsDisabled { get; set; }
-
 	public bool IsCopy { get; init; }
-
-	// ReSharper disable once UnusedMember.Local
-	private DropItemType AssignedType() {
-		if (Name.Contains('.'))
-			return Name.EndsWith(".pdf")
-				? DropItemType.Pdf
-				: DropItemType.Video;
-
-		return DropItemType.Folder;
-	}
+	[JsonIgnore] public string Icon => _icon.Value;
+	public DropItemType Type => _type.Value;
+	public bool IsFolder => Type == DropItemType.Folder;
 
 	public DropItem() {
+		_type = new(AssignedType);
+		_icon = new(GetIcon);
 	}
 
-
-	public DropItem(IDirectoryItem item) {
+	public DropItem(IDirectoryItem item, string? dropZoneId = null) {
 		// Set common properties
-		DropZoneId = item.DropZoneId;
+		DropZoneId = dropZoneId ?? item.DropZoneId;
 		Name = item.Name;
 		Path = item.Path;
-		Icon = item.ItemType switch {
-			ItemType.File => item.Name.EndsWith(".pdf")
-				? Icons.Custom.FileFormats.FilePdf
-				: Icons.Custom.FileFormats.FileVideo,
-			ItemType.Directory => Icons.Material.Filled.Folder,
-			_ => throw new ArgumentOutOfRangeException(nameof(item))
-		};
+		_itemType = item.ItemType;// Store the ItemType
+		_type = new(AssignedType);
+		_icon = new(GetIcon);
 	}
+
+	private readonly Lazy<string> _icon;
+	private readonly ItemType _itemType;
+	private readonly Lazy<DropItemType> _type;
+	#region Methods
+	private DropItemType AssignedType() {
+		// If the item is a directory, return Folder
+		if (_itemType == ItemType.Directory) {
+			return DropItemType.Folder;
+		}
+
+		// if the item is a file, and the extension is mapped
+		// return the mapped type
+		var extension = GetExtension(Name).ToLowerInvariant();
+		foreach (var entry
+		         in ExtensionTypeMap.Where(
+		         entry
+			         => entry.Value.Contains(extension, StringComparer.OrdinalIgnoreCase))) { return entry.Key; }
+		// else return Unknown
+		return DropItemType.Unknown;
+	}
+	private string GetIcon() {
+		if (_itemType == ItemType.Directory) {
+			return Icons.Material.Filled.Folder;
+		}
+		return IconTypeMap.TryGetValue(Type, out var icon)
+			? icon
+			: Icons.Material.Filled.Description;
+	}
+	#endregion
+
+	#region Static Methods
+	private static readonly Dictionary<DropItemType, string> IconTypeMap = new() {
+		{ DropItemType.Pdf, Icons.Custom.FileFormats.FilePdf },
+		{ DropItemType.Video, Icons.Custom.FileFormats.FileVideo },
+	};
+	private static readonly Dictionary<DropItemType, string[]> ExtensionTypeMap = new() {
+		{ DropItemType.Pdf, new[] { ".pdf" } },
+		{ DropItemType.Video, new[] { ".mp4", ".mkv" } },
+	};
+	private static string GetExtension(string fileName) {
+		int index = fileName.LastIndexOf('.');
+		return index == -1
+			? string.Empty
+			: fileName[index..];
+	}
+	#endregion
 }
 
 public enum DropItemType {

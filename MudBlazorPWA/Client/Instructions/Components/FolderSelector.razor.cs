@@ -172,7 +172,6 @@ public partial class FolderSelector : IDisposable {
 				Name = folder.Name,
 				Path = folder.Path.RelativePath(),
 				DropZoneId = $"DZ-Code-Folder-{windingCode.Id}",
-				OriginalIdentifier = dropZoneId,
 				IsCopy = true
 			}));
 
@@ -198,7 +197,6 @@ public partial class FolderSelector : IDisposable {
 					.Last(),
 				Path = pdf.RelativePath(),
 				DropZoneId = $"DZ-Code-Pdf-{windingCode.Id}",
-				OriginalIdentifier = dropZoneId,
 				IsCopy = true
 			}));
 
@@ -229,7 +227,6 @@ public partial class FolderSelector : IDisposable {
 					.Last(),
 				Path = video.RelativePath(),
 				DropZoneId = $"DZ-Code-Video-{windingCode.Id}",
-				OriginalIdentifier = dropZoneId,
 				IsCopy = true
 			}));
 
@@ -245,9 +242,6 @@ public partial class FolderSelector : IDisposable {
 					.Last(),
 				Path = file.RelativePath(),
 				DropZoneId = $"DZ-Code-Ref-{windingCode.Id}",
-				OriginalIdentifier = file.IsPdf()
-					? $"{PdfDropZoneId}-{windingCode.Id}"
-					: $"{VideoDropZoneId}-{windingCode.Id}",
 				IsCopy = true
 			});
 		return refDropItems;

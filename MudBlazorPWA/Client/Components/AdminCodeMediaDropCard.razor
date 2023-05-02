@@ -161,7 +161,8 @@
   #region Lifecycle
   protected override void OnInitialized() {
     base.OnInitialized();
-    State.DropItemsChanged += StateOnDropItemsChanged;
+    State.StateChanged += async () => await InvokeAsync(StateHasChanged);
+    State.CanSubmitWindingCodeChanges += StateOnDropItemsChanged;
     _dropZoneConfigs = new() {
       new() {
         ContainerClass = "mud-alert-text-success",
