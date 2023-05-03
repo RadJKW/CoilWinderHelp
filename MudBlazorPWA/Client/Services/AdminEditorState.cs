@@ -23,6 +23,7 @@ public class AdminEditorState : IAsyncDisposable {
 		_jsRuntime = jsRuntime;
 		_navigation = navigation;
 		_windingCodeManager = windingCodeManager;
+		DropItemComparer = new DropItemComparer();
 		OnInitialized();
 	}
 	#endregion
@@ -154,12 +155,14 @@ public class AdminEditorState : IAsyncDisposable {
 	#endregion
 
 	#region DropItems
+	private IComparer<DropItem> DropItemComparer { get; }
 	private List<DropItem> _assignedDropItems = new();
 	public List<DropItem> AssignedDropItems {
 		get => _assignedDropItems;
 		private set {
 			DropItems.RemoveAll(item => _assignedDropItems.Any(dropItem => dropItem.Path == item.Path && dropItem.IsCopy));
 			_assignedDropItems = value;
+			_assignedDropItems.Sort(DropItemComparer);
 			DropItems.AddRange(_assignedDropItems);
 		}
 	}
@@ -186,13 +189,7 @@ public class AdminEditorState : IAsyncDisposable {
 			.Select(
 			item
 				=> new DropItem(item, value.DropZoneId)));
-		dropItems.Sort(
-		(a, b) =>
-			a.IsFolder switch {
-				true when !b.IsFolder => -1,
-				false when b.IsFolder => 1,
-				_ => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase)
-			});
+		dropItems.Sort(DropItemComparer);
 		DropItems.AddRange(dropItems);
 		return Task.CompletedTask;
 	}
@@ -233,6 +230,7 @@ public class AdminEditorState : IAsyncDisposable {
 
 	#region WindingCodes
 	public IEnumerable<WindingCode> WindingCodes = new List<WindingCode>();
+
 	public WindingCode? SelectedWindingCode {
 		get => _windingCodeManager.SelectedWindingCode;
 		set {
@@ -275,4 +273,15 @@ public class AdminEditorState : IAsyncDisposable {
 		return json;
 	}
 	#endregion
+}
+
+public class DropItemComparer : IComparer<DropItem> {
+	public int Compare(DropItem? x, DropItem? y) {
+		if (x == null || y == null) return 0;
+		return x.IsFolder switch {
+			true when !y.IsFolder => -1,
+			false when y.IsFolder => 1,
+			_ => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase)
+		};
+	}
 }

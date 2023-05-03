@@ -63,21 +63,17 @@
                           break;
                         case DropItemType.Pdf:
                           chipClass += " " + "pdf-item";
-
                           break;
                         case DropItemType.Video:
                           chipClass += " " + "video-item";
-
                           break;
                         case DropItemType.Media:
                         case DropItemType.Unknown:
                           chipClass += " " + "unknown-item";
-
                           break;
                         default:
                           throw new ArgumentOutOfRangeException();
                       }
-
                       <div class="drop-zone-item-tooltip">
 
                         <div class="tooltip-icon">
@@ -119,6 +115,7 @@
           <MudDropZone T="DropItem"
               Class="align-center d-flex justify-center mud-alert-text-error mud-height-full"
               OnlyZone="true"
+              CanDrop="@(item => !item.IsCopy)"
               Identifier="trash">
 
             <MudIcon Icon="@Icons.Material.Outlined.Delete"

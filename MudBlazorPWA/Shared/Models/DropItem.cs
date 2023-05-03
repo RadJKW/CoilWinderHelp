@@ -1,5 +1,6 @@
 ﻿using MudBlazor;
 using MudBlazorPWA.Shared.Interfaces;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 namespace MudBlazorPWA.Shared.Models;
 public class DropItem {
@@ -43,16 +44,19 @@ public class DropItem {
 		         in ExtensionTypeMap.Where(
 		         entry
 			         => entry.Value.Contains(extension, StringComparer.OrdinalIgnoreCase))) { return entry.Key; }
-		// else return Unknown
-		return DropItemType.Unknown;
+		// else return
+		return string.IsNullOrEmpty(extension)
+			? DropItemType.Folder
+			: DropItemType.Unknown;
 	}
 	private string GetIcon() {
 		if (_itemType == ItemType.Directory) {
 			return Icons.Material.Filled.Folder;
 		}
+
 		return IconTypeMap.TryGetValue(Type, out var icon)
 			? icon
-			: Icons.Material.Filled.Description;
+			: Icons.Material.Filled.Error;
 	}
 	#endregion
 
@@ -60,6 +64,9 @@ public class DropItem {
 	private static readonly Dictionary<DropItemType, string> IconTypeMap = new() {
 		{ DropItemType.Pdf, Icons.Custom.FileFormats.FilePdf },
 		{ DropItemType.Video, Icons.Custom.FileFormats.FileVideo },
+		{ DropItemType.Folder, Icons.Material.Filled.Folder },
+		{ DropItemType.Media, Icons.Material.Filled.Radio },
+		{ DropItemType.Unknown, Icons.Material.Filled.DataObject }
 	};
 	private static readonly Dictionary<DropItemType, string[]> ExtensionTypeMap = new() {
 		{ DropItemType.Pdf, new[] { ".pdf" } },
@@ -72,6 +79,11 @@ public class DropItem {
 			: fileName[index..];
 	}
 	#endregion
+	public DropItem Clone() {
+		// serialize and deserialize the object
+		var json = JsonSerializer.Serialize(this);
+		return JsonSerializer.Deserialize<DropItem>(json) ?? throw new NullReferenceException();
+	}
 }
 
 public enum DropItemType {

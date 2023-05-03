@@ -31,7 +31,7 @@
         <MudRadio Option="99"
             Color="Color.Error"
             UnCheckedColor="Color.Default">
-          <MudText Style="@($"color:{Colors.DeepOrange.Accent2}; ")">
+          <MudText Style="@($"color:{Colors.DeepOrange.Accent2};")">
             None
           </MudText>
         </MudRadio>
@@ -75,7 +75,7 @@
 
         <WindingStopCodeReel TValue="IWindingCode"
             WindingStopCodes="@WindingCodes"
-            OnCodeSelected="@((code => _selectedWindingCode = code))"/>
+            OnCodeSelected="@(code => _selectedWindingCode = code)"/>
       </div>
     }
     <div class="pa-4">

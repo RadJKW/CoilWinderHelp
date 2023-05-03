@@ -4,8 +4,7 @@ using MudBlazorPWA.Client.Instructions.Components;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
-public partial class AutoDocs
-{
+public partial class AutoDocs {
 	[Parameter]
 	public int? WindingCodeId { get; set; }
 	private IWindingCode? _currentWindingStop;
@@ -14,10 +13,6 @@ public partial class AutoDocs
 	public string? VideoUrl { get; set; }
 	public List<string> RefMediaContent { get; private set; } = new();
 	private double _startWidth = 65;
-
-	// create an event that child components will subscribe to for when the secondary content is updated
-	// this will allow the parent component to reload the secondary content
-
 	public event Action? ReloadSecondaryContent;
 
 	private SecondaryContent _secondaryContent = default!;
@@ -30,17 +25,21 @@ public partial class AutoDocs
 		DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
 		await base.OnInitializedAsync();
 	}
+	protected override async Task OnParametersSetAsync() {
+		if (WindingCodeId.HasValue) {
+			DirectoryHubClient.SetCurrentCoilWinderStop(WindingCodeId.Value);
+		}
+		await base.OnParametersSetAsync();
+	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
 		if (firstRender) {
 			// _moduleJS = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Instructions/Pages/AutoDocs.razor.js");
 			_moduleJS = null;
-			if (WindingCodeId.HasValue) {
-				DirectoryHubClient.SetCurrentCoilWinderStop(WindingCodeId.Value);
-			}
 		}
 		await base.OnAfterRenderAsync(firstRender);
 	}
-	private void OnCurrentWindingStopUpdated(object? sender, IWindingCode windingCode) {
+	private void OnCurrentWindingStopUpdated(IWindingCode windingCode) {
+		Console.WriteLine("OnCurrentWindingStopUpdated: " + windingCode.Code);
 		_currentWindingStop = windingCode;
 		PdfUrl = windingCode.Media.Pdf;
 		VideoUrl = windingCode.Media.Video;
@@ -50,10 +49,14 @@ public partial class AutoDocs
 			InvokeAsync(async () => { await _moduleJS.InvokeVoidAsync("init"); });
 	}
 	private void HandleDoubleClicked() {
-		_startWidth = _startWidth <= 50 ? 70 : 30;
+		_startWidth = _startWidth <= 50
+			? 70
+			: 30;
 	}
 	private void ToggleContentSize() {
-		_startWidth = _startWidth >= 50 ? 40 : 70;
+		_startWidth = _startWidth >= 50
+			? 40
+			: 70;
 	}
 	public async ValueTask DisposeAsync() {
 		if (_moduleJS != null)

@@ -191,7 +191,6 @@
     Loaded,
     Error
   }
-
   #region Properties
   private IEnumerable<IGrouping<CodeTypeId, IWindingCode>> WindingCodeGroups { get; set; }
     = new List<IGrouping<CodeTypeId, IWindingCode>>();
@@ -201,7 +200,6 @@
   private bool _showFullPaths;
   private string ServerWindingDocsFolder { get; set; } = "Default";
   #endregion
-
   protected override async Task OnInitializedAsync() {
     DirectoryHubClient.WindingCodesDbUpdated += DirectoryHub_OnWindingCodesDbUpdated;
     DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
@@ -213,7 +211,6 @@
     DirectoryHubClient.WindingCodesDbUpdated -= DirectoryHub_OnWindingCodesDbUpdated;
     DirectoryHubClient.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
   }
-
   #region Startup Methods
   private async Task FetchCodesFromHub() {
     var windingCodes = await DirectoryHubClient.DirectoryHub.InvokeAsync<List<IWindingCode>?>("GetWindingCodes", Division.D1);
@@ -240,10 +237,7 @@
     _folderPaths = folderArgs.SubFolders.OrderBy(f => f).ToList();
   }
   #endregion
-
-  private void SetUpdatedStop(int codeId) {
-    DirectoryHubClient.SetCurrentCoilWinderStop(codeId);
-  }
+  private void SetUpdatedStop(int codeId) { DirectoryHubClient.SetCurrentCoilWinderStop(codeId); }
   private void DirectoryHub_OnWindingCodesDbUpdated() {
     Snackbar.Add("Winding Codes Database Updated", Severity.Success, configure: config => {
       config.DuplicatesBehavior = SnackbarDuplicatesBehavior.Allow;
@@ -251,7 +245,7 @@
       config.CloseAfterNavigation = true;
     });
   }
-  private void OnCurrentWindingStopUpdated(object? obj, IWindingCode code) {
+  private void OnCurrentWindingStopUpdated(IWindingCode code) {
     var media = code.Media;
     Snackbar.Add($"Current Winding Stop Updated: {code.Code}\n PDF : {media.Pdf}\n VID: {media.Video}\n ref: {media.RefMedia}",
       Severity.Info,
@@ -264,7 +258,9 @@
   }
 
   private string FormatWindingCode(IWindingCode windingCode) {
-    return !_showFullPaths ? windingCode.FolderPath! : $"{ServerWindingDocsFolder}{windingCode.FolderPath}";
+    return !_showFullPaths
+      ? windingCode.FolderPath!
+      : $"{ServerWindingDocsFolder}{windingCode.FolderPath}";
   }
   private async Task SaveWindingCodeDb(IWindingCode windingCode) {
     if (windingCode.FolderPath != null)

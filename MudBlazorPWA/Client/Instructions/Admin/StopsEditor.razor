@@ -81,7 +81,7 @@
 
     if (dropItem.DropZoneId == targetDropZone) return;
 
-    if (targetDropZone == "trash") {
+    if (targetDropZone == "trash" && dropItem.IsCopy) {
       State.RemoveDropItem(dropItem);
       return;
     }
@@ -91,7 +91,13 @@
       Name = dropItem.Name,
       Path = dropItem.Path,
     };
+
+    State.DropItems.Remove(dropItem);
+    StateHasChanged();
+    var original = dropItem.Clone();
     State.AddDropItem(copy);
+    StateHasChanged();
+    State.DropItems.Add(original);
 
     Console.WriteLine("End ItemUpdated");
     Console.WriteLine(JsonSerializer.Serialize(copy));

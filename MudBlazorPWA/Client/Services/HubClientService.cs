@@ -14,7 +14,7 @@ public class HubClientService {
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
-	public event EventHandler<WindingCode>? CurrentWindingStopUpdated;
+	public event Action<WindingCode>? CurrentWindingStopUpdated;
 
 	public event Action? WindingCodeTypeChanged;
 	public event Action<string, string>? NewChatMessage;
@@ -126,6 +126,7 @@ public class HubClientService {
 		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", id, WindingCodeType);
 	}
 	private void ParseWindingCodeMedia(WindingCode code) {
+		Console.WriteLine($"ParseWindingCodeMedia: {code.Code}");
 		if (code.Media.Video != null)
 			code.Media.Video = FileServerUrl + code.Media.Video;
 		if (code.Media.Pdf != null)
@@ -137,7 +138,7 @@ public class HubClientService {
 				// append 'FileServerUrl' to each item in the list
 				code.Media.RefMedia[i] = FileServerUrl + code.Media.RefMedia[i];
 
-		CurrentWindingStopUpdated?.Invoke(this, code);
+		CurrentWindingStopUpdated?.Invoke(code);
 	}
 
 	#region WindingCodeDB Crud

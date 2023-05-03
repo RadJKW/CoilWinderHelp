@@ -9,7 +9,6 @@ using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 
 namespace MudBlazorPWA.Server.Hubs;
-/// <inheritdoc />
 public class DirectoryHub : Hub<IHubClient> {
 	#region Constructor
 	private readonly IDirectoryService _directoryService;
@@ -242,7 +241,7 @@ public class DirectoryHub : Hub<IHubClient> {
 	#endregion
 
 	#region WindingStop Tracking
-	public async void UpdateCurrentWindingStop(int codeId, WindingCodeType windingCodeType) {
+	public async Task UpdateCurrentWindingStop(int codeId, WindingCodeType windingCodeType) {
 		string? clientIp = HubExtensions.GetConnectionIp(Context);
 		_currentWindingStop = await GetWindingCode(codeId, windingCodeType);
 		if (_currentWindingStop is null) {

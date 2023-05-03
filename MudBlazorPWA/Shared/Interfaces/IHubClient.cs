@@ -7,5 +7,5 @@ public interface IHubClient {
 	Task ReceiveAllFolders(string[] folders);
 	Task WindingCodesDbUpdated();
 
-	Task CurrentWindingStopUpdated(IWindingCode code);
+	Task CurrentWindingStopUpdated(WindingCode code);
 }
