@@ -37,68 +37,6 @@
       <MudCardContent Class="pa-1">
         <MudGrid Spacing="1"
             Justify="Justify.Center">
-          @foreach (var config in _dropZoneConfigs) {
-            var dropZoneId = $"{config.DropZoneId}-{WindingCode.Id}";
-            <MudItem xs="9"
-                lg="6">
-              <div class="@config.ContainerClass">
-                <div class="d-flex justify-flex-start mud-width-full">
-                  <MudText Typo="Typo.button"
-                      Align="Align.Left">
-                    <strong>@config.HeaderText</strong>
-                  </MudText>
-                </div>
-                <MudDropZone T="DropItem"
-                    Style="@DropZoneConfig.Style"
-                    Class="@config.DropZoneClass"
-                    CanDrop="(context) => config.CanDrop(context)"
-                    Identifier="@dropZoneId">
-                  <ItemRenderer>
-                    @{
-                      var chipClass = "border border-solid drop-zone-item";
-                      string chipIcon = context.Icon;
-                      switch (context.Type) {
-                        case DropItemType.Folder:
-                          chipClass += " " + "folder-item";
-                          break;
-                        case DropItemType.Pdf:
-                          chipClass += " " + "pdf-item";
-                          break;
-                        case DropItemType.Video:
-                          chipClass += " " + "video-item";
-                          break;
-                        case DropItemType.Media:
-                        case DropItemType.Unknown:
-                          chipClass += " " + "unknown-item";
-                          break;
-                        default:
-                          throw new ArgumentOutOfRangeException();
-                      }
-                      <div class="drop-zone-item-tooltip">
-
-                        <div class="tooltip-icon">
-                          <MudIconButton OnClick="@(() => State.OpenFilePreview(context.Path))"
-                              Size="Size.Small"
-                              Icon="@Icons.Material.Filled.OpenInNew"/>
-                        </div>
-                        <div class="tooltip-content">
-                          <p>
-                            @context.Path
-                          </p>
-                        </div>
-                      </div>
-                      <MudChip Class="@chipClass"
-                          Icon="@chipIcon"
-                          Size="@Size.Small"
-                          Label="@true">
-                        <p class="mud-typography-button">@context.Name</p>
-                      </MudChip>
-                    }
-                  </ItemRenderer>
-                </MudDropZone>
-              </div>
-            </MudItem>
-          }
         </MudGrid>
       </MudCardContent>
       <MudCardActions>
@@ -111,17 +49,6 @@
               OnClick="@SaveChangesToDatabaseAsync">
             Submit
           </MudButton>
-
-          <MudDropZone T="DropItem"
-              Class="align-center d-flex justify-center mud-alert-text-error mud-height-full"
-              OnlyZone="true"
-              CanDrop="@(item => !item.IsCopy)"
-              Identifier="trash">
-
-            <MudIcon Icon="@Icons.Material.Outlined.Delete"
-                Color="Color.Error"
-                Class="mx-6 my-1"/>
-          </MudDropZone>
           <MudIconButton Icon="@Icons.Material.Outlined.Print"
               Color="Color.Secondary"
               Size="Size.Small"/>
@@ -151,53 +78,17 @@
   public required WindingCode? WindingCode { get; set; }
   #endregion
   #region Locals
-  private List<DropZoneConfig> _dropZoneConfigs = new();
   private bool _submitDisabled = true;
   #endregion
   #region Lifecycle
   protected override void OnInitialized() {
     base.OnInitialized();
     State.StateChanged += async () => await InvokeAsync(StateHasChanged);
-    State.CanSubmitWindingCodeChanges += StateOnDropItemsChanged;
-    _dropZoneConfigs = new() {
-      new() {
-        ContainerClass = "mud-alert-text-success",
-        DropZoneId = AdminEditorState.DzCodeFolder,
-        HeaderText = "Folder Path"
-      },
-      new() {
-        ContainerClass = "mud-alert-text-warning",
-        DropZoneId = AdminEditorState.DzCodePdf,
-        HeaderText = "PDF"
-      },
-      new() {
-        ContainerClass = "mud-alert-text-info",
-        DropZoneId = AdminEditorState.DzCodeVideo,
-        HeaderText = "Video"
-      },
-      new() {
-        ContainerClass = "mud-alert-text-primary",
-        DropZoneId = AdminEditorState.DzCodeRefMedia,
-        HeaderText = "Reference Media"
-      }
-    };
   }
   void IDisposable.Dispose() { Console.WriteLine("Disposing AdminDashboard.razor"); }
   #endregion
   #region Methods
-  private async Task SaveChangesToDatabaseAsync() {
-    var windingCode = MapDropItemsToWindingCode();
-    if (windingCode is null) return;
-    Snackbar.Add($"Committed changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Info);
-    var result = await State.ModifyWindingCode(windingCode);
-    if (!result) {
-      Snackbar.Add($"Failed to commit changes, Data = {JsonSerializer.Serialize(windingCode)}", Severity.Error);
-      return;
-    }
-    var updatedItem = await State.GetWindingCode(windingCode.Id);
-    Snackbar.Add($"Updated item, Data = {JsonSerializer.Serialize(updatedItem)}", Severity.Success);
-    _submitDisabled = true;
-  }
+  private async Task SaveChangesToDatabaseAsync() { await Task.CompletedTask; }
   private async Task OpenImportMediaDialog() {
     if (WindingCode is null) return;
     var parameters = new DialogParameters {
@@ -218,98 +109,9 @@
       Snackbar.Add($"Canceled Import Media Dialog", Severity.Info);
       return;
     }
-    if (result.Data is not WindingCode windingCode) return;
-
-    await State.BuildCodeDropItems(windingCode);
+    if (result.Data is not WindingCode _) return;
     _submitDisabled = false;
   }
   private void StateOnDropItemsChanged() { _submitDisabled = false; }
-
-  private WindingCode? MapDropItemsToWindingCode() {
-    var code = State.SelectedWindingCode;
-    if (code is null) return null;
-
-    var dropZoneItems = State.AssignedDropItems;
-
-    var hasFolderItem = false;
-    var hasPdfItem = false;
-    var hasVideoItem = false;
-    var hasRefMediaItem = false;
-
-    Console.WriteLine("foreach item in dropZoneItems");
-    foreach (var item in dropZoneItems) {
-      string dropZonePrefix = item.DropZoneId[..item.DropZoneId.LastIndexOf('-')];
-      Console.WriteLine("dropZonePrefix -> " + dropZonePrefix);
-      switch (dropZonePrefix) {
-        case AdminEditorState.DzCodeFolder:
-          code.FolderPath = item.Path;
-          hasFolderItem = true;
-          break;
-        case AdminEditorState.DzCodePdf:
-          code.Media.Pdf = item.Path;
-          hasPdfItem = true;
-          break;
-        case AdminEditorState.DzCodeVideo:
-          code.Media.Video = item.Path;
-          hasVideoItem = true;
-          break;
-        case AdminEditorState.DzCodeRefMedia: {
-          Console.WriteLine("Case -> DzCodeRefMedia");
-          Console.WriteLine("Item Path -> " + item.Path);
-          code.Media.RefMedia?.Add(item.Path);
-          hasRefMediaItem = true;
-        }
-          break;
-      }
-    }
-
-    if (!hasFolderItem)
-      code.FolderPath = null;
-
-    if (!hasPdfItem)
-      code.Media.Pdf = null;
-
-    if (!hasVideoItem)
-      code.Media.Video = null;
-    if (!hasRefMediaItem)
-      code.Media.RefMedia = null;
-
-    Console.WriteLine("WindingCode -> " + code);
-    return code;
-  }
-  #endregion
-  #region Classes
-  public class DropZoneConfig {
-    private readonly string _containerClass = "pa-1";
-
-    public static string Style => string.Empty;
-
-    public string DropZoneClass { get; init; } = "drop-zone-gallery";
-    public string ContainerClass { get => _containerClass; init => _containerClass = $"{_containerClass} {value}"; }
-
-    public required string DropZoneId { get; init; }
-    public required string HeaderText { get; init; }
-    public bool CanDrop(DropItem context) {
-  // get the dropItem type and see if it matches to the DropZoneId
-  // the DropZone id is one of the constants DzCodeFolder, DzCodePdf, DzCodeVideo, DzCodeRefMedia
-  // if the dropItem type is a pdf and type is pdf then return true
-
-      var dropZoneType = DropZoneId switch {
-        AdminEditorState.DzCodeFolder => DropItemType.Folder,
-        AdminEditorState.DzCodePdf => DropItemType.Pdf,
-        AdminEditorState.DzCodeVideo => DropItemType.Video,
-        AdminEditorState.DzCodeRefMedia => DropItemType.Media,
-        _ => DropItemType.Unknown
-        };
-
-  // since a PDF or Video can be classified as a Media,
-  // if the dropZoneType is Media, then return true if the dropItem type is Media, Pdf, or Video
-
-      return dropZoneType switch {
-        DropItemType.Media => context.Type is DropItemType.Pdf or DropItemType.Video,
-        _ => context.Type == dropZoneType
-        };
-    }
-  }
   #endregion
 }

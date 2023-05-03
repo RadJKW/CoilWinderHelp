@@ -1,9 +1,8 @@
 ﻿using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Shared.Interfaces;
 public interface IDirectoryItem {
-	// Make the Type of DirectoryItem<T> accessible
-	// { get; }
 	ItemType ItemType { get; }
+	string Icon { get; }
 	string DropZoneId { get; set; }
 	string Name { get; }
 	string Path { get; }
@@ -11,7 +10,10 @@ public interface IDirectoryItem {
 	bool Expanded { get; set; }
 	bool Loading { get; set; }
 	bool Selected { get; set; }
+
+
 	HashSet<IDirectoryItem> TreeItems { get; set; }
+	HashSet<IDirectoryItem> BuildTreeItems();
 	IEnumerable<IDirectoryItem> GetFiles();
 	IEnumerable<IDirectoryItem> GetFolders();
 }

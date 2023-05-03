@@ -73,7 +73,7 @@ public class DropItem {
 		{ DropItemType.Video, new[] { ".mp4", ".mkv" } },
 	};
 	private static string GetExtension(string fileName) {
-		int index = fileName.LastIndexOf('.');
+		int index = fileName[^4..].LastIndexOf('.');
 		return index == -1
 			? string.Empty
 			: fileName[index..];

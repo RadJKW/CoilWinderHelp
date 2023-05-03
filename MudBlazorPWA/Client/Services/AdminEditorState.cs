@@ -2,11 +2,8 @@
 using Microsoft.JSInterop;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 namespace MudBlazorPWA.Client.Services;
 public class AdminEditorState : IAsyncDisposable {
-	#region Constructor
 	private readonly HubClientService _directoryHub;
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<AdminEditorState> _logger;
@@ -14,7 +11,6 @@ public class AdminEditorState : IAsyncDisposable {
 	private readonly WindingCodeManager _windingCodeManager;
 	private readonly IJSRuntime _jsRuntime;
 	private readonly NavigationManager _navigation;
-	private IDirectoryItem? _selectedFolder;
 
 	public AdminEditorState(HubClientService directoryHub, ILogger<AdminEditorState> logger, IDirectoryNavigator directoryNavigator, IJSRuntime jsRuntime, NavigationManager navigation, WindingCodeManager windingCodeManager) {
 		_directoryHub = directoryHub;
@@ -23,39 +19,9 @@ public class AdminEditorState : IAsyncDisposable {
 		_jsRuntime = jsRuntime;
 		_navigation = navigation;
 		_windingCodeManager = windingCodeManager;
-		DropItemComparer = new DropItemComparer();
 		OnInitialized();
 	}
-	#endregion
 
-	#region Constants
-	public const string DzCodeFolder = "DZ-Code-Folder";
-	public const string DzCodePdf = "DZ-Code-Pdf";
-	public const string DzCodeVideo = "DZ-Code-Video";
-	public const string DzCodeRefMedia = "DZ-Code-Ref";
-	#endregion
-
-	#region Properties
-	private readonly JsonSerializerOptions _jsonOptions = new() {
-		PropertyNameCaseInsensitive = true,
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-		Converters = {
-			new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
-		}
-	};
-	private int _currentPage = 1;
-	public int CurrentPage {
-		get => _currentPage;
-		set {
-			_currentPage = value;
-			NotifyStateChanged();
-		}
-	}
-	public const int PageItemsCount = 9;
-	public int SelectedItemPageCount => CalculatePageCount();
-	#endregion
-
-	#region LifeCycle
 	private async void OnInitialized() {
 		_windingCodeManager.WindingCodesChanged += OnWindingCodesChanged;
 		WindingCodes = _windingCodeManager.WindingCodes;
@@ -66,177 +32,39 @@ public class AdminEditorState : IAsyncDisposable {
 		GC.SuppressFinalize(this);
 		return ValueTask.CompletedTask;
 	}
-	#endregion
 
-	#region Events
 	public event Action? StateChanged;
-	public event Action? CanSubmitWindingCodeChanges;
-
 	private void NotifyStateChanged() => StateChanged?.Invoke();
-	private void NotifyCanSubmit() => CanSubmitWindingCodeChanges?.Invoke();
-	#endregion
 
-	#region Directory
 	public IDirectoryItem? RootDirectoryItem { get; private set; }
-	public IDirectoryItem? SelectedFolder {
-		get => _selectedFolder;
-		set {
-			_selectedFolder = value;
-			CurrentPage = 1;
-			if (value != null)
-				_ = BuildDirectoryDropItems(value);
-			NotifyStateChanged();
-		}
-	}
-	public int SelectedFolderFileCount() {
-		return SelectedFolder?.GetFiles().Count() ?? 0;
-	}
+	public IDirectoryItem? SelectedFolder { get; set; }
 	private async Task BuildDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
 		_directoryNavigator.RootDirectory = rootDirectory;
 		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true };
 
+		rootDirectoryItem.TreeItems = await GetTreeItems(rootDirectoryItem);
 		RootDirectoryItem = rootDirectoryItem;
+
 		SelectedFolder = rootDirectoryItem;
-
-		if (_directoryNavigator.NavigationHistory.Count == 0)
-			NavigateToFolder(rootDirectory);
+		NotifyStateChanged();
 	}
-
-	private int CalculatePageCount() {
-		var pages = 0;
-		var files = SelectedFolder?.GetFiles();
-		if (files == null) {
-			Console.WriteLine("pages: " + pages);
-			return pages;
-		}
-		var count = files.Count();
-		pages = count / PageItemsCount;
-		if (count % PageItemsCount != 0) pages++;
-		Console.WriteLine("pages: " + pages);
-		return pages;
-	}
-	public (int start, int end) GetPageRange() {
-		// determine the total number of files in SelectedFolder
-		// determine the start and end of the page range depending on PageItemsCount
-		var files = SelectedFolder?.GetFiles();
-		var folders = SelectedFolder?.GetFolders();
-		var count = files?.Count() ?? 0;
-		count += folders?.Count() ?? 0;
-		if (count == 0) return (0, 0);
-
-		int start, end;
-		if (count <= PageItemsCount) {
-			start = 0;
-			end = count;
-		}
-		else {
-			var pages = count / PageItemsCount;
-			if (count % PageItemsCount != 0) pages++;
-			if (CurrentPage > pages) CurrentPage = pages;
-			if (CurrentPage < 1) CurrentPage = 1;
-			start = (CurrentPage - 1) * PageItemsCount;
-			end = CurrentPage * PageItemsCount;
-			if (end > count) end = count;
-		}
-		return (start, end);
-	}
-	private void NavigateToFolder(DirectoryNode folder) {
-		_directoryNavigator.NavigateToFolder(folder);
-		_directoryNavigator.GetCurrentFolder();
-	}
-	public bool HasFolders(IDirectoryItem directoryItem) {
+	public bool HasChildItems(IDirectoryItem directoryItem) {
 		var directoryNode = _directoryNavigator.GetFolder(directoryItem.Path);
-		return
-			directoryNode != null
-			&&
-			directoryNode.Folders.Any();
-	}
-	#endregion
 
-	#region DropItems
-	private IComparer<DropItem> DropItemComparer { get; }
-	private List<DropItem> _assignedDropItems = new();
-	public List<DropItem> AssignedDropItems {
-		get => _assignedDropItems;
-		private set {
-			DropItems.RemoveAll(item => _assignedDropItems.Any(dropItem => dropItem.Path == item.Path && dropItem.IsCopy));
-			_assignedDropItems = value;
-			_assignedDropItems.Sort(DropItemComparer);
-			DropItems.AddRange(_assignedDropItems);
-		}
+		if (directoryNode == null) return false;
+
+		return directoryNode.Folders.Any() || directoryNode.Files.Any();
 	}
 
-	public List<DropItem> DropItems { get; } = new();
-	public void AddDropItem(DropItem item) {
-		if (item.IsCopy) {
-			AssignedDropItems.Add(item);
-		}
-		DropItems.Add(item);
-		NotifyCanSubmit();
-	}
-	private Task BuildDirectoryDropItems(IDirectoryItem value) {
-		var dropItems = new List<DropItem>();
-		dropItems.AddRange(
-		value
-			.GetFolders()
-			.Select(
-			item
-				=> new DropItem(item, value.DropZoneId)));
-		dropItems.AddRange(
-		value
-			.GetFiles()
-			.Select(
-			item
-				=> new DropItem(item, value.DropZoneId)));
-		dropItems.Sort(DropItemComparer);
-		DropItems.AddRange(dropItems);
-		return Task.CompletedTask;
-	}
-	public void RemoveDropItem(DropItem item) {
-		if (item.IsCopy) {
-			AssignedDropItems.Remove(item);
-		}
-		DropItems.Remove(item);
-		NotifyCanSubmit();
-	}
-	public Task BuildCodeDropItems(IWindingCode windingCode) {
-		var dropItems = new List<DropItem>();
-		(string prefix, string? path)[] paths = {
-			(DzCodeFolder, windingCode.FolderPath),
-			(DzCodePdf, windingCode.Media.Pdf),
-			(DzCodeVideo, windingCode.Media.Video)
-		};
 
-		foreach (var (prefix, path) in paths) {
-			if (path != null) {
-				dropItems.Add(CreateDropItem(prefix + "-" + windingCode.Id, path));
-			}
-		}
-
-		if (windingCode.Media.RefMedia != null) {
-			var assignedDropZoneId = DzCodeRefMedia + "-" + windingCode.Id;
-			dropItems.AddRange(windingCode.Media.RefMedia.Select(media => CreateDropItem(assignedDropZoneId, media)));
-		}
-
-		AssignedDropItems = dropItems;
-		return Task.CompletedTask;
-	}
-	private static DropItem CreateDropItem(string assignedDropZoneId, string path) {
-		var name = path.Split('/').Last();
-		return new() { DropZoneId = assignedDropZoneId, Path = path, Name = name, IsCopy = true };
-	}
-	#endregion
-
-	#region WindingCodes
 	public IEnumerable<WindingCode> WindingCodes = new List<WindingCode>();
 
 	public WindingCode? SelectedWindingCode {
 		get => _windingCodeManager.SelectedWindingCode;
 		set {
 			if (value != null)
-				BuildCodeDropItems(value);
-			_windingCodeManager.SelectedWindingCode = value;
+				_windingCodeManager.SelectedWindingCode = value;
 			NotifyStateChanged();
 		}
 	}
@@ -250,38 +78,27 @@ public class AdminEditorState : IAsyncDisposable {
 	public async Task<bool> ModifyWindingCode(WindingCode windingCode) {
 		return await _windingCodeManager.UpdateWindingCode(windingCode);
 	}
-  #endregion
 
-	#region Event Handlers
 	private void OnWindingCodesChanged(IEnumerable<WindingCode> windingCodes) {
 		Console.WriteLine("OnWindingCodesChanged");
 		WindingCodes = windingCodes.ToList();
 		NotifyStateChanged();
 	}
-	#endregion
 
-	#region Methods
 	public async Task OpenFilePreview(string filePath) {
 		var url = _navigation.BaseUri
 		          + "files/"
 		          + filePath;
 		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
+	public Task<HashSet<IDirectoryItem>> GetTreeItems(IDirectoryItem arg) {
+		if (arg.TreeItems.Any()) return Task.FromResult(arg.TreeItems);
 
-	public string Serialize<T>(T value) {
-		var json = JsonSerializer.Serialize(value, _jsonOptions);
-		return json;
-	}
-	#endregion
-}
-
-public class DropItemComparer : IComparer<DropItem> {
-	public int Compare(DropItem? x, DropItem? y) {
-		if (x == null || y == null) return 0;
-		return x.IsFolder switch {
-			true when !y.IsFolder => -1,
-			false when y.IsFolder => 1,
-			_ => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase)
-		};
+		var treeItems = arg.BuildTreeItems();
+		foreach (var treeItem in treeItems) {
+			treeItem.TreeItems = treeItem.BuildTreeItems();
+		}
+		arg.Expanded = true;
+		return Task.FromResult(treeItems);
 	}
 }

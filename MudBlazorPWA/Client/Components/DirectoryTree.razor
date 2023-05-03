@@ -14,8 +14,7 @@
           Justify="Justify.Center">
         <MudIconButton Icon="@Icons.Material.Filled.Print"
             Size="Size.Small"
-            Color="Color.Primary"
-            OnClick="ConsoleLogDropItems"/>
+            Color="Color.Primary"/>
         <MudIcon Icon="@Icons.Material.Filled.DatasetLinked"/>
         <MudText Typo="Typo.h5">
           <strong >Winding Instructions</strong>
@@ -25,40 +24,29 @@
     <div class="directory-explorer">
       <div class="directory-treeview">
         <MudTreeView T="IDirectoryItem"
+            Items="@(State.RootDirectoryItem.TreeItems)"
+            @bind-SelectedValue="@State.SelectedFolder"
             MaxHeight="100%"
             ExpandOnDoubleClick="true"
-            SelectedValueChanged="UpdateSelectedItem"
             Dense="true"
             Width="100%">
-          <ChildContent>
-            @{
-              var rootItem = State.RootDirectoryItem;
-              <MudTreeViewItem T="IDirectoryItem"
-                  Items="@(rootItem.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet())"
-                  Icon="@Icons.Material.Filled.FolderSpecial"
-                  Value="@rootItem"
-                  Text="@rootItem.Name"
-                  Activated="@(rootItem == SelectedItem)"
-                  @bind-Selected="@rootItem.Selected"
-                  @bind-Expanded="@rootItem.Expanded"/>
-            }
-          </ChildContent>
           <ItemTemplate Context="item">
             <MudTreeViewItem T="IDirectoryItem"
-                Items="@(item.TreeItems.Select(x => x).Where(x => x is DirectoryItem<DirectoryNode>).ToHashSet())"
-                Value="@item"
-                @bind-Expanded="@item.Expanded">
+                Items="@item.TreeItems"
+                Value="item"
+                Expanded="item.Expanded">
 
               <Content>
+
                 @if (item.CanExpand) {
                   <MudTreeViewItemToggleButton Loading="item.Loading"
-                      @bind-Expanded="@item.Expanded"
-                      Visible="@State.HasFolders(item)"/>
+                     @bind-expanded="@item.Expanded"
+                      Visible="@State.HasChildItems(item)"/>
                 } else if (item is {CanExpand: false} and DirectoryItem<DirectoryNode>) {
                   <MudTreeViewItemToggleButton/>
                 }
 
-                <MudIcon Icon="@Icons.Material.Filled.Folder"/>
+                <MudIcon Icon="@item.Icon"/>
                 <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%">
                   <MudText Class="pl-2"
                       Style="justify-self: start;">
@@ -81,88 +69,9 @@
 
             </MudTreeViewItem>
           </ItemTemplate>
-
         </MudTreeView>
-      </div>
-
-      <div class="directory-dropzone">
-
-        @if (State.SelectedFolder != null && !State.SelectedFolder.GetFiles().Any()) {
-          <div class="align-center d-flex justify-center mx-auto"
-              style="margin-top: 2rem;">
-            <MudText Typo="Typo.h6">No Files in Current Directory</MudText>
-          </div>
-        }
-        @if (State.SelectedFolderFileCount() > AdminEditorState.PageItemsCount) {
-          <div class="align-center d-flex flex-column">
-
-            <MudPagination @bind-Selected="@State.CurrentPage"
-                Color="Color.Secondary"
-                Class="gap-0 mud-background-gray"
-                BoundaryCount="2"
-                MiddleCount="5"
-                Count="@State.SelectedItemPageCount"/>
-          </div>
-          <MudDivider/>
-        } else {
-          <MudSpacer/>
-        }
-
-        @{
-          const string dzBaseClass = "d-flex flex-column mud-width-full mud-height-full  align-stretch";
-          var dzClass = dzBaseClass + " " + State.SelectedFolderFileCount() switch {
-            >= 6 => "justify-space-evenly",
-            _ => "pt-12 justify-flex-start gap-2"
-            };
-
-          <MudDropZone T="DropItem"
-              Identifier="@State.SelectedFolder?.DropZoneId"
-              Class="@dzClass">
-            <ItemRenderer Context="item">
-
-              @{
-                const string baseClass = "align-center d-flex justify-center flex-auto mx-auto";
-
-                var itemClass = baseClass + " " + item.Type switch {
-                  // if name ends with .pdf or .PD
-                  DropItemType.Pdf => "mud-error-hover",
-                  DropItemType.Video => "mud-info-hover",
-                  DropItemType.Folder => "mud-success-hover",
-                  _ => "mud-warning-hover"
-                  };
-
-                <div class="@itemClass"
-                    style="width:80%; border:1px solid; padding-inline:10px;">
-
-                  <MudIcon Icon="@item.Icon"
-                      Size="Size.Large"
-                      Class="pa-1"/>
-                  <div style="display: grid;grid-template-columns: repeat(2, auto);align-items: center;justify-content: stretch;width: 100%;gap: normal;">
-
-                    <MudText Class="pl-2"
-                        Style="justify-self: start;">
-                      @item.Name
-                    </MudText>
-
-                    <div style="justify-self: end;">
-
-                      <MudIconButton Icon="@Icons.Material.Filled.OpenInBrowser"
-                          OnClick="@(() => State.OpenFilePreview(item.Path))"
-                          Size="Size.Small"
-                          Color="Color.Inherit"/>
-                      <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
-                          Size="Size.Medium"
-                          Color="Color.Inherit"/>
-                    </div>
-                  </div>
-                </div>
-              }
-            </ItemRenderer>
-          </MudDropZone>
-        }
 
       </div>
-
     </div>
   </div>
 }
@@ -172,14 +81,10 @@
   [Parameter(CaptureUnmatchedValues = true)]
   public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
   private MudTreeView<IDirectoryItem> MudTreeRoot { get; set; } = new();
-  private IDirectoryItem? SelectedItem { get => State.SelectedFolder; set => State.SelectedFolder = value; }
 
 
 
-  protected override async Task OnInitializedAsync() {
-    await base.OnInitializedAsync();
-    State.StateChanged += AdminStateChanged;
-  }
+  protected override void OnInitialized() { State.StateChanged += AdminStateChanged; }
   private void AdminStateChanged() => StateHasChanged();
   public void Dispose() { State.StateChanged -= AdminStateChanged; }
 
@@ -188,68 +93,4 @@
     await State.OpenFilePreview(file.Item.Path);
   }
 
-  private Task UpdateSelectedItem(IDirectoryItem? arg) {
-    if (arg is null) return Task.CompletedTask;
-    if (arg == SelectedItem) return Task.CompletedTask;
-    SelectedItem = arg;
-    StateHasChanged();
-    return Task.CompletedTask;
-  }
-  private async Task OpenExpansionPanel(bool expanded) {
-    if (State.RootDirectoryItem!.Expanded == expanded) return;
-
-    var childrenExpanded = State.RootDirectoryItem.TreeItems.Any(x => x.Expanded);
-    if (childrenExpanded) {
-  // for the first click, collapse the children and not RootDirectoryItem
-      await CollapseChildren(State.RootDirectoryItem);
-      return;
-    }
-    if (!expanded) {
-      await CollapseChildren(State.RootDirectoryItem);
-      await Task.Delay(500);
-      State.RootDirectoryItem.Expanded = expanded;
-      return;
-    }
-    if (State.SelectedFolder is null) {
-      State.RootDirectoryItem.Expanded = expanded;
-      StateHasChanged();
-    } else {
-      State.RootDirectoryItem.Expanded = expanded;
-      await ExpandToSelected(State.RootDirectoryItem);
-      StateHasChanged();
-    }
-  }
-  private async Task CollapseChildren(IDirectoryItem stateRootDirectoryItem) {
-    foreach (var item in stateRootDirectoryItem.TreeItems) {
-      item.Expanded = false;
-      await CollapseChildren(item);
-    }
-  }
-
-  private async Task ExpandToSelected(IDirectoryItem stateRootDirectoryItem) {
-  // use the path of the selectedItem to determine which parent or parents need to be expanded.
-  // expand each parent.
-
-    if (State.SelectedFolder is null) return;
-
-    var path = State.SelectedFolder.Path;
-    var pathParts = path.Split('\\');
-    foreach (var part in pathParts) {
-      var item = stateRootDirectoryItem.TreeItems.FirstOrDefault(x => x.Name == part);
-      if (item is null) continue;
-      if (item == State.SelectedFolder) return;
-      item.Expanded = true;
-      await ExpandToSelected(item);
-    }
-  }
-
-  private void ConsoleLogDropItems() {
-  //Console.WriteLine all the items in the State.DropItems list where the dropItem.DropZoneId == State.SelectedFolder?.DropZoneId
-  // serialize teh item and write it to the console.
-
-    var items = State.DropItems.Where(x => x.DropZoneId == State.SelectedFolder?.DropZoneId);
-    foreach (var item in items) {
-      Console.WriteLine(State.Serialize(item));
-    }
-  }
 }
