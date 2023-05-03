@@ -56,25 +56,24 @@
                   <ItemRenderer>
                     @{
                       var chipClass = "border border-solid drop-zone-item";
-                      string chipIcon;
-                      /*string? chipCloseIcon = context.IsCopy
-                          ? null
-                          : " ";*/
+                      string chipIcon = context.Icon;
                       switch (context.Type) {
                         case DropItemType.Folder:
                           chipClass += " " + "folder-item";
-                          chipIcon = Icons.Material.Filled.Folder;
                           break;
                         case DropItemType.Pdf:
                           chipClass += " " + "pdf-item";
-                          chipIcon = Icons.Material.Filled.PictureAsPdf;
+
                           break;
                         case DropItemType.Video:
                           chipClass += " " + "video-item";
-                          chipIcon = Icons.Material.Filled.VideoLibrary;
+
                           break;
                         case DropItemType.Media:
                         case DropItemType.Unknown:
+                          chipClass += " " + "unknown-item";
+
+                          break;
                         default:
                           throw new ArgumentOutOfRangeException();
                       }
