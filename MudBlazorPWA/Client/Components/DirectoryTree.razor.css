@@ -48,8 +48,8 @@
 }
 
 .directory-treeview {
+  max-height: 100%;
   height: min-content;
-  max-height: 40%;
   padding-bottom: 10px;
 }
 

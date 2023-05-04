@@ -90,13 +90,13 @@
 </div>
 
 @code{
-  #region Constants
+
     private const string DzCodeFolder = "DZ-Code-Folder";
     private const string DzCodePdf = "DZ-Code-Pdf";
     private const string DzCodeVideo = "DZ-Code-Video";
     private const string DzCodeRefMedia = "DZ-Code-Ref";
-  #endregion
-  #region Parameters
+
+
   [CascadingParameter]
   public AdminDashboard AdminDashboard { get; set; } = default!;
 
@@ -114,11 +114,11 @@
 
   [Parameter]
   public EventCallback<WindingCode> OnCommittedItemChanges { get; set; }
-  #endregion
+
   private List<DropZoneConfig> _dropZoneConfigs = new();
   private List<T> _dropItemChanges = new();
   private bool _submitDisabled = true;
-  #region Lifecycle
+
   protected override void OnInitialized() {
     AdminDashboard.OnDrop += AdminDashboard_OnDrop;
     base.OnInitialized();
@@ -145,7 +145,7 @@
       }
     };
   }
-  #endregion
+
   private void AdminDashboard_OnDrop(string? identifier, AdminDashboard.DropItemAction action) {
     Console.WriteLine("OnDrop Event");
     if (identifier == null) {
@@ -183,7 +183,7 @@
     }
     _submitDisabled = false;
   }
-  #region Methods
+
   private bool CanAcceptDrop(T item, string dropZoneIdentifier) {
     if (FolderDropItems == null)
       return false;
@@ -283,8 +283,8 @@
     var newTabUrl = $"{NavigationManager.BaseUri}{WindingCode.Id}";
     await JSRuntime.InvokeVoidAsync("openFilePreview", newTabUrl);
   }
-  #endregion
-  #region Classes
+
+
   public class DropZoneConfig {
     private string _containerClass = "pa-2";
 
@@ -296,7 +296,7 @@
     public required string Identifier { get; init; }
     public required string HeaderText { get; init; }
   }
-  #endregion
+
   public void Dispose() { AdminDashboard.OnDrop -= AdminDashboard_OnDrop; }
   private Task LogFolderItems() {
     if (FolderDropItems == null) {

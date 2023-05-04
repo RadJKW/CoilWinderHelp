@@ -19,7 +19,7 @@ public class DropItem {
 
 	public DropItem(IDirectoryItem item, string? dropZoneId = null) {
 		// Set common properties
-		DropZoneId = dropZoneId ?? item.DropZoneId;
+		DropZoneId = dropZoneId ?? string.Empty;
 		Name = item.Name;
 		Path = item.Path;
 		_itemType = item.ItemType;// Store the ItemType
@@ -30,7 +30,6 @@ public class DropItem {
 	private readonly Lazy<string> _icon;
 	private readonly ItemType _itemType;
 	private readonly Lazy<DropItemType> _type;
-	#region Methods
 	private DropItemType AssignedType() {
 		// If the item is a directory, return Folder
 		if (_itemType == ItemType.Directory) {
@@ -58,9 +57,7 @@ public class DropItem {
 			? icon
 			: Icons.Material.Filled.Error;
 	}
-	#endregion
 
-	#region Static Methods
 	private static readonly Dictionary<DropItemType, string> IconTypeMap = new() {
 		{ DropItemType.Pdf, Icons.Custom.FileFormats.FilePdf },
 		{ DropItemType.Video, Icons.Custom.FileFormats.FileVideo },
@@ -78,7 +75,6 @@ public class DropItem {
 			? string.Empty
 			: fileName[index..];
 	}
-	#endregion
 	public DropItem Clone() {
 		// serialize and deserialize the object
 		var json = JsonSerializer.Serialize(this);

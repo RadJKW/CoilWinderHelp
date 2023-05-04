@@ -14,7 +14,9 @@
 
 ::deep .mud-table.mud-data-grid {
   --data-grid-toolbar-height: 72px;
+  margin-bottom: 9px;
   overflow: hidden;
+  flex: 3;
 }
 
 ::deep .mud-table.mud-data-grid .mud-table-container {

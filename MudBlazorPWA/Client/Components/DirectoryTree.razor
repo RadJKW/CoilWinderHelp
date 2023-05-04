@@ -4,7 +4,6 @@
 
 @if (State.RootDirectoryItem != null) {
   <div @attributes="@AdditionalAttributes">
-
     <MudListSubheaderExtended T="string"
         DisableGutters="true"
         SecondaryBackground="true">
@@ -12,9 +11,6 @@
           Spacing="6"
           AlignItems="AlignItems.Center"
           Justify="Justify.Center">
-        <MudIconButton Icon="@Icons.Material.Filled.Print"
-            Size="Size.Small"
-            Color="Color.Primary"/>
         <MudIcon Icon="@Icons.Material.Filled.DatasetLinked"/>
         <MudText Typo="Typo.h5">
           <strong >Winding Instructions</strong>
@@ -24,35 +20,46 @@
     <div class="directory-explorer">
       <div class="directory-treeview">
         <MudTreeView T="IDirectoryItem"
-            Items="@(State.RootDirectoryItem.TreeItems)"
-            @bind-SelectedValue="@State.SelectedFolder"
+            @bind-SelectedValue="@State.SelectedItem"
+            ServerData="@(item => InvokeFetchTreeItems(item, "ServerData"))"
             MaxHeight="100%"
-            ExpandOnDoubleClick="true"
             Dense="true"
+            Hover="true"
             Width="100%">
+          <ChildContent>
+            @{
+              var rootItem = State.RootDirectoryItem;
+              <MudTreeViewItem T="IDirectoryItem"
+                  Items="@rootItem.TreeItems"
+                  Icon="@Icons.Material.Filled.FolderSpecial"
+                  Value="@rootItem"
+                  Text="@rootItem.Name"
+                  Activated="@(rootItem == State.SelectedItem)"
+                  @bind-Expanded="@rootItem.Expanded"/>
+            }
+          </ChildContent>
           <ItemTemplate Context="item">
             <MudTreeViewItem T="IDirectoryItem"
                 Items="@item.TreeItems"
-                Value="item"
-                Expanded="item.Expanded">
+                Value="@item"
+                Expanded="item.Expanded"
+                ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)">
 
               <Content>
-
-                @if (item.CanExpand) {
-                  <MudTreeViewItemToggleButton Loading="item.Loading"
-                     @bind-expanded="@item.Expanded"
-                      Visible="@State.HasChildItems(item)"/>
-                } else if (item is {CanExpand: false} and DirectoryItem<DirectoryNode>) {
-                  <MudTreeViewItemToggleButton/>
-                }
-
+                <MudTreeViewItemToggleButton Loading="@item.Loading"
+                    Expanded="item.Expanded"
+                    ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)"
+                    Visible="item.CanExpand"
+                    ExpandedIcon="@Icons.Material.Filled.ChevronRight"
+                    LoadingIcon="@Icons.Material.Filled.Loop"
+                    LoadingIconColor="Color.Info"/>
                 <MudIcon Icon="@item.Icon"/>
                 <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%">
                   <MudText Class="pl-2"
                       Style="justify-self: start;">
                     @item.Name
                   </MudText>
-                  @if (item is DirectoryItem<FileNode>) {
+                  @if (item.ItemType is ItemType.File) {
                     <div style="justify-self: end;">
 
                       <MudIconButton Icon="@Icons.Material.Filled.OpenInBrowser"
@@ -69,12 +76,13 @@
 
             </MudTreeViewItem>
           </ItemTemplate>
-        </MudTreeView>
 
+        </MudTreeView>
       </div>
     </div>
   </div>
 }
+
 
 @code{
 
@@ -83,14 +91,53 @@
   private MudTreeView<IDirectoryItem> MudTreeRoot { get; set; } = new();
 
 
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    State.StateChanged += AdminStateChanged;
+  }
 
-  protected override void OnInitialized() { State.StateChanged += AdminStateChanged; }
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    await base.OnAfterRenderAsync(firstRender);
+    if (firstRender) {
+      await State.BuildDirectoryTree();
+    }
+  }
   private void AdminStateChanged() => StateHasChanged();
   public void Dispose() { State.StateChanged -= AdminStateChanged; }
 
-  private async Task OpenFilePreview(IDirectoryItem item) {
-    if (item is not DirectoryItem<FileNode> file) return;
-    await State.OpenFilePreview(file.Item.Path);
+  private async Task OnItemExpanded(IDirectoryItem item, bool expanded) {
+  // prevents parent from collapsing when child or grandchild is selected
+
+
+    if (item.Expanded != expanded) {
+      item.Expanded = expanded;
+      StateHasChanged();
+      await InvokeFetchTreeItems(item, "TreeViewItem");
+      StateHasChanged();
+      await Task.Delay(250);
+      item.Loading = false;
+    }
+  }
+  private async Task<HashSet<IDirectoryItem>> InvokeFetchTreeItems(IDirectoryItem item, string componentId) {
+    Console.WriteLine($"Component Id: {componentId}");
+    Console.WriteLine($"Item: {JsonSerializer.Serialize(item)}");
+    if (item.TreeItems != null && item.TreeItems.Any()) return new(item.TreeItems);
+    item.Loading = true;
+    StateHasChanged();
+    await DirectoryExtensions.FetchTreeItems(item);
+    return item.TreeItems == null
+      ? new()
+      : new(item.TreeItems);
   }
 
+  private async Task OpenFilePreview(IDirectoryItem item) {
+    if (item is not DirectoryItem<FileNode> file) return;
+    if (file.Item?.Path != null)
+      await State.OpenFilePreview(file.Item.Path);
+  }
+  private void UpdateSelectedItem(IDirectoryItem? arg) {
+    if (arg is null) return;
+    if (arg == State.SelectedItem) return;
+    State.SelectedItem = arg;
+  }
 }

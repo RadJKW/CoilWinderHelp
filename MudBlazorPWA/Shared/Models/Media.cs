@@ -1,7 +1,8 @@
 ﻿namespace MudBlazorPWA.Shared.Models;
-public class Media
-{
+public class Media {
 	public string? Video { get; set; }
 	public string? Pdf { get; set; }
+
+	// TODO: next iteration make this List<Media>?
 	public List<string>? RefMedia { get; set; } = new();
 }

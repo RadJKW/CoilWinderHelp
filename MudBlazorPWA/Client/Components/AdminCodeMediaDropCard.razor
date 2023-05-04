@@ -1,17 +1,16 @@
-﻿@using System.Text.Json
-
-@inject IDialogService DialogService
+﻿@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject AdminEditorState State
+@using System.Collections
 @implements IDisposable
 
 <div id="media-card"
-    class="d-flex justify-center mud-width-full">
+    class="d-flex flex-1 justify-center mud-width-full">
   @if (WindingCode != null) {
     <MudCard Elevation="4"
-        Class="mud-width-full"
-        Style="background-color: transparent"
-        Outlined="true">
+        Class="mud-height-full mud-width-full"
+        Style="background-color: transparent; position: relative;"
+        Outlined="false">
       <MudCardHeader Class="gap-x-4 mud-background-gray pa-1">
         <MudText Typo="Typo.h6">
           <strong>
@@ -34,12 +33,25 @@
         </MudButton>
       </MudCardHeader>
       <MudDivider/>
-      <MudCardContent Class="pa-1">
+      <MudCardContent Class="pa-1"
+          Style="height: auto; display: flex; justify-items: center;position: absolute;bottom: 48px;left: 0;right: 0;top: 40px;">
         <MudGrid Spacing="1"
             Justify="Justify.Center">
+
+          @foreach (var entry in AssignedItemDictionary.Where(entry => entry.Value.Count != 0)) {
+            <MudItem xs="6"
+                lg="3"
+                Class="border mud-border-primary">
+
+              <DirectoryItemCard Title="@entry.Key.ToString()"
+                  Items="@entry.Value"/>
+            </MudItem>
+          }
+
         </MudGrid>
       </MudCardContent>
-      <MudCardActions>
+      <MudCardActions Class="border-t mud-border-lines-default mud-width-full"
+          Style="position: absolute; bottom: 0;">
         <MudStack Row
             Spacing="2"
             AlignItems="AlignItems.Center">
@@ -72,23 +84,60 @@
 </div>
 
 @code{
-  #region Parameters
+
   [Parameter]
   [EditorRequired]
   public required WindingCode? WindingCode { get; set; }
-  #endregion
-  #region Locals
+
   private bool _submitDisabled = true;
-  #endregion
-  #region Lifecycle
+  private Dictionary<Enum, List<string?>> AssignedItemDictionary { get; set; } = new() {
+    { AssignedItem.Directory, new() },
+    { AssignedItem.Pdf, new() },
+    { AssignedItem.Video, new() },
+    { AssignedItem.RefMedia, new() }
+  };
+
+  protected override void OnParametersSet() {
+    base.OnParametersSet();
+
+
+    if (WindingCode is null) return;
+
+    foreach (var item in Enum.GetValues(typeof(AssignedItem)).Cast<AssignedItem>()) {
+      var items = AssignedItemDictionary[item];
+      items.Clear();
+      switch (item) {
+        case AssignedItem.Directory:
+  // if FolderPath is null, then do not add
+  // else add
+          if (WindingCode.FolderPath is not null)
+            items.Add(WindingCode.FolderPath);
+          break;
+        case AssignedItem.Pdf:
+          if (WindingCode.Media.Pdf is not null)
+            items.Add(WindingCode.Media.Pdf);
+          break;
+        case AssignedItem.Video:
+          if (WindingCode.Media.Video is not null)
+            items.Add(WindingCode.Media.Video);
+          break;
+        case AssignedItem.RefMedia:
+          if (WindingCode.Media.RefMedia is not null)
+            items.AddRange(WindingCode.Media.RefMedia);
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
+      }
+    }
+  }
   protected override void OnInitialized() {
     base.OnInitialized();
     State.StateChanged += async () => await InvokeAsync(StateHasChanged);
   }
+
   void IDisposable.Dispose() { Console.WriteLine("Disposing AdminDashboard.razor"); }
-  #endregion
-  #region Methods
-  private async Task SaveChangesToDatabaseAsync() { await Task.CompletedTask; }
+
+  private static async Task SaveChangesToDatabaseAsync() { await Task.CompletedTask; }
   private async Task OpenImportMediaDialog() {
     if (WindingCode is null) return;
     var parameters = new DialogParameters {
@@ -112,6 +161,12 @@
     if (result.Data is not WindingCode _) return;
     _submitDisabled = false;
   }
-  private void StateOnDropItemsChanged() { _submitDisabled = false; }
-  #endregion
+
+  public enum AssignedItem {
+    Directory,
+    Pdf,
+    Video,
+    RefMedia
+  }
+
 }

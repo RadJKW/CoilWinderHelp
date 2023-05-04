@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
@@ -22,10 +23,9 @@ public class AdminEditorState : IAsyncDisposable {
 		OnInitialized();
 	}
 
-	private async void OnInitialized() {
+	private void OnInitialized() {
 		_windingCodeManager.WindingCodesChanged += OnWindingCodesChanged;
 		WindingCodes = _windingCodeManager.WindingCodes;
-		await BuildDirectoryTree();
 	}
 
 	ValueTask IAsyncDisposable.DisposeAsync() {
@@ -37,26 +37,32 @@ public class AdminEditorState : IAsyncDisposable {
 	private void NotifyStateChanged() => StateChanged?.Invoke();
 
 	public IDirectoryItem? RootDirectoryItem { get; private set; }
-	public IDirectoryItem? SelectedFolder { get; set; }
-	private async Task BuildDirectoryTree() {
+	private IDirectoryItem? _selectedItem;
+
+	public IDirectoryItem? SelectedItem {
+		get => _selectedItem;
+		set {
+			_selectedItem = value;
+			NotifyStateChanged();
+		}
+	}
+	public async Task BuildDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
 		_directoryNavigator.RootDirectory = rootDirectory;
 		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true };
-
-		rootDirectoryItem.TreeItems = await GetTreeItems(rootDirectoryItem);
 		RootDirectoryItem = rootDirectoryItem;
-
-		SelectedFolder = rootDirectoryItem;
+		SelectedItem = rootDirectoryItem;
+		await DirectoryExtensions.FetchTreeItems(rootDirectoryItem);
 		NotifyStateChanged();
 	}
-	public bool HasChildItems(IDirectoryItem directoryItem) {
+	public async Task<bool> HasChildItems(IDirectoryItem directoryItem) {
 		var directoryNode = _directoryNavigator.GetFolder(directoryItem.Path);
 
+		await Task.CompletedTask;
 		if (directoryNode == null) return false;
 
 		return directoryNode.Folders.Any() || directoryNode.Files.Any();
 	}
-
 
 	public IEnumerable<WindingCode> WindingCodes = new List<WindingCode>();
 
@@ -72,6 +78,7 @@ public class AdminEditorState : IAsyncDisposable {
 		get => _directoryHub.WindingCodeType;
 		set => _directoryHub.WindingCodeType = value;
 	}
+
 	public async Task<WindingCode?> GetWindingCode(int windingCodeId) {
 		return await _windingCodeManager.FetchWindingCode(windingCodeId);
 	}
@@ -90,15 +97,5 @@ public class AdminEditorState : IAsyncDisposable {
 		          + "files/"
 		          + filePath;
 		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
-	}
-	public Task<HashSet<IDirectoryItem>> GetTreeItems(IDirectoryItem arg) {
-		if (arg.TreeItems.Any()) return Task.FromResult(arg.TreeItems);
-
-		var treeItems = arg.BuildTreeItems();
-		foreach (var treeItem in treeItems) {
-			treeItem.TreeItems = treeItem.BuildTreeItems();
-		}
-		arg.Expanded = true;
-		return Task.FromResult(treeItems);
 	}
 }

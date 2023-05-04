@@ -52,6 +52,10 @@ public class DirectoryNavigator : IDirectoryNavigator {
 		NavigationHistory.Push(RootDirectory!);
 	}
 
+	public FileNode? GetFile(string filePath) {
+		var file = RootDirectory!.GetFile(filePath);
+		return file ?? null;
+	}
 	public DirectoryNode? GetFolder(string folderPath) {
 		// if the folderPath is string.Empty, return the root directory
 		if (string.IsNullOrEmpty(folderPath)) {
@@ -75,5 +79,6 @@ public interface IDirectoryNavigator {
 	void NavigateBack();
 	void NavigateToRoot();
 	DirectoryNode? GetFolder(string folderPath);
+	FileNode? GetFile(string filePath);
 	DirectoryNode GetCurrentFolder();
 }
