@@ -1,57 +1,93 @@
 ﻿@inject IDialogService DialogService
 @inject ISnackbar Snackbar
 @inject AdminEditorState State
-@using System.Collections
 @implements IDisposable
 
-<div id="media-card"
-    class="d-flex flex-1 justify-center mud-width-full">
+<div class="media-card">
   @if (WindingCode != null) {
     <MudCard Elevation="4"
-        Class="mud-height-full mud-width-full"
-        Style="background-color: transparent; position: relative;"
+        Class="border-t mud-border-lines-default mud-width-full"
+        Style="background-color: transparent;"
         Outlined="false">
-      <MudCardHeader Class="gap-x-4 mud-background-gray pa-1">
-        <MudText Typo="Typo.h6">
-          <strong>
-            @WindingCode.Division: @WindingCode.Name
-          </strong>
-        </MudText>
-        <MudButton StartIcon="@Icons.Material.Outlined.Upgrade"
+      <MudCardHeader Class="border-b-2 mud-background-gray mud-border-lines-default pa-2">
+
+        <MudIconButton Icon="@Icons.Material.Filled.Edit"
             Size="Size.Small"
-            Color="Color.Secondary"
-            Variant="Variant.Outlined"
-            Disabled="@(WindingCode.Media.Pdf == null && WindingCode.Media.Video == null)">
-          View Media
-        </MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.ImportExport"
-            Size="Size.Small"
-            Color="Color.Default"
-            Variant="Variant.Outlined"
-            OnClick="OpenImportMediaDialog">
-          Import Media
-        </MudButton>
+            Class="mr-2 my-auto"
+            OnClick="@TogglePopover"/>
+        <MudStack Row
+            Justify="Justify.FlexStart"
+            AlignItems="AlignItems.Center">
+          <MudDivider Class="my-n2"
+              Vertical="true"
+              FlexItem="true"
+              DividerType="DividerType.FullWidth"/>
+          <div>
+            <MudText Typo="Typo.h6">
+              <strong>
+                @WindingCode.Division: @WindingCode.Name
+              </strong>
+            </MudText>
+            <MudPopover Open="@_isOpen"
+                RelativeWidth="false"
+                Elevation="3"
+                AnchorOrigin="Origin.TopLeft"
+                TransformOrigin="Origin.TopLeft">
+              <MudCard Square>
+                <MudCardHeader Class="border-b d-flex justify-center mud-background-gray mud-border-info pa-1">
+                  <MudText Typo="Typo.button">
+                    Edit Code
+                  </MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                  <MudListExtended T="CardOptions"
+                      ItemCollection="@MediaCardOptions"
+                      MultiSelection="true"
+                      SelectedValues="@EnabledOptions"
+                      SelectedValuesChanged="@OnSelectedValuesChanged">
+                  </MudListExtended>
+
+                </MudCardContent>
+              </MudCard>
+            </MudPopover>
+
+          </div>
+
+          <MudButton StartIcon="@Icons.Material.Outlined.Upgrade"
+              Size="Size.Small"
+              Color="Color.Secondary"
+              Variant="Variant.Outlined"
+              Disabled="@(WindingCode.Media.Pdf == null && WindingCode.Media.Video == null)">
+            View Media
+          </MudButton>
+          <MudButton StartIcon="@Icons.Material.Filled.ImportExport"
+              Size="Size.Small"
+              Color="Color.Default"
+              Variant="Variant.Outlined"
+              OnClick="OpenImportMediaDialog">
+            Import Media
+          </MudButton>
+        </MudStack>
       </MudCardHeader>
-      <MudDivider/>
       <MudCardContent Class="pa-1"
-          Style="height: auto; display: flex; justify-items: center;position: absolute;bottom: 48px;left: 0;right: 0;top: 40px;">
+          Style="height: auto; display: flex; justify-items:center;">
         <MudGrid Spacing="1"
             Justify="Justify.Center">
 
-          @foreach (var entry in AssignedItemDictionary.Where(entry => entry.Value.Count != 0)) {
-            <MudItem xs="6"
-                lg="3"
-                Class="border mud-border-primary">
+          @foreach (var entry in AssignedItemDictionary) {
+            <MudItem Class="border d-flex justify-center mud-border-lines-default pa-0"
+                xs="8"
+                md="6"
+                xl="3">
 
               <DirectoryItemCard Title="@entry.Key.ToString()"
-                  Items="@entry.Value"/>
+                  ItemPaths="@entry.Value"/>
             </MudItem>
           }
 
         </MudGrid>
       </MudCardContent>
-      <MudCardActions Class="border-t mud-border-lines-default mud-width-full"
-          Style="position: absolute; bottom: 0;">
+      <MudCardActions Class="border-t mud-border-lines-default mud-width-full">
         <MudStack Row
             Spacing="2"
             AlignItems="AlignItems.Center">
@@ -90,11 +126,23 @@
   public required WindingCode? WindingCode { get; set; }
 
   private bool _submitDisabled = true;
+  private bool _isOpen;
+  private bool _addItems;
+  private bool _removeItems;
+  private bool _editItems;
+
+  private List<CardOptions> EnabledOptions { get; set; } = new();
   private Dictionary<Enum, List<string?>> AssignedItemDictionary { get; set; } = new() {
     { AssignedItem.Directory, new() },
     { AssignedItem.Pdf, new() },
     { AssignedItem.Video, new() },
     { AssignedItem.RefMedia, new() }
+  };
+
+  private List<CardOptions> MediaCardOptions { get; set; } = new() {
+    new("Add Items"),
+    new("Remove Items"),
+    new("Edit Items")
   };
 
   protected override void OnParametersSet() {
@@ -167,6 +215,21 @@
     Pdf,
     Video,
     RefMedia
+  }
+
+  private void TogglePopover() { _isOpen = !_isOpen; }
+  private void OnSelectedValuesChanged(IEnumerable<CardOptions> options) {
+  // if any MediaCardOptions are in EnabledOptions, then set the items IsEnabled to true
+    foreach (var option in options) {
+      if (EnabledOptions.Contains(option)) {
+        option.IsEnabled = true;
+      }
+    }
+  }
+
+  private record CardOptions(string Name, bool IsEnabled = false) {
+    public bool IsEnabled { get; set; } = IsEnabled;
+    public override string ToString() { return Name; }
   }
 
 }

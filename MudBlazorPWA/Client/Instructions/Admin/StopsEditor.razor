@@ -3,6 +3,10 @@
 @inject AdminEditorState State
 @implements IDisposable
 
+<MudScrollbar Selector=".mud-table-container"
+    Width="6"
+    Color="#7e52f586">
+</MudScrollbar>
 <div class="directory-tree-grid">
 
   <div class="dark-background directory-tree-component overflow-hidden rounded-lg">
@@ -12,10 +16,10 @@
   <MudStack Justify="Justify.FlexStart"
       AlignItems="AlignItems.Stretch"
       Spacing="0"
-      Class="bordered dark-background mud-width-full overflow-hidden"
-      Style="row-gap: 1rem;">
+      Class="bordered dark-background gap-1 mud-width-full overflow-hidden"
+      Style="min-width: min-content">
     <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
-    <AdminCodeMediaDropCard WindingCode="State.SelectedWindingCode"/>
+    <AdminCodeMediaDropCard WindingCode="@State.SelectedWindingCode"/>
   </MudStack>
 </div>
 

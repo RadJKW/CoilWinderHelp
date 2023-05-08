@@ -12,7 +12,9 @@
   margin-inline: auto;
   height: var(--max-docview-height);
   padding-block: 0.5rem;
+  overflow: auto hidden;
 }
+
 /*.docview.main-container :not(div) {}
 
 /*Custom MudBlazor Overrides*/
@@ -22,8 +24,8 @@ aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link {
 }
 
 aside.docview.drawer-left
-  .mud-navmenu.mud-navmenu-default
-  .mud-nav-link.active:not(.mud-nav-link-disabled)
-  .mud-nav-link-icon.mud-nav-link-icon-default {
+.mud-navmenu.mud-navmenu-default
+.mud-nav-link.active:not(.mud-nav-link-disabled)
+.mud-nav-link-icon.mud-nav-link-icon-default {
   color: rgba(var(--mud-palette-primary-rgb), 0.75);
 }

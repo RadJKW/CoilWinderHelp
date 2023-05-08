@@ -1,0 +1,27 @@
+﻿.directory-item-list {
+}
+
+.directory-item-header {
+}
+
+.directory-item-content {
+  display: flex;
+}
+
+.directory-item-content ::deep .directory-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.directory-item-content ::deep .directory-item > :first-child {
+  padding-inline-end: 4px;
+}
+
+.directory-item-content ::deep .directory-item p {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.directory-item {
+}

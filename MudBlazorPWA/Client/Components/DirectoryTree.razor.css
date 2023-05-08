@@ -53,10 +53,35 @@
   padding-bottom: 10px;
 }
 
+.directory-treeview ::deep .mud-treeview-item-content {
+  padding: 0;
+  margin: 0;
+}
+
+.directory-treeview ::deep .mud-treeview-item-arrow {
+  margin: 0;
+}
+
+.directory-treeview ::deep .mud-treeview-item-arrow button {
+  padding: 4px 0;
+}
+
+.directory-treeview
+::deep
+.mud-treeview-item-arrow.mud-treeview-item-arrow-expand.mud-transform
+button {
+  padding-inline: 0 4px;
+}
+
 .directory-treeview ::deep .mud-treeview,
 .mud-treeview ul,
 .mud-treeview ul li {
   background-color: var(--mud-palette-surface);
+}
+
+.directory-treeview ::deep .mud-treeview-group {
+  margin-left: 6px;
+  margin-inline-start: 6px;
 }
 
 .directory-treeview ::deep:first-of-type(ul) > li:first-of-type {

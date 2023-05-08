@@ -1,24 +1,60 @@
-﻿<MudStack AlignItems="AlignItems.Center"
-    Justify="Justify.Center"
-    Class="border mud-border-info">
+﻿@using MudExtensions.Enums
+@inject AdminEditorState State
+<MudListExtended T="IDirectoryItem"
+    Dense="true"
+    MultiSelection="true"
+    MultiSelectionAlign="Align.Left"
+    Class=" directory-item-list mud-width-full py-0">
+  <MudListSubheaderExtended T="IDirectoryItem"
+      Class="align-center border-b d-flex directory-item-header justify-center ma-0 mud-border-lines-default pa-1">
+    <MudText Typo="Typo.button"
+        Align="Align.Center">
+      @Title
+    </MudText>
+  </MudListSubheaderExtended>
 
-  <h3>@Title</h3>
-  @foreach (var item in Items) {
-    <p>@item.GetName()</p>
-  }
-</MudStack>
+  <div class="directory-item-content">
+
+    @if (DirectoryItems.Any()) {
+      foreach (var item in DirectoryItems) {
+        <MudListItemExtended T="IDirectoryItem"
+            Class="directory-item"
+            Dense="true"
+            Value="item">
+          <MudStack Row
+              Justify="Justify.Center">
+
+            <MudIcon Icon="@item.Icon"/>
+            <p>@item.Name</p>
+          </MudStack>
+        </MudListItemExtended>
+      }
+    } else {
+      <MudPaper Style="background: transparent"
+          MinHeight="50px">
+
+      </MudPaper>
+    }
+  </div>
+</MudListExtended>
 
 @code {
   [Parameter]
   public required string Title { get; set; }
 
   [Parameter]
-  public required List<string> Items { get; set; }
+  public required List<string> ItemPaths { get; set; }
 
-  protected override void OnParametersSet() {
+  private List<IDirectoryItem> DirectoryItems { get; set; } = new();
+
+  protected override async Task OnParametersSetAsync() {
+    await base.OnParametersSetAsync();
     if (string.IsNullOrEmpty(Title)) {
       Title = "Default Title";
     }
+    DirectoryItems.Clear();
+    foreach (var item in ItemPaths.Select(
+      itemPath
+        => itemPath.AsDirectoryItem())) { DirectoryItems.Add(item); }
   }
-
 }

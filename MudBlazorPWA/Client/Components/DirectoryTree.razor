@@ -119,8 +119,6 @@
     }
   }
   private async Task<HashSet<IDirectoryItem>> InvokeFetchTreeItems(IDirectoryItem item, string componentId) {
-    Console.WriteLine($"Component Id: {componentId}");
-    Console.WriteLine($"Item: {JsonSerializer.Serialize(item)}");
     if (item.TreeItems != null && item.TreeItems.Any()) return new(item.TreeItems);
     item.Loading = true;
     StateHasChanged();

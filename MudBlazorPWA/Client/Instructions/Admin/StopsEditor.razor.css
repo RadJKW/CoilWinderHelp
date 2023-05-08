@@ -9,14 +9,13 @@
   gap: 0.5rem;
   align-items: stretch;
   justify-content: center;
-  overflow: hidden;
+  min-width: min-content;
 }
 
 ::deep .mud-table.mud-data-grid {
   --data-grid-toolbar-height: 72px;
   margin-bottom: 9px;
   overflow: hidden;
-  flex: 3;
 }
 
 ::deep .mud-table.mud-data-grid .mud-table-container {
@@ -37,16 +36,15 @@
 }
 
 .directory-tree-component {
-  display: flex;
-  width: 25vw;
+  min-width: min-content;
+  max-width: fit-content;
 }
 
 ::deep .directory-tree {
-  justify-self: center;
-  align-self: start;
   overflow: hidden;
   width: 100%;
-  margin-inline: auto;
+  min-width: fit-content;
+  margin-inline: auto 3vw;
   height: 100%;
 }
 

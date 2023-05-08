@@ -69,8 +69,7 @@ public class AdminEditorState : IAsyncDisposable {
 	public WindingCode? SelectedWindingCode {
 		get => _windingCodeManager.SelectedWindingCode;
 		set {
-			if (value != null)
-				_windingCodeManager.SelectedWindingCode = value;
+			_windingCodeManager.SelectedWindingCode = value;
 			NotifyStateChanged();
 		}
 	}

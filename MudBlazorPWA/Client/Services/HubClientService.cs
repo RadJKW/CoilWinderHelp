@@ -53,10 +53,7 @@ public class HubClientService {
 		};
 	}
 
-	public async Task<DirectoryNode> GetDirectorySnapshot() {
-		var directory = await DirectoryHub.InvokeAsync<DirectoryNode>("BuildDirectorySnapshot", null);
-		return directory;
-	}
+
 	private async void GetServerDocsFolder() {
 		WindingDocsFolder = await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
 	}
@@ -104,6 +101,11 @@ public class HubClientService {
 	}
 
 	#region DirectoryInfo
+	public async Task<DirectoryNode> GetDirectorySnapshot() {
+		var directory = await DirectoryHub.InvokeAsync<DirectoryNode>("BuildDirectorySnapshot", null);
+		return directory;
+	}
+	#endregion
 	public async Task<IEnumerable<string>> GetFoldersInPath(string? path = null) {
 		var folders = await DirectoryHub.InvokeAsync<IEnumerable<string>>("GetAllFolders", path);
 		return folders;
@@ -114,7 +116,6 @@ public class HubClientService {
 		var videoFiles = await DirectoryHub.InvokeAsync<List<string>>("ListVideoFiles", path);
 		return (pdfFiles, videoFiles);
 	}
-	#endregion
 
 	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
 		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");

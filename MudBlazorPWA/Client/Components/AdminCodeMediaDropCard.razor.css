@@ -1,45 +1,7 @@
-﻿#media-card ::deep .drop-zone-gallery {
-  /*border border-solid flex-grow-1 mud-border-lines-default pa-4 rounded-lg*/
+﻿.media-card {
   display: flex;
-  position: relative;
-  gap: 4px;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-  min-height: 50px;
-  border: 1px solid var(--mud-palette-lines-default);
-  border-radius: 8px;
-}
-
-#media-card
-::deep
-.mud-grid-item:not(:last-child)
-.drop-zone-gallery
-.mud-drop-item {
-  width: unset;
-  overflow: hidden;
-}
-
-#media-card
-::deep
-.mud-grid-item:last-of-type
-.drop-zone-gallery
-.mud-drop-item {
-  width: unset;
-  overflow: hidden;
-}
-
-#media-card ::deep #drop-zone-chip.drop-zone-item {
-  margin: unset;
-}
-
-#media-card
-::deep
-.drop-zone-gallery
-.mud-drop-item:hover
-.drop-zone-item-tooltip {
-  left: unset;
-  right: unset;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  flex: auto;
 }

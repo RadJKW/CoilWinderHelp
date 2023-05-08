@@ -15,19 +15,15 @@ public static class DirectoryExtensions {
 			var directoryNode = item.GetFolder();
 			if (directoryNode is null) return;
 
-			var items = directoryNode.Folders.Select(d => new DirectoryItem<DirectoryNode>(d)).Cast<IDirectoryItem>().ToList();
+			foreach (var folder in directoryNode.Folders.Select(
+			         folder
+				         => new DirectoryItem<DirectoryNode>(folder))) { item.TreeItems.Add(folder); }
 
-			items.AddRange(directoryNode.Files.Select(f => new DirectoryItem<FileNode>(f)));
-			// sort the items so that they are all sorted alphabetically
-			// folders first, then files
-
-
-			items = items.OrderBy(i => i.Name).ToList();
-			foreach (var directoryItem in items) {
-				item.TreeItems.Add(directoryItem);
-			}
+			foreach (var file in directoryNode.Files.Select(
+			         file
+				         => new DirectoryItem<FileNode>(file))) { item.TreeItems.Add(file); }
 		});
-		}
+	}
 	public static readonly Dictionary<FileType, string[]> FileExtensionTypeMap = new() {
 		{ FileType.Pdf, new[] { ".pdf" } },
 		{ FileType.Video, new[] { ".mp4", ".avi", ".mkv", ".mov", ".wmv" } },
@@ -53,6 +49,19 @@ public static class DirectoryExtensions {
 			: ItemType.File;
 	}
 
+
+	public static IDirectoryItem AsDirectoryItem(this string path) {
+		// determine if the path is a file or directory
+		var itemType = path.GetItemType();
+		var name = path.Split('/').Last();
+
+		if (itemType is ItemType.File) {
+			var file = new FileNode(name, path);
+			return new DirectoryItem<FileNode>(file);
+		}
+		var directory = new DirectoryNode(name, path);
+		return new DirectoryItem<DirectoryNode>(directory);
+	}
 	public static Enum FileOrDirectory(this string path) {
 		var itemType = path.GetItemType();
 
