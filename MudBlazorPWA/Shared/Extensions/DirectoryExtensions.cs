@@ -15,17 +15,19 @@ public static class DirectoryExtensions {
 			var directoryNode = item.GetFolder();
 			if (directoryNode is null) return;
 
-			foreach (var directory in directoryNode.Folders.Select(
-			         d
-				         => new DirectoryItem<DirectoryNode>(d))) { item.TreeItems.Add(directory); }
+			var items = directoryNode.Folders.Select(d => new DirectoryItem<DirectoryNode>(d)).Cast<IDirectoryItem>().ToList();
 
-			foreach (var file in directoryNode.Files.Select(
-			         f
-				         => new DirectoryItem<FileNode>(f))) { item.TreeItems.Add(file); }
+			items.AddRange(directoryNode.Files.Select(f => new DirectoryItem<FileNode>(f)));
+			// sort the items so that they are all sorted alphabetically
+			// folders first, then files
+
+
+			items = items.OrderBy(i => i.Name).ToList();
+			foreach (var directoryItem in items) {
+				item.TreeItems.Add(directoryItem);
+			}
 		});
-
-		Console.WriteLine("TreeItems Loaded");
-	}
+		}
 	public static readonly Dictionary<FileType, string[]> FileExtensionTypeMap = new() {
 		{ FileType.Pdf, new[] { ".pdf" } },
 		{ FileType.Video, new[] { ".mp4", ".avi", ".mkv", ".mov", ".wmv" } },
