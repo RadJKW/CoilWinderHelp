@@ -6,11 +6,10 @@
 <div class="media-card">
   @if (WindingCode != null) {
     <MudCard Elevation="4"
-        Class="border-t mud-border-lines-default mud-width-full"
+        Class="border-t mud-border-lines-default mud-width-full mud-height-full"
         Style="background-color: transparent;"
         Outlined="false">
       <MudCardHeader Class="border-b-2 mud-background-gray mud-border-lines-default pa-2">
-
         <MudIconButton Icon="@Icons.Material.Filled.Edit"
             Size="Size.Small"
             Class="mr-2 my-auto"
@@ -18,18 +17,19 @@
         <MudStack Row
             Justify="Justify.FlexStart"
             AlignItems="AlignItems.Center">
-          <MudDivider Class="my-n2"
-              Vertical="true"
-              FlexItem="true"
-              DividerType="DividerType.FullWidth"/>
-          <div>
+          <div class="d-flex gap-2 align-center">
+            <MudDivider Class="my-n2"
+                Vertical="true"
+                FlexItem="true"
+                DividerType="DividerType.FullWidth"/>
             <MudText Typo="Typo.h6">
               <strong>
                 @WindingCode.Division: @WindingCode.Name
               </strong>
             </MudText>
             <MudPopover Open="@_isOpen"
-                RelativeWidth="false"
+                Class="my-n2"
+                RelativeWidth="true"
                 Elevation="3"
                 AnchorOrigin="Origin.TopLeft"
                 TransformOrigin="Origin.TopLeft">
@@ -40,17 +40,15 @@
                   </MudText>
                 </MudCardHeader>
                 <MudCardContent>
-                  <MudListExtended T="CardOptions"
-                      ItemCollection="@MediaCardOptions"
-                      MultiSelection="true"
-                      SelectedValues="@EnabledOptions"
-                      SelectedValuesChanged="@OnSelectedValuesChanged">
-                  </MudListExtended>
-
+                  @foreach (var option in MediaCardOptions) {
+                    <MudSwitch Label="@option.Name"
+                        Checked="@option.IsEnabled"
+                        CheckedChanged="@((bool value) => option.IsEnabled = value)"
+                        Color="Color.Info"/>
+                  }
                 </MudCardContent>
               </MudCard>
             </MudPopover>
-
           </div>
 
           <MudButton StartIcon="@Icons.Material.Outlined.Upgrade"
@@ -70,7 +68,7 @@
         </MudStack>
       </MudCardHeader>
       <MudCardContent Class="pa-1"
-          Style="height: auto; display: flex; justify-items:center;">
+          Style="height: auto; display: flex; justify-items:center; min-height: 65%;">
         <MudGrid Spacing="1"
             Justify="Justify.Center">
 
@@ -84,7 +82,6 @@
                   ItemPaths="@entry.Value"/>
             </MudItem>
           }
-
         </MudGrid>
       </MudCardContent>
       <MudCardActions Class="border-t mud-border-lines-default mud-width-full">
@@ -93,7 +90,7 @@
             AlignItems="AlignItems.Center">
           <MudButton StartIcon="@Icons.Material.Filled.Verified"
               Size="Size.Small"
-              Disabled="_submitDisabled"
+              Disabled="@_submitDisabled"
               OnClick="@SaveChangesToDatabaseAsync">
             Submit
           </MudButton>
@@ -131,13 +128,14 @@
   private bool _removeItems;
   private bool _editItems;
 
-  private List<CardOptions> EnabledOptions { get; set; } = new();
+  private IEnumerable<bool> EnabledOptions { get; set; } = new List<bool>();
   private Dictionary<Enum, List<string?>> AssignedItemDictionary { get; set; } = new() {
     { AssignedItem.Directory, new() },
     { AssignedItem.Pdf, new() },
     { AssignedItem.Video, new() },
     { AssignedItem.RefMedia, new() }
   };
+
 
   private List<CardOptions> MediaCardOptions { get; set; } = new() {
     new("Add Items"),
@@ -218,14 +216,6 @@
   }
 
   private void TogglePopover() { _isOpen = !_isOpen; }
-  private void OnSelectedValuesChanged(IEnumerable<CardOptions> options) {
-  // if any MediaCardOptions are in EnabledOptions, then set the items IsEnabled to true
-    foreach (var option in options) {
-      if (EnabledOptions.Contains(option)) {
-        option.IsEnabled = true;
-      }
-    }
-  }
 
   private record CardOptions(string Name, bool IsEnabled = false) {
     public bool IsEnabled { get; set; } = IsEnabled;
