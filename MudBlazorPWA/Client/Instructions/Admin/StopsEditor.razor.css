@@ -7,19 +7,27 @@
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.5rem;
-  align-items: stretch;
-  justify-content: center;
-  min-width: min-content;
+  justify-content: space-between;
+}
+
+.winding-code-grid {
+  display: grid;
+  align-content: space-between;
+  overflow: hidden;
+  min-width: fit-content;
 }
 
 ::deep .mud-table.mud-data-grid {
-  --data-grid-toolbar-height: 72px;
-  margin-bottom: 9px;
+  --data-grid-toolbar-height: 62px;
+  margin-bottom: 14px;
+  padding-bottom: 0;
   overflow: hidden;
+  border-bottom: 1px solid var(--mud-palette-lines-default);
+  min-width: min-content;
 }
 
 ::deep .mud-table.mud-data-grid .mud-table-container {
-  max-height: calc(101% - var(--data-grid-toolbar-height));
+  height: calc(100% - var(--data-grid-toolbar-height));
 }
 
 .dark-background,
@@ -27,7 +35,6 @@
   background-color: var(--mud-palette-background-grey);
 }
 
-.bordered,
 ::deep .bordered {
   border-radius: 8px;
   border-style: solid;
@@ -42,15 +49,14 @@
 
 ::deep .directory-tree {
   overflow: hidden;
-  width: 100%;
-  min-width: fit-content;
-  margin-inline: auto 3vw;
-  height: 100%;
+  min-width: max-content;
 }
 
+/* media query to change .directory tree width to 35vw if display width > 2000px */
+
 ::deep
-.mud-treeview-item
-.mud-treeview-item-content:not(:has(div.mud-treeview-item-arrow)) {
+  .mud-treeview-item
+  .mud-treeview-item-content:not(:has(div.mud-treeview-item-arrow)) {
   padding: 4px 2px;
 }
 

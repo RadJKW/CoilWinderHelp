@@ -1,7 +1,3 @@
 ﻿.media-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  width: 100%;
-  flex: auto;
+  min-height: 250px;
 }

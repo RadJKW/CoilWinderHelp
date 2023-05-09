@@ -39,18 +39,18 @@
 
 .directory-explorer {
   height: 100%;
-  margin-inline: 6px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: 100%;
   padding-bottom: 56px;
+  width: 400px;
 }
 
 .directory-treeview {
   max-height: 100%;
   height: min-content;
   padding-bottom: 10px;
+  background: transparent;
 }
 
 .directory-treeview ::deep .mud-treeview-item-content {
@@ -67,23 +67,23 @@
 }
 
 .directory-treeview
-::deep
-.mud-treeview-item-arrow.mud-treeview-item-arrow-expand.mud-transform
-button {
+  ::deep
+  .mud-treeview-item-arrow.mud-treeview-item-arrow-expand.mud-transform
+  button {
   padding-inline: 0 4px;
 }
 
-.directory-treeview ::deep .mud-treeview,
-.mud-treeview ul,
-.mud-treeview ul li {
-  background-color: var(--mud-palette-surface);
+::deep .treeview-root > div:last-of-type > div > div > ul {
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--mud-palette-lines-default);
 }
 
 .directory-treeview ::deep .mud-treeview-group {
-  margin-left: 6px;
-  margin-inline-start: 6px;
+  padding: 0;
+  margin-inline-start: 4px;
+  border-left: 1px solid var(--mud-palette-lines-default);
+  margin-inline: 15px 0;
 }
-
 .directory-treeview ::deep:first-of-type(ul) > li:first-of-type {
   padding-bottom: 12px;
 }

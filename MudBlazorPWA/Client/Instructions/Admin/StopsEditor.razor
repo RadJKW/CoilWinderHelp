@@ -9,18 +9,14 @@
 </MudScrollbar>
 <div class="directory-tree-grid">
 
-  <div class="dark-background directory-tree-component overflow-hidden rounded-lg">
-    <DirectoryTree class="bordered directory-tree"/>
-  </div>
+    <DirectoryTree class="bordered directory-tree dark-background overflow-hidden rounded-lg"/>
 
-  <MudStack Justify="Justify.FlexStart"
-      AlignItems="AlignItems.Stretch"
-      Spacing="0"
-      Class="bordered dark-background gap-1 mud-width-full overflow-hidden"
-      Style="min-width: min-content">
+  <div class="bordered dark-background winding-code-grid">
+
+
     <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
     <AdminCodeMediaDropCard WindingCode="@State.SelectedWindingCode"/>
-  </MudStack>
+  </div>
 </div>
 
 @code{

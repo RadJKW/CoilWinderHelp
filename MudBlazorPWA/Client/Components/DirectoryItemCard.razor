@@ -2,6 +2,7 @@
 @inject AdminEditorState State
 <MudListExtended T="IDirectoryItem"
     Dense="true"
+    SelectedValuesChanged="async (items) => await SelectedItemsChanged.InvokeAsync((Key, items))"
     MultiSelection="true"
     MultiSelectionAlign="Align.Left"
     Class=" directory-item-list mud-width-full py-0">
@@ -40,21 +41,24 @@
 
 @code {
   [Parameter]
-  public required string Title { get; set; }
+  public required Enum Key { get; set; }
 
   [Parameter]
-  public required List<string> ItemPaths { get; set; }
+  public List<IDirectoryItem> DirectoryItems { get; set; } = new();
 
-  private List<IDirectoryItem> DirectoryItems { get; set; } = new();
+  [ Parameter ]
+  public EventCallback<(Enum, IEnumerable<IDirectoryItem>)> SelectedItemsChanged { get; set; }
+
+
+  private string Title { get; set; } = default!;
 
   protected override async Task OnParametersSetAsync() {
     await base.OnParametersSetAsync();
-    if (string.IsNullOrEmpty(Title)) {
-      Title = "Default Title";
-    }
-    DirectoryItems.Clear();
-    foreach (var item in ItemPaths.Select(
-      itemPath
-        => itemPath.AsDirectoryItem())) { DirectoryItems.Add(item); }
+    Title = Key.ToString();
   }
+    // DirectoryItems.Clear();
+    // foreach (var item in ItemPaths.Select(
+    //   itemPath
+    //     => itemPath.AsDirectoryItem())) { DirectoryItems.Add(item); }
+  //}
 }

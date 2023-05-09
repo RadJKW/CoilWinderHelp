@@ -1,24 +1,28 @@
 ﻿@inject AdminEditorState State
 @using System.Text.Json
+@using Microsoft.EntityFrameworkCore.ChangeTracking.Internal
 @implements IDisposable
 
-@if (State.RootDirectoryItem != null) {
-  <div @attributes="@AdditionalAttributes">
-    <MudListSubheaderExtended T="string"
-        DisableGutters="true"
-        SecondaryBackground="true">
-      <MudStack Row
-          Spacing="6"
-          AlignItems="AlignItems.Center"
-          Justify="Justify.Center">
-        <MudIcon Icon="@Icons.Material.Filled.DatasetLinked"/>
-        <MudText Typo="Typo.h5">
-          <strong >Winding Instructions</strong>
-        </MudText>
-      </MudStack>
-    </MudListSubheaderExtended>
-    <div class="directory-explorer">
-      <div class="directory-treeview">
+<MudScrollbar Selector=".directory-explorer"
+    Hide="true">
+</MudScrollbar>
+<div @attributes="@AdditionalAttributes">
+  <MudListSubheaderExtended T="string"
+      DisableGutters="true"
+      SecondaryBackground="true">
+    <MudStack Row
+        Spacing="6"
+        AlignItems="AlignItems.Center"
+        Justify="Justify.Center">
+      <MudIcon Icon="@Icons.Material.Filled.DatasetLinked"/>
+      <MudText Typo="Typo.h5">
+        <strong >Winding Instructions</strong>
+      </MudText>
+    </MudStack>
+  </MudListSubheaderExtended>
+  <div class="directory-explorer">
+    <div class="directory-treeview">
+      @if (State.RootDirectoryItem != null) {
         <MudTreeView T="IDirectoryItem"
             @bind-SelectedValue="@State.SelectedItem"
             ServerData="@(item => InvokeFetchTreeItems(item, "ServerData"))"
@@ -30,8 +34,9 @@
             @{
               var rootItem = State.RootDirectoryItem;
               <MudTreeViewItem T="IDirectoryItem"
+                  Class="treeview-root"
                   Items="@rootItem.TreeItems"
-                  Icon="@Icons.Material.Filled.FolderSpecial"
+                  Icon="@rootItem.Icon"
                   Value="@rootItem"
                   Text="@rootItem.Name"
                   Activated="@(rootItem == State.SelectedItem)"
@@ -40,12 +45,15 @@
           </ChildContent>
           <ItemTemplate Context="item">
             <MudTreeViewItem T="IDirectoryItem"
+
                 Items="@item.TreeItems"
                 Value="@item"
                 Expanded="item.Expanded"
                 ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)">
 
               <Content>
+                @if (item.CanExpand) {
+
                 <MudTreeViewItemToggleButton Loading="@item.Loading"
                     Expanded="item.Expanded"
                     ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)"
@@ -53,36 +61,42 @@
                     ExpandedIcon="@Icons.Material.Filled.ChevronRight"
                     LoadingIcon="@Icons.Material.Filled.Loop"
                     LoadingIconColor="Color.Info"/>
-                <MudIcon Icon="@item.Icon"/>
-                <div style="display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%">
-                  <MudText Class="pl-2"
-                      Style="justify-self: start;">
+                } else {
+                  <div style="padding-inline-end: 6px;"></div>
+                }
+
+                <MudStack Row
+                    Spacing="2"
+                    Justify="Justify.SpaceEvenly"
+                    Class="overflow-hidden mud-width-full"
+                    AlignItems="AlignItems.Center">
+                  @switch (item.ItemType == ItemType.File){
+                    case true:
+                    <MudIconButton Icon="@item.Icon" Class="cursor-help"
+                      OnClick="@(() => OpenFilePreview(item))"/>
+                      break;
+                    case false:
+                    <MudIcon Icon="@item.Icon"/>
+                      break;
+                  }
+
+                  <MudText Style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80%;">
                     @item.Name
                   </MudText>
-                  @if (item.ItemType is ItemType.File) {
-                    <div style="justify-self: end;">
+                  <MudSpacer/>
 
-                      <MudIconButton Icon="@Icons.Material.Filled.OpenInBrowser"
-                          OnClick="@(() => OpenFilePreview(item))"
-                          Size="Size.Small"
-                          Color="Color.Inherit"/>
-                      <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
-                          Size="Size.Medium"
-                          Color="Color.Inherit"/>
-                    </div>
-                  }
-                </div>
+
+                </MudStack>
               </Content>
 
             </MudTreeViewItem>
           </ItemTemplate>
 
         </MudTreeView>
-      </div>
+      }
     </div>
   </div>
-}
-
+</div>
 
 @code{
 
@@ -94,13 +108,7 @@
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
     State.StateChanged += AdminStateChanged;
-  }
-
-  protected override async Task OnAfterRenderAsync(bool firstRender) {
-    await base.OnAfterRenderAsync(firstRender);
-    if (firstRender) {
-      await State.BuildDirectoryTree();
-    }
+    await State.BuildDirectoryTree();
   }
   private void AdminStateChanged() => StateHasChanged();
   public void Dispose() { State.StateChanged -= AdminStateChanged; }

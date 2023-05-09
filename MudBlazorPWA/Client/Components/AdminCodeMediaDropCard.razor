@@ -3,7 +3,6 @@
 @inject AdminEditorState State
 @implements IDisposable
 
-<div class="media-card">
   @if (WindingCode != null) {
     <MudCard Elevation="4"
         Class="border-t mud-border-lines-default mud-width-full mud-height-full"
@@ -34,7 +33,7 @@
                 AnchorOrigin="Origin.TopLeft"
                 TransformOrigin="Origin.TopLeft">
               <MudCard Square>
-                <MudCardHeader Class="border-b d-flex justify-center mud-background-gray mud-border-info pa-1">
+                <MudCardHeader Class="d-flex justify-center mud-background-gray px-2 py-1">
                   <MudText Typo="Typo.button">
                     Edit Code
                   </MudText>
@@ -67,42 +66,63 @@
           </MudButton>
         </MudStack>
       </MudCardHeader>
-      <MudCardContent Class="pa-1"
-          Style="height: auto; display: flex; justify-items:center; min-height: 65%;">
+      <MudCardContent Class="pa-1 ma-1">
         <MudGrid Spacing="1"
-            Justify="Justify.Center">
+            Justify="Justify.Center"
+            Class="border mud-border-lines-default">
 
           @foreach (var entry in AssignedItemDictionary) {
-            <MudItem Class="border d-flex justify-center mud-border-lines-default pa-0"
-                xs="8"
+            var index = AssignedItemDictionary.Keys.ToList().IndexOf(entry.Key);
+            var itemClass =index switch {
+              0 => "border-r border-b",
+              1 => "border-b",
+              2 => "border-r",
+              _ => ""
+            };
+            itemClass += " " + " d-flex justify-center pa-0 mud-border-lines-default";
+            <MudItem Class="@itemClass"
+                xs="12"
                 md="6"
-                xl="3">
+                xxl="3">
 
-              <DirectoryItemCard Title="@entry.Key.ToString()"
-                  ItemPaths="@entry.Value"/>
+              <DirectoryItemCard Key="@entry.Key"
+                  DirectoryItems="@entry.Value" SelectedItemsChanged="OnSelectedItemsChanged"/>
             </MudItem>
           }
         </MudGrid>
       </MudCardContent>
-      <MudCardActions Class="border-t mud-border-lines-default mud-width-full">
-        <MudStack Row
-            Spacing="2"
-            AlignItems="AlignItems.Center">
-          <MudButton StartIcon="@Icons.Material.Filled.Verified"
+      <MudCardActions Class="pa-1">
+        <MudStack AlignItems="AlignItems.Center" Justify="Justify.FlexEnd">
+
+          <div>
+
+          <MudTooltip Arrow
+            Text="Save"
+            ShowOnHover="@(!_submitDisabled)">
+          <MudFab StartIcon="@Icons.Material.Rounded.Save"
               Size="Size.Small"
-              Disabled="@_submitDisabled"
-              OnClick="@SaveChangesToDatabaseAsync">
-            Submit
-          </MudButton>
-          <MudIconButton Icon="@Icons.Material.Outlined.Print"
-              Color="Color.Secondary"
-              Size="Size.Small"/>
+              IconSize="Size.Small"
+              Disabled="_submitDisabled"/>
+        </MudTooltip>
+        <MudTooltip Arrow
+            Text="Print">
+          <MudFab StartIcon="@Icons.Material.Rounded.Print"
+              Size="Size.Small"
+              IconSize="Size.Small"/>
+        </MudTooltip>
+        <MudTooltip Arrow
+            Text="Delete">
+          <MudFab StartIcon="@Icons.Material.Rounded.Delete"
+              Size="Size.Small"
+              IconSize="Size.Small"
+              OnClick="DeleteSelectedMedia"/>
+        </MudTooltip>
+          </div>
         </MudStack>
       </MudCardActions>
     </MudCard>
   } else {
-    <div class="align-center d-flex flex-1 flex-column justify-center my-auto"
-        style="min-height: 200px">
+    <div class="align-center d-flex flex-1 flex-column justify-center my-auto">
       <MudProgressCircular Indeterminate="true"
           Color="Color.Secondary"
           Class="ma-4"/>
@@ -114,7 +134,6 @@
     </div>
   }
 
-</div>
 
 @code{
 
@@ -122,14 +141,16 @@
   [EditorRequired]
   public required WindingCode? WindingCode { get; set; }
 
+
+  private List<(Enum, IDirectoryItem)> SelectedItems { get; set; } = new();
   private bool _submitDisabled = true;
   private bool _isOpen;
-  private bool _addItems;
-  private bool _removeItems;
-  private bool _editItems;
+  // private bool _addItems;
+  // private bool _removeItems;
+  // private bool _editItems;
 
   private IEnumerable<bool> EnabledOptions { get; set; } = new List<bool>();
-  private Dictionary<Enum, List<string?>> AssignedItemDictionary { get; set; } = new() {
+  private Dictionary<Enum, List<IDirectoryItem?>> AssignedItemDictionary { get; set; } = new() {
     { AssignedItem.Directory, new() },
     { AssignedItem.Pdf, new() },
     { AssignedItem.Video, new() },
@@ -157,19 +178,19 @@
   // if FolderPath is null, then do not add
   // else add
           if (WindingCode.FolderPath is not null)
-            items.Add(WindingCode.FolderPath);
+            items.Add(WindingCode.FolderPath.AsDirectoryItem());
           break;
         case AssignedItem.Pdf:
           if (WindingCode.Media.Pdf is not null)
-            items.Add(WindingCode.Media.Pdf);
+            items.Add(WindingCode.Media.Pdf.AsDirectoryItem());
           break;
         case AssignedItem.Video:
           if (WindingCode.Media.Video is not null)
-            items.Add(WindingCode.Media.Video);
+            items.Add(WindingCode.Media.Video.AsDirectoryItem());
           break;
         case AssignedItem.RefMedia:
           if (WindingCode.Media.RefMedia is not null)
-            items.AddRange(WindingCode.Media.RefMedia);
+            items.AddRange(WindingCode.Media.RefMedia.Select(x => x.AsDirectoryItem()));
           break;
         default:
           throw new ArgumentOutOfRangeException();
@@ -208,18 +229,56 @@
     _submitDisabled = false;
   }
 
+  private void DeleteSelectedMedia() {
+    Console.WriteLine("deleting items");
+    if (WindingCode is null) return;
+    foreach (var (key, value) in SelectedItems) {
+      Console.WriteLine($"key: {key}, value: {value}");
+      switch (key) {
+        case AssignedItem.Directory: {
+          WindingCode.FolderPath = null;
+          break;
+        }
+        case AssignedItem.Pdf: {
+          WindingCode.Media.Pdf = null;
+          break;
+        }
+        case AssignedItem.Video: {
+          WindingCode.Media.Video = null;
+          break;
+        }
+        case AssignedItem.RefMedia: {
+          if (WindingCode.Media.RefMedia != null)
+            foreach (var item in WindingCode.Media.RefMedia.Where(item => item == value.Path)) {
+              WindingCode.Media.RefMedia.Remove(item);
+              break;
+            }
+          break;
+        }
+      }
+    }
+    State.NotifyStateChanged();
+  }
+
+
+  private void TogglePopover() { _isOpen = !_isOpen; }
+
   public enum AssignedItem {
     Directory,
     Pdf,
     Video,
     RefMedia
   }
-
-  private void TogglePopover() { _isOpen = !_isOpen; }
-
   private record CardOptions(string Name, bool IsEnabled = false) {
     public bool IsEnabled { get; set; } = IsEnabled;
     public override string ToString() { return Name; }
   }
 
+  private void OnSelectedItemsChanged((Enum, IEnumerable<IDirectoryItem>) args) {
+    var (key, obj) = args;
+    SelectedItems = obj.Select(x => (key, x)).ToList();
+
+    var logMessage = string.Join(',', SelectedItems.Select(x => x.Item2.Name));
+    Console.WriteLine($"Selected Items: {logMessage}");
+  }
 }

@@ -11,7 +11,7 @@
   --max-docview-height: calc(100vh - var(--mud-appbar-height));
   margin-inline: auto;
   height: var(--max-docview-height);
-  padding-block: 0.5rem;
+  padding: 0.5rem 1rem;
   overflow: auto hidden;
 }
 
@@ -24,8 +24,8 @@ aside.docview.drawer-left .mud-navmenu.mud-navmenu-default .mud-nav-link {
 }
 
 aside.docview.drawer-left
-.mud-navmenu.mud-navmenu-default
-.mud-nav-link.active:not(.mud-nav-link-disabled)
-.mud-nav-link-icon.mud-nav-link-icon-default {
+  .mud-navmenu.mud-navmenu-default
+  .mud-nav-link.active:not(.mud-nav-link-disabled)
+  .mud-nav-link-icon.mud-nav-link-icon-default {
   color: rgba(var(--mud-palette-primary-rgb), 0.75);
 }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
@@ -23,6 +24,7 @@ public class AdminEditorState : IAsyncDisposable {
 		OnInitialized();
 	}
 
+
 	private void OnInitialized() {
 		_windingCodeManager.WindingCodesChanged += OnWindingCodesChanged;
 		WindingCodes = _windingCodeManager.WindingCodes;
@@ -34,10 +36,12 @@ public class AdminEditorState : IAsyncDisposable {
 	}
 
 	public event Action? StateChanged;
-	private void NotifyStateChanged() => StateChanged?.Invoke();
+	public void NotifyStateChanged() => StateChanged?.Invoke();
 
 	public IDirectoryItem? RootDirectoryItem { get; private set; }
 	private IDirectoryItem? _selectedItem;
+
+	// public HashSet<IDirectoryItem> TreeItems { get; } = new();
 
 	public IDirectoryItem? SelectedItem {
 		get => _selectedItem;
@@ -49,10 +53,11 @@ public class AdminEditorState : IAsyncDisposable {
 	public async Task BuildDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
 		_directoryNavigator.RootDirectory = rootDirectory;
-		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true };
+		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true, Icon = @Icons.Material.Filled.FolderSpecial};
 		RootDirectoryItem = rootDirectoryItem;
 		SelectedItem = rootDirectoryItem;
 		await DirectoryExtensions.FetchTreeItems(rootDirectoryItem);
+		// TreeItems.Add(rootDirectoryItem);
 		NotifyStateChanged();
 	}
 	public async Task<bool> HasChildItems(IDirectoryItem directoryItem) {
