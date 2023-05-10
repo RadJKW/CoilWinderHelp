@@ -80,6 +80,7 @@
 
 .directory-treeview ::deep .mud-treeview-group {
   padding: 0;
+  padding-inline-end: 4px;
   margin-inline-start: 4px;
   border-left: 1px solid var(--mud-palette-lines-default);
   margin-inline: 15px 0;
@@ -93,7 +94,7 @@
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
-  max-width: 80%;
+  max-width: 95%;
 }
 
 ::deep .mud-treeview-item-content:hover p,

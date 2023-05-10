@@ -1,6 +1,7 @@
 ﻿using MudBlazor;
 using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 namespace MudBlazorPWA.Shared.Models;
 public class DirectoryItem<T> : IDirectoryItem where T : class {
@@ -57,7 +58,6 @@ public class DirectoryItem<T> : IDirectoryItem where T : class {
 		return Item as DirectoryNode;
 	}
 	public HashSet<IDirectoryItem>? TreeItems { get; set; }
-
 	private string? AssignIcon() {
 		if (Item is DirectoryNode) {
 			return Icons.Material.Filled.Folder;

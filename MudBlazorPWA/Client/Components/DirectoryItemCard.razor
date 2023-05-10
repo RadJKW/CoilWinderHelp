@@ -2,6 +2,7 @@
 @inject AdminEditorState State
 <MudListExtended T="IDirectoryItem"
     Dense="true"
+    MultiSelectionComponent="MultiSelectionComponent.CheckBox"
     SelectedValuesChanged="async (items) => await SelectedItemsChanged.InvokeAsync((Key, items))"
     MultiSelection="true"
     MultiSelectionAlign="Align.Left"
@@ -26,7 +27,7 @@
               Justify="Justify.Center">
 
             <MudIcon Icon="@item.Icon"/>
-            <p>@item.Name</p>
+            <p class="@GetItemClass(item)">@item.Name</p>
           </MudStack>
         </MudListItemExtended>
       }
@@ -46,15 +47,58 @@
   [Parameter]
   public List<IDirectoryItem> DirectoryItems { get; set; } = new();
 
-  [ Parameter ]
+  [Parameter]
   public EventCallback<(AssignedItem, IEnumerable<IDirectoryItem>)> SelectedItemsChanged { get; set; }
-
 
   private string Title { get; set; } = default!;
 
   protected override async Task OnParametersSetAsync() {
+    Console.WriteLine($"Key: {Key}, OnParametersSetAsync");
     await base.OnParametersSetAsync();
     Title = Key.ToString();
+    if (!State.InitialAssignedItems.ContainsKey(Key)) {
+      // add the key to the dictionary and append each DirectoryItem to the list
+
+      var copies = new IDirectoryItem[DirectoryItems.Count];
+      DirectoryItems.CopyTo(copies);
+      State.InitialAssignedItems.Add(Key, copies.ToList());
+    }
+    if (State.InitialAssignedItems.TryGetValue(Key, out var items)) {
+      Console.WriteLine($"Initial Items {Key} Items: {string.Join(',' , items.Select(x => x.Name))}");
+    }
+
+
+
   }
+
+  protected override void OnInitialized() {
+    Console.WriteLine($"Key {Key}, OnInitialized");
+    base.OnInitialized();
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    await base.OnAfterRenderAsync(firstRender);
+    if (firstRender) {
+      Console.WriteLine($"Key {Key}, First Render");
+      // if the key already exists in the dictionary, then do nothing
+      // if the key does not exist in the dictionary, then add it
+
+    }
+  }
+  private string GetItemClass(IDirectoryItem item) {
+    // see if the item is in the initial list
+    // if it is, then console.write line and return empty string
+    // if it is not, then console.write line and return warning class
+    if (State.InitialAssignedItems.TryGetValue(Key, out var items)) {
+      if (items.Contains(item)) {
+        Console.WriteLine($"Key: {Key}, Item: {item.Name}, Initial");
+        return "";
+      }
+    }
+    Console.WriteLine($"Key: {Key}, Item: {item.Name}, Not Initial");
+    return "mud-alert-text-info";
+
+  }
+
 
 }

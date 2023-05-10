@@ -62,19 +62,18 @@
                       ExpandedIcon="@Icons.Material.Filled.ChevronRight"
                       LoadingIcon="@Icons.Material.Filled.Loop"
                       LoadingIconColor="Color.Info"/>
-                } else {
-                  <div style="padding-inline-end: 6px;"></div>
+                } else if (item.ItemType == ItemType.Directory) {
+                  <div style="padding-inline-end: 4px;"></div>
                 }
 
                 <MudMenu ActivationEvent="MouseEvent.RightClick"
-                    Class="pb-0 mb-0"
+                    Class="mb-0 pb-0 mud-width-full"
                     Dense="true"
                     Size="Size.Small"
                     ListClass="d-flex flex-column align-center justify-center pb-0 mb-0"
                     PositionAtCursor="true"
                     AnchorOrigin="Origin.BottomCenter"
-                    TransformOrigin="Origin.TopCenter"
-                    >
+                    TransformOrigin="Origin.TopCenter">
                   <ActivatorContent>
 
                     <MudStack Row
@@ -102,76 +101,78 @@
                   <ChildContent>
                     <MudStack Justify="Justify.Center"
                         AlignItems="AlignItems.Center"
-                        Class="py-0 px-1">
+                        Class="px-1 py-0">
 
-                    <MudButton OnClick="() => OpenFilePreview(item)" Variant="Variant.Outlined" Color="Color.Info" DisableElevation="true">
-                    <MudText Typo="Typo.caption"
+                      <MudButton Color="Color.Info"
+                          OnClick="() => OpenFilePreview(item)"
+                          Variant="Variant.Outlined"
+                          DisableElevation="true">
+                        <MudText Typo="Typo.caption"
                             Align="Align.Center">
                           Preview
                         </MudText>
-                    </MudButton>
+                      </MudButton>
 
-                    @{
-                      List<AssignedItem> menuFilter = new();
-                      var hasAssignedType = item.Name.GetAssignedType();
-                      if (hasAssignedType is not null) {
+                      @{
+                        List<AssignedItem> menuFilter = new();
+                        var hasAssignedType = item.Name.GetAssignedType();
+                        if (hasAssignedType is not null) {
+                          var assignedItemType = hasAssignedType.Result;
 
-                        var assignedItemType = hasAssignedType.Result;
+                          if (assignedItemType == AssignedItem.Directory) {
+                            menuFilter.Add(assignedItemType);
+                          } else {
+                            menuFilter.Add(assignedItemType);
+                            menuFilter.Add(AssignedItem.RefMedia);
+                          }
 
-                        if (assignedItemType == AssignedItem.Directory) {
-                          menuFilter.Add(assignedItemType);
-                        } else {
-                          menuFilter.Add(assignedItemType);
-                          menuFilter.Add(AssignedItem.RefMedia);
+                          <MudMenu StartIcon="@Icons.Material.Outlined.Add"
+                              ListClass="pa-0 ma-1 mud-background-surface"
+                              Size="Size.Small"
+                              Dense="true"
+                              Variant="Variant.Filled"
+                              Label="Assign To.."
+                              Color="Color.Dark"
+                              Disabled="@(State.SelectedWindingCode is null)"
+                              AnchorOrigin="Origin.CenterRight"
+                              TransformOrigin="Origin.TopLeft"
+                              ActivationEvent="MouseEvent.MouseOver">
+                            <ChildContent>
+                              <MudStack Justify="Justify.Center"
+                                  Spacing="1"
+                                  AlignItems="AlignItems.Stretch">
+
+                                <div class="border-b d-flex justify-center mud-border-lines-default mud-width-full pa-0">
+                                  <MudText Typo="Typo.button"
+                                      Align="Align.Center">
+                                    Code's
+                                  </MudText>
+                                </div>
+
+                                @foreach (var itemType in menuFilter) {
+                                  <MudButton OnClick="() => AddWindingCodeItem(itemType, item)"
+                                      Size="Size.Small"
+                                      Variant="Variant.Outlined"
+                                      Color="Color.Tertiary">
+                                    @itemType
+                                  </MudButton>
+                                }
+                              </MudStack>
+                            </ChildContent>
+                          </MudMenu>
                         }
-
-                        <MudMenu StartIcon="@Icons.Material.Outlined.Add"
-                            ListClass="pa-0 ma-1"
-                            Size="Size.Small"
-                            Dense="true"
-                            Variant="Variant.Filled"
-                            Label="Assign To.."
-                            Color="Color.Dark"
-                            Disabled="@(State.SelectedWindingCode is null)"
-                            AnchorOrigin="Origin.CenterRight"
-                            TransformOrigin="Origin.TopLeft"
-                            ActivationEvent="MouseEvent.MouseOver">
-                          <ChildContent>
-                            <MudStack Justify="Justify.Center"
-                                Spacing="1"
-                                AlignItems="AlignItems.Stretch">
-
-
-                            <div class="border-b d-flex justify-center mud-border-lines-default mud-width-full pa-0">
-                              <MudText Typo="Typo.button"
-                                  Align="Align.Center">
-                                Code's
-                              </MudText>
-                            </div>
-
-                            @foreach (var itemType in menuFilter) {
-                              <MudButton OnClick="() => AddWindingCodeItem(itemType, item)"
-                                  Size="Size.Small"
-                                  Variant="Variant.Outlined"
-                                  Color="Color.Tertiary">@itemType</MudButton>
-                            }
-                            </MudStack>
-                          </ChildContent>
-                        </MudMenu>
                       }
-                    }
 
-
-                    <div class="border-t mud-width-full mud-border-lines-default pa-0">
-                      <MudMenuItem Class="pa-0">
-                        <MudText Class="mud-width-full d-flex justify-center"
-                            Typo="Typo.caption"
-                            Align="Align.Center">
-                          Close
-                        </MudText>
-                      </MudMenuItem>
-                    </div>
-                                        </MudStack>
+                      <div class="border-t mud-border-lines-default mud-width-full pa-0">
+                        <MudMenuItem Class="pa-0">
+                          <MudText Class="d-flex justify-center mud-width-full"
+                              Typo="Typo.caption"
+                              Align="Align.Center">
+                            Close
+                          </MudText>
+                        </MudMenuItem>
+                      </div>
+                    </MudStack>
 
                   </ChildContent>
                 </MudMenu>
