@@ -52,6 +52,16 @@
   min-width: max-content;
 }
 
+::deep p,
+::deep .mud-table-row .mud-table-cell {
+  font-size: 10.5pt;
+}
+::deep .mud-table-dense * .mud-table-row .mud-table-cell {
+  padding: 4px 0;
+  padding-inline-start: 10px;
+  padding-inline-end: 0;
+}
+
 /* media query to change .directory tree width to 35vw if display width > 2000px */
 
 ::deep
@@ -62,8 +72,4 @@
 
 ::deep .mud-treeview-item .mud-treeview-item-content:hover {
   background-color: rgba(52, 52, 162, 0.24);
-}
-
-/* make .mud-treeview-item .p selectable with cursor */
-::deep .mud-treeview-item .mud-treeview-item-content p {
 }

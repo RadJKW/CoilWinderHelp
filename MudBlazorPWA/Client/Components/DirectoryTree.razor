@@ -8,14 +8,16 @@
 </MudScrollbar>
 <div @attributes="@AdditionalAttributes">
   <MudListSubheaderExtended T="string"
+      Class="border-b mud-border-lines-default pa-2"
       DisableGutters="true"
       SecondaryBackground="true">
     <MudStack Row
         Spacing="6"
         AlignItems="AlignItems.Center"
         Justify="Justify.Center">
-      <MudIcon Icon="@Icons.Material.Filled.DatasetLinked"/>
-      <MudText Typo="Typo.h5">
+      <MudIcon Size="Size.Small"
+          Icon="@Icons.Material.Filled.DatasetLinked"/>
+      <MudText Typo="Typo.button">
         <strong >Winding Instructions</strong>
       </MudText>
     </MudStack>
@@ -53,40 +55,126 @@
 
               <Content>
                 @if (item.CanExpand) {
-
-                <MudTreeViewItemToggleButton Loading="@item.Loading"
-                    Expanded="item.Expanded"
-                    ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)"
-                    Visible="item.CanExpand"
-                    ExpandedIcon="@Icons.Material.Filled.ChevronRight"
-                    LoadingIcon="@Icons.Material.Filled.Loop"
-                    LoadingIconColor="Color.Info"/>
+                  <MudTreeViewItemToggleButton Loading="@item.Loading"
+                      Expanded="item.Expanded"
+                      ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)"
+                      Visible="item.CanExpand"
+                      ExpandedIcon="@Icons.Material.Filled.ChevronRight"
+                      LoadingIcon="@Icons.Material.Filled.Loop"
+                      LoadingIconColor="Color.Info"/>
                 } else {
                   <div style="padding-inline-end: 6px;"></div>
                 }
 
-                <MudStack Row
-                    Spacing="2"
-                    Justify="Justify.SpaceEvenly"
-                    Class="overflow-hidden mud-width-full"
-                    AlignItems="AlignItems.Center">
-                  @switch (item.ItemType == ItemType.File){
-                    case true:
-                    <MudIconButton Icon="@item.Icon" Class="cursor-help"
-                      OnClick="@(() => OpenFilePreview(item))"/>
-                      break;
-                    case false:
-                    <MudIcon Icon="@item.Icon"/>
-                      break;
-                  }
+                <MudMenu ActivationEvent="MouseEvent.RightClick"
+                    Class="pb-0 mb-0"
+                    Dense="true"
+                    Size="Size.Small"
+                    ListClass="d-flex flex-column align-center justify-center pb-0 mb-0"
+                    PositionAtCursor="true"
+                    AnchorOrigin="Origin.BottomCenter"
+                    TransformOrigin="Origin.TopCenter"
+                    >
+                  <ActivatorContent>
 
-                  <MudText Style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 80%;">
-                    @item.Name
-                  </MudText>
-                  <MudSpacer/>
+                    <MudStack Row
+                        Spacing="2"
+                        Justify="Justify.SpaceEvenly"
+                        Class="mud-width-full overflow-hidden"
+                        AlignItems="AlignItems.Center">
+                      @switch (item.ItemType == ItemType.File) {
+                        case true:
+                          <MudIconButton Icon="@item.Icon"
+                              Class="cursor-help"
+                              OnClick="@(() => OpenFilePreview(item))"/>
+                          break;
+                        case false:
+                          <MudIcon Icon="@item.Icon"/>
+                          break;
+                      }
+                      <MudText>
+                        @item.Name
+                      </MudText>
+                      <MudSpacer/>
+
+                    </MudStack>
+                  </ActivatorContent>
+                  <ChildContent>
+                    <MudStack Justify="Justify.Center"
+                        AlignItems="AlignItems.Center"
+                        Class="py-0 px-1">
+
+                    <MudButton OnClick="() => OpenFilePreview(item)" Variant="Variant.Outlined" Color="Color.Info" DisableElevation="true">
+                    <MudText Typo="Typo.caption"
+                            Align="Align.Center">
+                          Preview
+                        </MudText>
+                    </MudButton>
+
+                    @{
+                      List<AssignedItem> menuFilter = new();
+                      var hasAssignedType = item.Name.GetAssignedType();
+                      if (hasAssignedType is not null) {
+
+                        var assignedItemType = hasAssignedType.Result;
+
+                        if (assignedItemType == AssignedItem.Directory) {
+                          menuFilter.Add(assignedItemType);
+                        } else {
+                          menuFilter.Add(assignedItemType);
+                          menuFilter.Add(AssignedItem.RefMedia);
+                        }
+
+                        <MudMenu StartIcon="@Icons.Material.Outlined.Add"
+                            ListClass="pa-0 ma-1"
+                            Size="Size.Small"
+                            Dense="true"
+                            Variant="Variant.Filled"
+                            Label="Assign To.."
+                            Color="Color.Dark"
+                            Disabled="@(State.SelectedWindingCode is null)"
+                            AnchorOrigin="Origin.CenterRight"
+                            TransformOrigin="Origin.TopLeft"
+                            ActivationEvent="MouseEvent.MouseOver">
+                          <ChildContent>
+                            <MudStack Justify="Justify.Center"
+                                Spacing="1"
+                                AlignItems="AlignItems.Stretch">
 
 
-                </MudStack>
+                            <div class="border-b d-flex justify-center mud-border-lines-default mud-width-full pa-0">
+                              <MudText Typo="Typo.button"
+                                  Align="Align.Center">
+                                Code's
+                              </MudText>
+                            </div>
+
+                            @foreach (var itemType in menuFilter) {
+                              <MudButton OnClick="() => AddWindingCodeItem(itemType, item)"
+                                  Size="Size.Small"
+                                  Variant="Variant.Outlined"
+                                  Color="Color.Tertiary">@itemType</MudButton>
+                            }
+                            </MudStack>
+                          </ChildContent>
+                        </MudMenu>
+                      }
+                    }
+
+
+                    <div class="border-t mud-width-full mud-border-lines-default pa-0">
+                      <MudMenuItem Class="pa-0">
+                        <MudText Class="mud-width-full d-flex justify-center"
+                            Typo="Typo.caption"
+                            Align="Align.Center">
+                          Close
+                        </MudText>
+                      </MudMenuItem>
+                    </div>
+                                        </MudStack>
+
+                  </ChildContent>
+                </MudMenu>
               </Content>
 
             </MudTreeViewItem>
@@ -145,5 +233,11 @@
     if (arg is null) return;
     if (arg == State.SelectedItem) return;
     State.SelectedItem = arg;
+  }
+  private void AddWindingCodeItem(AssignedItem key, IDirectoryItem value) {
+    Console.WriteLine("AddWindingCodeItem");
+  // cast key to AssignedItem to remove nullability
+    State.SelectedWindingCode?.EditAssignedItem(key, value.Path);
+    State.NotifyStateChanged();
   }
 }

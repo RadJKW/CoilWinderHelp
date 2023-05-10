@@ -101,20 +101,18 @@
             ShowOnHover="@(!_submitDisabled)">
           <MudFab StartIcon="@Icons.Material.Rounded.Save"
               Size="Size.Small"
-              IconSize="Size.Small"
               Disabled="_submitDisabled"/>
         </MudTooltip>
         <MudTooltip Arrow
             Text="Print">
           <MudFab StartIcon="@Icons.Material.Rounded.Print"
-              Size="Size.Small"
-              IconSize="Size.Small"/>
+              Size="Size.Small"/>
         </MudTooltip>
         <MudTooltip Arrow
             Text="Delete">
           <MudFab StartIcon="@Icons.Material.Rounded.Delete"
+              Disabled="@(SelectedItems.Count == 0)"
               Size="Size.Small"
-              IconSize="Size.Small"
               OnClick="DeleteSelectedMedia"/>
         </MudTooltip>
           </div>
@@ -142,7 +140,7 @@
   public required WindingCode? WindingCode { get; set; }
 
 
-  private List<(Enum, IDirectoryItem)> SelectedItems { get; set; } = new();
+  private List<(AssignedItem, IDirectoryItem)> SelectedItems { get; set; } = new();
   private bool _submitDisabled = true;
   private bool _isOpen;
   // private bool _addItems;
@@ -150,7 +148,7 @@
   // private bool _editItems;
 
   private IEnumerable<bool> EnabledOptions { get; set; } = new List<bool>();
-  private Dictionary<Enum, List<IDirectoryItem?>> AssignedItemDictionary { get; set; } = new() {
+  private Dictionary<AssignedItem, List<IDirectoryItem?>> AssignedItemDictionary { get; set; } = new() {
     { AssignedItem.Directory, new() },
     { AssignedItem.Pdf, new() },
     { AssignedItem.Video, new() },
@@ -167,34 +165,10 @@
   protected override void OnParametersSet() {
     base.OnParametersSet();
 
-
     if (WindingCode is null) return;
 
     foreach (var item in Enum.GetValues(typeof(AssignedItem)).Cast<AssignedItem>()) {
-      var items = AssignedItemDictionary[item];
-      items.Clear();
-      switch (item) {
-        case AssignedItem.Directory:
-  // if FolderPath is null, then do not add
-  // else add
-          if (WindingCode.FolderPath is not null)
-            items.Add(WindingCode.FolderPath.AsDirectoryItem());
-          break;
-        case AssignedItem.Pdf:
-          if (WindingCode.Media.Pdf is not null)
-            items.Add(WindingCode.Media.Pdf.AsDirectoryItem());
-          break;
-        case AssignedItem.Video:
-          if (WindingCode.Media.Video is not null)
-            items.Add(WindingCode.Media.Video.AsDirectoryItem());
-          break;
-        case AssignedItem.RefMedia:
-          if (WindingCode.Media.RefMedia is not null)
-            items.AddRange(WindingCode.Media.RefMedia.Select(x => x.AsDirectoryItem()));
-          break;
-        default:
-          throw new ArgumentOutOfRangeException();
-      }
+      AddItemsToAssignedItemDictionary(item);
     }
   }
   protected override void OnInitialized() {
@@ -203,6 +177,32 @@
   }
 
   void IDisposable.Dispose() { Console.WriteLine("Disposing AdminDashboard.razor"); }
+
+  private void AddItemsToAssignedItemDictionary(AssignedItem itemType) {
+    if (WindingCode is null) return;
+    var items = AssignedItemDictionary[itemType];
+    items.Clear();
+    switch (itemType) {
+      case AssignedItem.Directory:
+        if (WindingCode.FolderPath is not null)
+          items.Add(WindingCode.FolderPath.AsDirectoryItem());
+        break;
+      case AssignedItem.Pdf:
+        if (WindingCode.Media.Pdf is not null)
+          items.Add(WindingCode.Media.Pdf.AsDirectoryItem());
+        break;
+      case AssignedItem.Video:
+        if (WindingCode.Media.Video is not null)
+          items.Add(WindingCode.Media.Video.AsDirectoryItem());
+        break;
+      case AssignedItem.RefMedia:
+        if (WindingCode.Media.RefMedia is not null)
+          items.AddRange(WindingCode.Media.RefMedia.Select(x => x.AsDirectoryItem()));
+        break;
+      default:
+        throw new ArgumentOutOfRangeException();
+    }
+  }
 
   private static async Task SaveChangesToDatabaseAsync() { await Task.CompletedTask; }
   private async Task OpenImportMediaDialog() {
@@ -229,53 +229,28 @@
     _submitDisabled = false;
   }
 
+  private void RemoveSelectedMedia(AssignedItem key, IDirectoryItem? value) => WindingCode?.RemoveAssignedItem( key, value?.Path);
+
   private void DeleteSelectedMedia() {
     Console.WriteLine("deleting items");
     if (WindingCode is null) return;
-    var code = WindingCode;
     foreach (var (key, value) in SelectedItems) {
       Console.WriteLine($"key: {key}, value: {value}");
-      switch (key) {
-        case AssignedItem.Directory: {
-          code.FolderPath = null;
-          break;
-        }
-        case AssignedItem.Pdf: {
-          code.Media.Pdf = null;
-          break;
-        }
-        case AssignedItem.Video: {
-          code.Media.Video = null;
-          break;
-        }
-        case AssignedItem.RefMedia: {
-          if (code.Media.RefMedia != null)
-            foreach (var item in code.Media.RefMedia.Where(item => item == value.Path)) {
-              code.Media.RefMedia.Remove(item);
-              break;
-            }
-          break;
-        }
-      }
+      RemoveSelectedMedia(key, value);
     }
     State.NotifyStateChanged();
   }
 
 
+
   private void TogglePopover() { _isOpen = !_isOpen; }
 
-  public enum AssignedItem {
-    Directory,
-    Pdf,
-    Video,
-    RefMedia
-  }
   private record CardOptions(string Name, bool IsEnabled = false) {
     public bool IsEnabled { get; set; } = IsEnabled;
     public override string ToString() { return Name; }
   }
 
-  private void OnSelectedItemsChanged((Enum, IEnumerable<IDirectoryItem>) args) {
+  private void OnSelectedItemsChanged((AssignedItem, IEnumerable<IDirectoryItem>) args) {
     var (key, obj) = args;
     SelectedItems = obj.Select(x => (key, x)).ToList();
 

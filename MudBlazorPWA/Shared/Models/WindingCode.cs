@@ -22,6 +22,49 @@ public class WindingCode : IWindingCode {
 		var json = JsonSerializer.Serialize(this);
 		return JsonSerializer.Deserialize<WindingCode>(json) ?? throw new NullReferenceException();
 	}
+
+	public void RemoveAssignedItem(AssignedItem key, string? value) {
+		switch (key) {
+			case AssignedItem.Directory:
+				FolderPath = null;
+				break;
+			case AssignedItem.Pdf:
+				Media.Pdf = null;
+				break;
+			case AssignedItem.Video:
+				Media.Video = null;
+				break;
+			case AssignedItem.RefMedia:
+				if (string.IsNullOrEmpty(value)) break;
+				Media.RefMedia?.Remove(value);
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(key), key, null);
+		}
+	}
+	public void EditAssignedItem(AssignedItem key, string? value) {
+		Console.WriteLine("AddAssignedItem");
+		Console.WriteLine($" key: {key}, value: {value}");
+		switch (key) {
+			case AssignedItem.Directory:
+				FolderPath = value;
+				break;
+			case AssignedItem.Pdf:
+				Media.Pdf = value;
+				break;
+			case AssignedItem.Video:
+				Media.Video = value;
+				break;
+			case AssignedItem.RefMedia:
+				if (string.IsNullOrEmpty(value)) break;
+				Media.RefMedia ??= new();
+				Media.RefMedia.Add(value);
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(key), key, null);
+		}
+	}
+
 }
 
 public interface IWindingCode {
@@ -46,4 +89,11 @@ public enum Division {
 	D1 = 1,
 	D2 = 2,
 	D3 = 3
+}
+
+public enum AssignedItem {
+	Directory,
+	Pdf,
+	Video,
+	RefMedia
 }

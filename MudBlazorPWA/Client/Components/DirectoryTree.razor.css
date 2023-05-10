@@ -84,17 +84,29 @@
   border-left: 1px solid var(--mud-palette-lines-default);
   margin-inline: 15px 0;
 }
+
 .directory-treeview ::deep:first-of-type(ul) > li:first-of-type {
   padding-bottom: 12px;
 }
 
-.directory-dropzone {
-  display: flex;
-  gap: 0;
-  height: 100%;
-  align-items: center;
-  padding-bottom: 16px;
-  justify-content: center;
-  flex-direction: column;
-  border-color: var(--mud-palette-lines-default);
+::deep .mud-treeview-item-content p {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 80%;
+}
+
+::deep .mud-treeview-item-content:hover p,
+::deep .mud-treeview-item-content.mud-treeview-item-selected p {
+  text-overflow: unset;
+  overflow: unset;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+::deep .mud-treeview-item-content.mud-treeview-item-selected p {
+  text-overflow: unset;
+  overflow: unset;
+  white-space: pre-wrap;
+  max-width: 100%;
 }

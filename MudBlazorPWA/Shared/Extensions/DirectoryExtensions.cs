@@ -103,4 +103,15 @@ public static class DirectoryExtensions {
 	public static bool IsPdf(this string? path) {
 		return path?.EndsWith(".pdf") ?? false;
 	}
+
+	public static Task<AssignedItem>? GetAssignedType(this string name) {
+		AssignedItem result = default!;
+		if (name[^5..].Contains('.') is false) result = AssignedItem.Directory;
+		if (name.EndsWith(".pdf")) result = AssignedItem.Pdf;
+		if (name.EndsWith(".mp4")) result = AssignedItem.Video;
+
+		return result == default!
+			? null
+			: Task.FromResult(result);
+	}
 }

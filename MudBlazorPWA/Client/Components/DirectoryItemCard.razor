@@ -41,13 +41,13 @@
 
 @code {
   [Parameter]
-  public required Enum Key { get; set; }
+  public required AssignedItem Key { get; set; }
 
   [Parameter]
   public List<IDirectoryItem> DirectoryItems { get; set; } = new();
 
   [ Parameter ]
-  public EventCallback<(Enum, IEnumerable<IDirectoryItem>)> SelectedItemsChanged { get; set; }
+  public EventCallback<(AssignedItem, IEnumerable<IDirectoryItem>)> SelectedItemsChanged { get; set; }
 
 
   private string Title { get; set; } = default!;
@@ -56,9 +56,5 @@
     await base.OnParametersSetAsync();
     Title = Key.ToString();
   }
-    // DirectoryItems.Clear();
-    // foreach (var item in ItemPaths.Select(
-    //   itemPath
-    //     => itemPath.AsDirectoryItem())) { DirectoryItems.Add(item); }
-  //}
+
 }
