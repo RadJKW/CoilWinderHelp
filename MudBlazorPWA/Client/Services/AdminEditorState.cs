@@ -36,7 +36,7 @@ public class AdminEditorState : IAsyncDisposable {
 	}
 
 	public event Action? StateChanged;
-	public void NotifyStateChanged() => StateChanged?.Invoke();
+	internal void NotifyStateChanged() => StateChanged?.Invoke();
 
 	public IDirectoryItem? RootDirectoryItem { get; private set; }
 	private IDirectoryItem? _selectedItem;

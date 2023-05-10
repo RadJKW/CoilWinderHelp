@@ -232,25 +232,26 @@
   private void DeleteSelectedMedia() {
     Console.WriteLine("deleting items");
     if (WindingCode is null) return;
+    var code = WindingCode;
     foreach (var (key, value) in SelectedItems) {
       Console.WriteLine($"key: {key}, value: {value}");
       switch (key) {
         case AssignedItem.Directory: {
-          WindingCode.FolderPath = null;
+          code.FolderPath = null;
           break;
         }
         case AssignedItem.Pdf: {
-          WindingCode.Media.Pdf = null;
+          code.Media.Pdf = null;
           break;
         }
         case AssignedItem.Video: {
-          WindingCode.Media.Video = null;
+          code.Media.Video = null;
           break;
         }
         case AssignedItem.RefMedia: {
-          if (WindingCode.Media.RefMedia != null)
-            foreach (var item in WindingCode.Media.RefMedia.Where(item => item == value.Path)) {
-              WindingCode.Media.RefMedia.Remove(item);
+          if (code.Media.RefMedia != null)
+            foreach (var item in code.Media.RefMedia.Where(item => item == value.Path)) {
+              code.Media.RefMedia.Remove(item);
               break;
             }
           break;
