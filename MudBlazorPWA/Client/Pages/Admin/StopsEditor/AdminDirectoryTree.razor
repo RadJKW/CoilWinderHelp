@@ -1,0 +1,243 @@
+﻿@inject AdminEditorState State
+@implements IDisposable
+
+<MudScrollbar Selector=".directory-explorer"
+    Hide="true">
+</MudScrollbar>
+<div @attributes="@AdditionalAttributes">
+  <MudListSubheaderExtended T="string"
+      Class="border-b mud-border-lines-default pa-2"
+      DisableGutters="true"
+      SecondaryBackground="true">
+    <MudStack Row
+        Spacing="6"
+        AlignItems="AlignItems.Center"
+        Justify="Justify.Center">
+      <MudIcon Size="Size.Small"
+          Icon="@Icons.Material.Filled.DatasetLinked"/>
+      <MudText Typo="Typo.button">
+        <strong >Winding Instructions</strong>
+      </MudText>
+    </MudStack>
+  </MudListSubheaderExtended>
+  <div class="directory-explorer">
+    <div class="directory-treeview">
+      @if (State.RootDirectoryItem != null) {
+        <MudTreeView T="IDirectoryItem"
+            @bind-SelectedValue="@State.SelectedItem"
+            ServerData="@(item => InvokeFetchTreeItems(item, "ServerData"))"
+            MaxHeight="100%"
+            Dense="true"
+            Hover="true"
+            Width="100%">
+          <ChildContent>
+            @{
+              var rootItem = State.RootDirectoryItem;
+              <MudTreeViewItem T="IDirectoryItem"
+                  Class="treeview-root"
+                  Items="@rootItem.TreeItems"
+                  Icon="@rootItem.Icon"
+                  Value="@rootItem"
+                  Text="@rootItem.Name"
+                  Activated="@(rootItem == State.SelectedItem)"
+                  @bind-Expanded="@rootItem.Expanded"/>
+            }
+          </ChildContent>
+          <ItemTemplate Context="item">
+            <MudTreeViewItem T="IDirectoryItem"
+
+                Items="@item.TreeItems"
+                Value="@item"
+                Expanded="item.Expanded"
+                ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)">
+
+              <Content>
+                @if (item.CanExpand) {
+                  <MudTreeViewItemToggleButton Loading="@item.Loading"
+                      Expanded="item.Expanded"
+                      ExpandedChanged="(expanded) => OnItemExpanded(item, expanded)"
+                      Visible="item.CanExpand"
+                      ExpandedIcon="@Icons.Material.Filled.ChevronRight"
+                      LoadingIcon="@Icons.Material.Filled.Loop"
+                      LoadingIconColor="Color.Info"/>
+                } else if (item.ItemType == ItemType.Directory) {
+                  <div style="padding-inline-end: 4px;"></div>
+                }
+
+                <MudMenu ActivationEvent="MouseEvent.RightClick"
+                    Class="mb-0 pb-0 mud-width-full"
+                    Dense="true"
+                    Size="Size.Small"
+                    ListClass="d-flex flex-column align-center justify-center pb-0 mb-0"
+                    PositionAtCursor="true"
+                    AnchorOrigin="Origin.BottomCenter"
+                    TransformOrigin="Origin.TopCenter">
+                  <ActivatorContent>
+
+                    <MudStack Row
+                        Spacing="2"
+                        Justify="Justify.SpaceEvenly"
+                        Class="mud-width-full overflow-hidden"
+                        AlignItems="AlignItems.Center">
+                      @switch (item.ItemType == ItemType.File) {
+                        case true:
+                          <MudIconButton Icon="@item.Icon"
+                              Class="cursor-help"
+                              OnClick="@(() => OpenFilePreview(item))"/>
+                          break;
+                        case false:
+                          <MudIcon Icon="@item.Icon"/>
+                          break;
+                      }
+                      <MudText>
+                        @item.Name
+                      </MudText>
+                      <MudSpacer/>
+
+                    </MudStack>
+                  </ActivatorContent>
+                  <ChildContent>
+                    <MudStack Justify="Justify.Center"
+                        AlignItems="AlignItems.Center"
+                        Class="px-1 py-0">
+
+                      <MudButton Color="Color.Info"
+                          OnClick="() => OpenFilePreview(item)"
+                          Variant="Variant.Outlined"
+                          DisableElevation="true">
+                        <MudText Typo="Typo.caption"
+                            Align="Align.Center">
+                          Preview
+                        </MudText>
+                      </MudButton>
+
+                      @{
+                        List<AssignedItem> menuFilter = new();
+                        var hasAssignedType = item.Name.GetAssignedType();
+                        if (hasAssignedType is not null) {
+                          var assignedItemType = hasAssignedType.Result;
+
+                          if (assignedItemType == AssignedItem.Directory) {
+                            menuFilter.Add(assignedItemType);
+                          } else {
+                            menuFilter.Add(assignedItemType);
+                            menuFilter.Add(AssignedItem.RefMedia);
+                          }
+
+                          <MudMenu StartIcon="@Icons.Material.Outlined.Add"
+                              ListClass="pa-0 ma-1 mud-background-surface"
+                              Size="Size.Small"
+                              Dense="true"
+                              Variant="Variant.Filled"
+                              Label="Assign To.."
+                              Color="Color.Dark"
+                              Disabled="@(State.SelectedWindingCode is null)"
+                              AnchorOrigin="Origin.CenterRight"
+                              TransformOrigin="Origin.TopLeft"
+                              ActivationEvent="MouseEvent.MouseOver">
+                            <ChildContent>
+                              <MudStack Justify="Justify.Center"
+                                  Spacing="1"
+                                  AlignItems="AlignItems.Stretch">
+
+                                <div class="border-b d-flex justify-center mud-border-lines-default mud-width-full pa-0">
+                                  <MudText Typo="Typo.button"
+                                      Align="Align.Center">
+                                    Code's
+                                  </MudText>
+                                </div>
+
+                                @foreach (var itemType in menuFilter) {
+                                  <MudButton OnClick="() => AddWindingCodeItem(itemType, item)"
+                                      Size="Size.Small"
+                                      Variant="Variant.Outlined"
+                                      Color="Color.Tertiary">
+                                    @itemType
+                                  </MudButton>
+                                }
+                              </MudStack>
+                            </ChildContent>
+                          </MudMenu>
+                        }
+                      }
+
+                      <div class="border-t mud-border-lines-default mud-width-full pa-0">
+                        <MudMenuItem Class="pa-0">
+                          <MudText Class="d-flex justify-center mud-width-full"
+                              Typo="Typo.caption"
+                              Align="Align.Center">
+                            Close
+                          </MudText>
+                        </MudMenuItem>
+                      </div>
+                    </MudStack>
+
+                  </ChildContent>
+                </MudMenu>
+              </Content>
+
+            </MudTreeViewItem>
+          </ItemTemplate>
+
+        </MudTreeView>
+      }
+    </div>
+  </div>
+</div>
+
+@code{
+
+  [Parameter(CaptureUnmatchedValues = true)]
+  public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+  private MudTreeView<IDirectoryItem> MudTreeRoot { get; set; } = new();
+
+
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    State.StateChanged += AdminStateChanged;
+    await State.BuildDirectoryTree();
+  }
+  private void AdminStateChanged() => StateHasChanged();
+  public void Dispose() { State.StateChanged -= AdminStateChanged; }
+
+  private async Task OnItemExpanded(IDirectoryItem item, bool expanded) {
+  // prevents parent from collapsing when child or grandchild is selected
+
+
+    if (item.Expanded != expanded) {
+      item.Expanded = expanded;
+      StateHasChanged();
+      await InvokeFetchTreeItems(item, "TreeViewItem");
+      StateHasChanged();
+      await Task.Delay(250);
+      item.Loading = false;
+    }
+  }
+  private async Task<HashSet<IDirectoryItem>> InvokeFetchTreeItems(IDirectoryItem item, string componentId) {
+    if (item.TreeItems != null && item.TreeItems.Any()) return new(item.TreeItems);
+    item.Loading = true;
+    StateHasChanged();
+    await DirectoryExtensions.FetchTreeItems(item);
+    return item.TreeItems == null
+      ? new()
+      : new(item.TreeItems);
+  }
+
+  private async Task OpenFilePreview(IDirectoryItem item) {
+    if (item is not DirectoryItem<FileNode> file) return;
+    if (file.Item?.Path != null)
+      await State.OpenFilePreview(file.Item.Path);
+  }
+  private void UpdateSelectedItem(IDirectoryItem? arg) {
+    if (arg is null) return;
+    if (arg == State.SelectedItem) return;
+    State.SelectedItem = arg;
+  }
+  private void AddWindingCodeItem(AssignedItem key, IDirectoryItem value) {
+    Console.WriteLine("AddWindingCodeItem");
+  // cast key to AssignedItem to remove nullability
+    State.SelectedWindingCode?.EditAssignedItem(key, value.Path);
+    State.HasWindingCodeChanges = true;
+    State.NotifyStateChanged();
+  }
+}

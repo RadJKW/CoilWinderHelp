@@ -1,9 +1,9 @@
 using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.Extensions.FileProviders;
-using MudBlazorPWA.Server;
 using MudBlazorPWA.Server.Extensions;
 using MudBlazorPWA.Server.Hubs;
+using MudBlazorPWA.Server.Startup;
 using MudBlazorPWA.Shared.Data;
 using MudBlazorPWA.Shared.Models;
 

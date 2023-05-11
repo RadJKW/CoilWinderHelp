@@ -32,7 +32,7 @@ public class HubClientService {
 	private readonly ILogger<HubClientService> _logger;
 	private readonly NavigationManager _navigationManager;
 	private Uri? FileServerUrl { get; init; }
-	public HubConnection DirectoryHub { get; private set; } = null!;
+	private HubConnection DirectoryHub { get; set; } = null!;
 	private HubConnection ChatHub { get; set; } = null!;
 
 	private WindingCodeType _windingCodeType = WindingCodeType.Z80;
@@ -106,16 +106,7 @@ public class HubClientService {
 		return directory;
 	}
 	#endregion
-	public async Task<IEnumerable<string>> GetFoldersInPath(string? path = null) {
-		var folders = await DirectoryHub.InvokeAsync<IEnumerable<string>>("GetAllFolders", path);
-		return folders;
-	}
 
-	public async Task<(List<string>, List<string>)> ListMediaFiles(string? path = null) {
-		var pdfFiles = await DirectoryHub.InvokeAsync<List<string>>("ListPdfFiles", path);
-		var videoFiles = await DirectoryHub.InvokeAsync<List<string>>("ListVideoFiles", path);
-		return (pdfFiles, videoFiles);
-	}
 
 	public async Task<WindingCode?> GetCurrentCoilWinderStop() {
 		return await DirectoryHub.InvokeAsync<WindingCode>("GetCurrentWindingStop");

@@ -11,14 +11,11 @@ using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Server.Hubs;
 public class DirectoryHub : Hub<IHubClient> {
 	#region Constructor
-	private readonly IDirectoryService _directoryService;
 	private readonly ILogger<DirectoryHub> _logger;
 	private readonly IDataContext _dataContext;
 	private WindingCode? _currentWindingStop;
-	public DirectoryHub(IDirectoryService directoryService,
-		ILogger<DirectoryHub> logger,
+	public DirectoryHub(ILogger<DirectoryHub> logger,
 		IDataContext dataContext) {
-		_directoryService = directoryService;
 		_logger = logger;
 		_dataContext = dataContext;
 	}
@@ -62,6 +59,7 @@ public class DirectoryHub : Hub<IHubClient> {
 	}
 	#endregion
 
+	#region Code Testing
 	public Task<List<string>> GetConnectedClients() {
 		// var clientIp = HubExtensions.GetConnectionIp(Context);
 		string hubName = GetType().Name;
@@ -86,6 +84,8 @@ public class DirectoryHub : Hub<IHubClient> {
 		return await Task.FromResult(methods);
 	}
 
+	#endregion
+
 	#region Directory Methods
 	public async Task<DirectoryNode> BuildDirectorySnapshot(string? path) {
 		var dirInfo = new DirectoryInfo(path ?? AppConfig.BasePath);
@@ -106,28 +106,11 @@ public class DirectoryHub : Hub<IHubClient> {
 
 		return node;
 	}
-	public Task<List<string>> ListMediaFiles(string? path) {
-		/*var files = await _directoryService.ListMediaFiles(path);
-		return files;*/
-		throw new NotImplementedException();
-	}
-	public async Task GetFolderContent(string? path = null) {
-		string? clientIp = HubExtensions.GetConnectionIp(Context);
-		(string currentPath, string[] files, string[] folders) = await _directoryService.GetFolderContent(path);
-		if (clientIp != null)
-			await Clients.Group(clientIp).ReceiveFolderContent(currentPath, files, folders);
-	}
-	public async Task FileSelected(string path) {
-		string? clientIp = HubExtensions.GetConnectionIp(Context);
-		string relativePath = _directoryService.GetRelativePath(path);
-		await Clients.Group(clientIp!).FileSelected(relativePath);
-	}
-	public async Task<IEnumerable<string>> GetAllFolders(string? path) {
-		string? clientIp = HubExtensions.GetConnectionIp(Context);
-		string[] folders = await _directoryService.GetFoldersInPath(path);
-		await Clients.Group(clientIp!).ReceiveAllFolders(folders.ToArray());
-		return folders;
-	}
+
+	/// <summary>
+	/// returns the static path to the server's winding docs folder
+	/// </summary>
+	/// <returns>Path on Server</returns>
 	public string GetServerWindingDocsFolder() => AppConfig.BasePath;
 	#endregion
 
@@ -138,10 +121,40 @@ public class DirectoryHub : Hub<IHubClient> {
 			WindingCodeType.Pc => _dataContext.PcWindingCodes.AsQueryable(),
 			_ => new List<WindingCode>().AsQueryable()
 		};
+		// fetch the latest winding codes from the database
 		var results = division is null
 			? await windingCodes.ToListAsync()
 			: await windingCodes.Where(w => w.Division == division).ToListAsync();
 		_logger.LogInformation("Found {Count} winding codes for Type {WindingCodeType} and Division {Division}", results.Count, windingCodeType, division);
+		// foreach code in WindingCodes, IF the code.media.pdf is null, then use the code.FolderPath if not null to get the pdf
+		// from the directory. // repeat for code.media.video if null.
+		/*var dbContext = (DataContext)_dataContext;
+
+		foreach (var code in results) {
+			var hasChanges = false;
+			if (code.FolderPath is null) continue;
+			if (code.Media.Pdf is not null) continue;
+			var dirInfo = new DirectoryInfo(AppConfig.BasePath + code.FolderPath);
+			var pdfFile = dirInfo.GetFiles().FirstOrDefault(x => x.Extension == ".pdf");
+			if (pdfFile is not null) {
+
+				code.Media.Pdf = pdfFile.FullName.Remove(0, AppConfig.BasePath.Length);
+				hasChanges = true;
+			}
+			if (code.Media.Video is not null) continue;
+			var videoFile = dirInfo.GetFiles().FirstOrDefault(x => x.Extension == ".mp4");
+			if (videoFile is not null) {
+				code.Media.Video = videoFile.FullName.Remove(0, AppConfig.BasePath.Length);
+				hasChanges = true;
+			}
+
+			if (!hasChanges) continue;
+			_logger.LogInformation("Updating media for code {Code}", code.Code);
+			dbContext.Update(code);
+			await dbContext.SaveChangesAsync();
+		}*/
+
+
 		return results.Any()
 			? results
 			: null;
@@ -256,8 +269,6 @@ public class DirectoryHub : Hub<IHubClient> {
 		await Clients.Group(clientIp).CurrentWindingStopUpdated(_currentWindingStop);
 	}
 
-	public Task<WindingCode?> GetCurrentWindingStop() {
-		return Task.FromResult(_currentWindingStop);
-	}
+	public Task<WindingCode?> GetCurrentWindingStop() => Task.FromResult(_currentWindingStop);
 	#endregion
 }

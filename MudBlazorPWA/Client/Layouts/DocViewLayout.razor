@@ -1,0 +1,90 @@
+@layout MainLayout
+@inherits LayoutComponentBase
+@implements IAsyncDisposable
+@inject DocViewService DocViewSettings
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JS
+<CascadingValue Value="this">
+  <MudLayout>
+    @if (DocViewSettings.Settings.AppBarIsVisible) {
+      <MudAppBar Elevation="2"
+          Dense="true">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"
+            Color="Color.Inherit"
+            Edge="Edge.Start"
+            OnClick="@(ToggleDrawer)"/>
+        <MudSpacer/>
+        <MudText Typo="Typo.h6"
+            Style="text-wrap: none">
+          @(PageTitle)
+        </MudText>
+
+        <MudSpacer/>
+        <AppbarButtons/>
+      </MudAppBar>
+    }
+    <MudDrawer Class="docview drawer-left"
+        @bind-Open="DocViewSettings.Settings.DrawerOpen"
+        Anchor="Anchor.Left"
+        Elevation="1"
+        Variant="@DrawerVariant.Mini"
+        ClipMode="DrawerClipMode.Always"
+        PreserveOpenState="true"
+        OpenMiniOnHover="@DocViewSettings.Settings.DrawerOpenOnHover">
+      <NavMenu DrawerOpen="DocViewSettings.Settings.DrawerOpen"/>
+      <MudDivider Class="mx-3" DividerType="DividerType.Middle"/>
+      <MudSpacer/>
+      <MudDivider Class="px-2 flex-grow-0"/>
+      <AutoDocSettings/>
+    </MudDrawer>
+    <MudMainContent Class="docview main-content">
+      <MudContainer Class="docview main-container"
+          MaxWidth="MaxWidth.False">
+        @Body
+      </MudContainer>
+    </MudMainContent>
+
+  </MudLayout>
+</CascadingValue>
+
+@code {
+  public event Action ToggleDrawerEvent = delegate { };
+  private IJSObjectReference _module = default!;
+  private string PageTitle { get; set; } = "MudBlazorTest";
+
+  protected override async Task OnInitializedAsync() {
+    await DocViewSettings.LoadSettingsAsync();
+    PageTitle = DocViewSettings.AppBarTitle;
+    DocViewSettings.MajorUpdateOccured += DocViewSettings_OnMajorUpdateOccured;
+    NavigationManager.LocationChanged +=  NavigationManager_OnLocationChanged;
+    DocViewSettings.AppBarTitleChanged += () => PageTitle = DocViewSettings.AppBarTitle;
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    if (firstRender) {
+      _module = await
+        JS.InvokeAsync<IJSObjectReference>("import",
+          "./Layouts/DocViewLayout.razor.js");
+    }
+  }
+  void ToggleDrawer() {
+    DocViewSettings.Settings.DrawerOpen = !DocViewSettings.Settings.DrawerOpen;
+    ToggleDrawerEvent.Invoke();
+  }
+  protected virtual async void DocViewSettings_OnMajorUpdateOccured() {
+    string jsFunction = DocViewSettings.Settings.AppBarIsVisible ? "restoreAppBar" : "removeAppBar";
+    await _module.InvokeVoidAsync(jsFunction);
+    await InvokeAsync(StateHasChanged);
+  }
+  protected virtual async void NavigationManager_OnLocationChanged(object? sender, LocationChangedEventArgs e) {
+    DocViewSettings.Settings.DrawerOpen = false;
+    await InvokeAsync(StateHasChanged);
+  }
+
+  async ValueTask IAsyncDisposable.DisposeAsync() {
+    DocViewSettings.SaveSettingsAsync();
+    DocViewSettings.MajorUpdateOccured -= DocViewSettings_OnMajorUpdateOccured;
+    NavigationManager.LocationChanged -= NavigationManager_OnLocationChanged;
+    await _module.DisposeAsync();
+  }
+}

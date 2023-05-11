@@ -33,7 +33,6 @@ public class AdminEditorState : IAsyncDisposable {
 	}
 	public event Action? StateChanged;
 
-	public readonly Dictionary<AssignedItem, List<IDirectoryItem>> InitialAssignedItems = new();
 	public IDirectoryItem? RootDirectoryItem { get; private set; }
 	private IDirectoryItem? _selectedItem;
 	public IDirectoryItem? SelectedItem {
@@ -44,6 +43,8 @@ public class AdminEditorState : IAsyncDisposable {
 		}
 	}
 	public IEnumerable<WindingCode> WindingCodes = new List<WindingCode>();
+
+	public List<int> WindingCodeChanges { get; set; } = new();
 	public WindingCode? SelectedWindingCode {
 		get => _windingCodeManager.SelectedWindingCode;
 		set {
@@ -55,10 +56,12 @@ public class AdminEditorState : IAsyncDisposable {
 		get => _directoryHub.WindingCodeType;
 		set => _directoryHub.WindingCodeType = value;
 	}
+	public bool HasWindingCodeChanges { get; set; }
+
 	public async Task BuildDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
 		_directoryNavigator.RootDirectory = rootDirectory;
-		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true, Icon = @Icons.Material.Filled.FolderSpecial};
+		var rootDirectoryItem = new DirectoryItem<DirectoryNode>(rootDirectory) { Expanded = true, Selected = true, Icon = @Icons.Material.Filled.FolderSpecial };
 		RootDirectoryItem = rootDirectoryItem;
 		SelectedItem = rootDirectoryItem;
 		await DirectoryExtensions.FetchTreeItems(rootDirectoryItem);
@@ -79,5 +82,27 @@ public class AdminEditorState : IAsyncDisposable {
 		          + filePath;
 		await _jsRuntime.InvokeVoidAsync("openFilePreview", url);
 	}
-	internal void NotifyStateChanged() => StateChanged?.Invoke();
+	internal void NotifyStateChanged() {
+		if (HasWindingCodeChanges) {
+			if (!WindingCodeChanges.Contains(SelectedWindingCode!.Id))
+				WindingCodeChanges.Add(SelectedWindingCode.Id);
+
+		}
+		StateChanged?.Invoke();
+	}
+	public async Task<WindingCode?> GetWindingCode(int windingCodeId) {
+		var windingCode = await _directoryHub.GetWindingCode(windingCodeId);
+		return windingCode;
+	}
+	public async Task UpdateWindingCodeAsync(WindingCode windingCode) {
+		var result = await _directoryHub.UpdateWindingCodeDb( windingCode);
+		if (result) {
+			HasWindingCodeChanges = false;
+			WindingCodeChanges.Remove(windingCode.Id);
+			NotifyStateChanged();
+		}
+	}
+	public async Task LoadWindingCodes() {
+		await _windingCodeManager.FetchWindingCodes();
+	}
 }

@@ -28,7 +28,7 @@ public class WindingCodeManager {
 	public async Task<WindingCode?> FetchWindingCode(int id) {
 		return await _directoryHub.GetWindingCode(id);
 	}
-	private async Task FetchWindingCodes() {
+	public async Task FetchWindingCodes() {
 		WindingCodes = await _directoryHub.GetWindingCodes();
 	}
 	public async Task<bool> UpdateWindingCode(WindingCode windingCode) {

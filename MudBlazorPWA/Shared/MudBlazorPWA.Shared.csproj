@@ -32,6 +32,7 @@
 
     <ItemGroup>
       <Folder Include="Persistence\Migrations" />
+      <Folder Include="Util\" />
     </ItemGroup>
 
 </Project>

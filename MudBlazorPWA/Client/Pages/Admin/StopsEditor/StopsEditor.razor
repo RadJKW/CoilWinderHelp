@@ -1,0 +1,40 @@
+﻿@page "/Admin/StopsEditor"
+@layout DocViewLayout
+@inject AdminEditorState State
+@implements IDisposable
+
+<MudScrollbar Selector=".mud-table-container"
+    Width="6"
+    Color="#7e52f586">
+</MudScrollbar>
+<div class="directory-tree-grid">
+
+    <AdminDirectoryTree class="bordered directory-tree dark-background overflow-hidden rounded-lg"/>
+
+  <div class="bordered dark-background winding-code-grid">
+
+
+    <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
+    <AdminCodeMediaCard WindingCode="@State.SelectedWindingCode"/>
+  </div>
+</div>
+
+@code{
+
+
+
+  protected override void OnInitialized() { State.StateChanged += AdminStateChanged; }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      await State.LoadWindingCodes();
+    }
+  }
+
+  private void AdminStateChanged() { StateHasChanged(); }
+
+  public void Dispose() { State.StateChanged -= AdminStateChanged; }
+
+}

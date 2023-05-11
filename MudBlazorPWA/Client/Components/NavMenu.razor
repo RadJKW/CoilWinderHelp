@@ -23,27 +23,14 @@
             Match="NavLinkMatch.All">
           Admin
         </MudNavLink>
+    <MudNavLink Href="HubCommander"
+        Match="NavLinkMatch.Prefix"
+        Icon="@Icons.Material.Filled.Explore">
+      Test
+    </MudNavLink>
       </div>
     </MudNavGroup>
 
-    <MudNavGroup Title="ChatHub"
-        Disabled="@(!DrawerOpen)"
-        Expanded="DrawerOpen"
-        ExpandIcon="@Icons.Material.Outlined.ArrowDropDown"
-        Icon="@Icons.Material.Outlined.Terminal">
-      <div class="pl-4">
-        <MudNavLink Href="messengerHub"
-            Match="NavLinkMatch.Prefix"
-            Icon="@Icons.Material.Outlined.Message">
-          Chat
-        </MudNavLink>
-        <MudNavLink Href="HubCommander"
-            Match="NavLinkMatch.Prefix"
-            Icon="@Icons.Material.Filled.Explore">
-          Manage
-        </MudNavLink>
-      </div>
-    </MudNavGroup>
 
   </MudPaper>
 </MudNavMenu>

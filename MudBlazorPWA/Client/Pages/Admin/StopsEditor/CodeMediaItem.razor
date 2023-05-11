@@ -1,0 +1,128 @@
+﻿@using MudExtensions.Enums
+@inject AdminEditorState State
+<MudListExtended T="IDirectoryItem"
+    Dense="true"
+    MultiSelectionComponent="MultiSelectionComponent.CheckBox"
+    SelectedValuesChanged="async (items) => await SelectedItemsChanged.InvokeAsync((Key, items))"
+    MultiSelection="true"
+    MultiSelectionAlign="Align.Left"
+    Class=" directory-item-list mud-width-full py-0">
+  <MudListSubheaderExtended T="IDirectoryItem"
+      Class="align-center border-b d-flex directory-item-header justify-center ma-0 mud-border-lines-default pa-0">
+    <MudText Typo="Typo.button"
+        Align="Align.Center">
+      @Title
+    </MudText>
+  </MudListSubheaderExtended>
+
+  <div class="directory-item-content">
+
+    @if (DirectoryItems.Any()) {
+      foreach (var item in DirectoryItems) {
+        <MudListItemExtended T="IDirectoryItem"
+            Class="directory-item"
+            Dense="true"
+            Value="item">
+          <MudStack Row
+              Justify="Justify.Center">
+
+            <MudIcon Icon="@item.Icon"/>
+            <p class="@GetItemClass(item)">@item.Name</p>
+          </MudStack>
+        </MudListItemExtended>
+      }
+    } else {
+      <MudPaper Style="background: transparent"
+          Height="auto">
+
+      </MudPaper>
+    }
+  </div>
+</MudListExtended>
+
+@code {
+  [Parameter]
+  public required AssignedItem Key { get; set; }
+
+  [Parameter, EditorRequired]
+  public required int WindingCodeId { get; set; }
+
+  [Parameter]
+  public List<IDirectoryItem> DirectoryItems { get; set; } = new();
+
+  [Parameter]
+  public EventCallback<(AssignedItem, IEnumerable<IDirectoryItem>)> SelectedItemsChanged { get; set; }
+
+  [Parameter]
+  public EventCallback<bool> ItemChanged { get; set; }
+
+  private string Title { get; set; } = default!;
+  private WindingCode? _originalWindingCode;
+
+  protected override async Task OnParametersSetAsync() {
+    Console.WriteLine($"Key: {Key}, OnParametersSetAsync");
+    await base.OnParametersSetAsync();
+    Title = Key.ToString();
+  }
+
+  protected override async Task OnInitializedAsync() {
+
+    await base.OnInitializedAsync();
+  }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender) {
+    await base.OnAfterRenderAsync(firstRender);
+    if (firstRender) {
+      Console.WriteLine($"Key {Key}, First Render");
+      _originalWindingCode = await State.GetWindingCode(WindingCodeId);
+      // if the key already exists in the dictionary, then do nothing
+      // if the key does not exist in the dictionary, then add it
+
+    }
+  }
+  private string GetItemClass(IDirectoryItem item) {
+
+    // switch statement based on Key
+    // determine which property to use to compare
+    // AssignedItem.Directory -> _originalWindingCode.FolderPath
+    // AssignedItem.Pdf -> _originalWindingCode.Media.Pdf
+    // AssignedItem.Video -> _originalWindingCode.Media.Video
+    // AssignedItem.RefMedia -> _originalWindingCode.Media.RefMedia (match the index of DirectoryItems to index of REfMedia)
+    // return string.empty if the item matches the original
+    // return "mud-alert-text-info" if the item does not match the original
+    Console.WriteLine("GetItemClass");
+    if (_originalWindingCode == null) return string.Empty;
+
+    string? originalItem = null;
+    switch (Key) {
+      case AssignedItem.Directory:
+      originalItem = _originalWindingCode.FolderPath;
+        break;
+      case AssignedItem.Pdf:
+        originalItem = _originalWindingCode.Media.Pdf;
+        break;
+      case AssignedItem.Video:
+        originalItem = _originalWindingCode.Media.Video;
+        break;
+      case AssignedItem.RefMedia:
+        var index = DirectoryItems.IndexOf(item);
+        if (index == -1) break;
+        if (_originalWindingCode.Media.RefMedia == null) {
+          break;
+        }
+        originalItem = _originalWindingCode.Media.RefMedia[index];
+        break;
+      default:
+        throw new ArgumentOutOfRangeException();
+    }
+
+
+    Console.WriteLine($"Key: {Key}, Item: {item.Name}, OriginalItem: {originalItem ?? "null"}");
+
+    return (item.Path == originalItem || originalItem == null)
+      ? string.Empty
+      : "mud-alert-text-info";
+  }
+
+
+}

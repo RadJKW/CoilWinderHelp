@@ -33,7 +33,7 @@ public class ChatHub : Hub<IChatHub>
 		// Add the connection to the list of active connections
 		if (!HubExtensions.ActiveConnections.TryGetValue(hubName, out var connections)) {
 			connections = new List<(string, string)>();
-			HubExtensions.ActiveConnections.Add(hubName, connections);
+			HubExtensions.ActiveConnections.TryAdd(hubName, connections);
 		}
 		connections.Add((clientIp, Context.ConnectionId));
 
