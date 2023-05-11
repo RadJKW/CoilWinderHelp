@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
+using System.Text.Json;
 
 namespace MudBlazorPWA.Client.Services;
 public enum HubServers {
@@ -58,8 +59,9 @@ public class HubClientService {
 		WindingDocsFolder = await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
 	}
 	private async void InitializeDirectoryHub() {
+		var hubUrl = _navigationManager.ToAbsoluteUri("/directoryHub");
 		DirectoryHub = new HubConnectionBuilder()
-			.WithUrl(_navigationManager.ToAbsoluteUri("/directoryHub"))
+			.WithUrl(hubUrl)
 			.WithAutomaticReconnect()
 			.AddJsonProtocol(
 			options => {
@@ -69,7 +71,6 @@ public class HubClientService {
 
 		RegisterHubEvents(DirectoryHub);
 		await DirectoryHub.StartAsync();
-		await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
 	}
 	private void InitializeChatHub() {
 		ChatHub = new HubConnectionBuilder()
@@ -123,8 +124,8 @@ public class HubClientService {
 	public async Task SendChatMessage(string user, string message) {
 		await ChatHub.InvokeAsync("SendMessage", user, message, null);
 	}
-	public async void SetCurrentCoilWinderStop(int id) {
-		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", id, WindingCodeType);
+	public async void SetCurrentCoilWinderStop(int id, string? clientIp = null) {
+		await DirectoryHub.InvokeAsync("UpdateCurrentWindingStop", id, WindingCodeType, clientIp);
 	}
 	private void ParseWindingCodeMedia(WindingCode code) {
 		Console.WriteLine($"ParseWindingCodeMedia: {code.Code}");
@@ -138,6 +139,8 @@ public class HubClientService {
 			for (var i = 0; i < code.Media.RefMedia.Count; i++)
 				// append 'FileServerUrl' to each item in the list
 				code.Media.RefMedia[i] = FileServerUrl + code.Media.RefMedia[i];
+
+		//Console.WriteLine(JsonSerializer.Serialize(code, new JsonSerializerOptions { WriteIndented = true }));
 
 		CurrentWindingStopUpdated?.Invoke(code);
 	}

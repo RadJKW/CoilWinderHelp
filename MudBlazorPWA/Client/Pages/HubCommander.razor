@@ -53,7 +53,7 @@
     <MudSelect T="string"
         Disabled="CheckForValidHubConnection"
         Label="Connected Clients"
-        @bind-Value="_selectedGroup">
+        @bind-Value="@_selectedGroup">
       @foreach (string? client in _connectedClients) {
         <MudSelectItem T="string"
             Value="@client">

@@ -241,15 +241,21 @@ public class DirectoryHub : Hub<IHubClient> {
 	#endregion
 
 	#region WindingStop Tracking
-	public async Task UpdateCurrentWindingStop(int codeId, WindingCodeType windingCodeType) {
-		string? clientIp = HubExtensions.GetConnectionIp(Context);
+	public async Task UpdateCurrentWindingStop(int codeId, WindingCodeType windingCodeType, string? ip) {
+		string? clientIp = ip ?? HubExtensions.GetConnectionIp(Context);
 		_currentWindingStop = await GetWindingCode(codeId, windingCodeType);
 		if (_currentWindingStop is null) {
 			_logger.LogWarning("Could not find WindingCode with Id {CodeId} and Type {WindingCodeType}", codeId, windingCodeType);
 			return;
 		}
-		await Clients.Group(clientIp!).CurrentWindingStopUpdated(_currentWindingStop);
+		if (clientIp is null) {
+			_logger.LogWarning("Could not get client IP");
+			return;
+		}
+		_logger.LogInformation("Notifying client {ClientIp} of new WindingStop {WindingStop}", clientIp, _currentWindingStop.Name);
+		await Clients.Group(clientIp).CurrentWindingStopUpdated(_currentWindingStop);
 	}
+
 	public Task<WindingCode?> GetCurrentWindingStop() {
 		return Task.FromResult(_currentWindingStop);
 	}

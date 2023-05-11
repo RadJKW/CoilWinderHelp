@@ -88,9 +88,13 @@ public partial class HubCommander {
 	private bool CanNotifyClients() {
 		return SelectedRadio switch {
 			(int)HubServers.ChatHub
-				=> string.IsNullOrEmpty(_selectedCallbackMethod) || string.IsNullOrEmpty(_selectedGroup) || _hubConnection == null,
+				=> string.IsNullOrEmpty(_selectedCallbackMethod)
+				   || string.IsNullOrEmpty(_selectedGroup)
+				   || _hubConnection == null,
 			(int)HubServers.DirectoryHub
-				=> string.IsNullOrEmpty(_selectedCallbackMethod) || _selectedWindingCode == null,
+				=> string.IsNullOrEmpty(_selectedCallbackMethod)
+				   || string.IsNullOrEmpty(_selectedGroup)
+				   || _selectedWindingCode == null,
 			_
 				=> true
 		};
@@ -131,7 +135,7 @@ public partial class HubCommander {
 			return;
 
 		if (_selectedCallbackMethod == "UpdateCurrentWindingStop" && _selectedWindingCode != null) {
-			HubClientService.SetCurrentCoilWinderStop(_selectedWindingCode.Id);
+			HubClientService.SetCurrentCoilWinderStop(_selectedWindingCode.Id, _selectedGroup);
 			await HubClientService.SendChatMessage("commander", "updated current winding stop");
 		}
 
