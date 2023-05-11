@@ -2,12 +2,13 @@
 using Microsoft.JSInterop;
 using MudBlazorPWA.Client.Instructions.Components;
 using MudBlazorPWA.Shared.Models;
+using System.Text.Json;
 
 namespace MudBlazorPWA.Client.Instructions.Pages;
 public partial class AutoDocs {
 	[Parameter]
 	public int? WindingCodeId { get; set; }
-	private IWindingCode? _currentWindingStop;
+	private WindingCode? _currentWindingStop;
 
 	public string? PdfUrl { get; private set; }
 	public string? VideoUrl { get; set; }
@@ -38,8 +39,18 @@ public partial class AutoDocs {
 		}
 		await base.OnAfterRenderAsync(firstRender);
 	}
-	private void OnCurrentWindingStopUpdated(IWindingCode windingCode) {
+	private void OnCurrentWindingStopUpdated(WindingCode windingCode) {
 		Console.WriteLine("OnCurrentWindingStopUpdated: " + windingCode.Code);
+		if (_currentWindingStop?.Code == windingCode.Code) {
+			Console.WriteLine("OnCurrentWindingStopUpdated: same winding code");
+			return;
+		}
+
+		// if the windingStop is not null , set it to null and update the UI
+		if (_currentWindingStop != null) {
+			_currentWindingStop = null;
+			StateHasChanged();
+		}
 		_currentWindingStop = windingCode;
 		PdfUrl = windingCode.Media.Pdf;
 		VideoUrl = windingCode.Media.Video;
@@ -47,6 +58,7 @@ public partial class AutoDocs {
 		StateHasChanged();
 		if (_moduleJS != null)
 			InvokeAsync(async () => { await _moduleJS.InvokeVoidAsync("init"); });
+		Console.WriteLine(JsonSerializer.Serialize(_currentWindingStop, new JsonSerializerOptions { WriteIndented = true }));
 	}
 	private void HandleDoubleClicked() {
 		_startWidth = _startWidth <= 50

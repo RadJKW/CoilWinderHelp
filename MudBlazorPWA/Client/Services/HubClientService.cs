@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.SignalR.Client;
 using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
-using System.Text.Json;
 
 namespace MudBlazorPWA.Client.Services;
 public enum HubServers {
