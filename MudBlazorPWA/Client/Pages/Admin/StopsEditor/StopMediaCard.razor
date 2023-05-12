@@ -70,7 +70,8 @@
       <MudCardContent Class="pa-1 ma-1">
         <MudGrid Spacing="1"
             Justify="Justify.Center"
-            Class="border mud-border-lines-default">
+            Class="border mud-border-lines-default"
+            Style="overflow: hidden auto; height: 270px;">
 
           @foreach (var entry in AssignedItemDictionary) {
             var index = AssignedItemDictionary.Keys.ToList().IndexOf(entry.Key);
@@ -81,12 +82,14 @@
               _ => ""
             };
             itemClass += " " + " d-flex justify-center pa-0 mud-border-lines-default";
+            var titleColors = new[] { Color.Info, Color.Success, Color.Warning, Color.Error };
             <MudItem Class="@itemClass"
                 xs="12"
                 md="6"
                 xxl="3">
 
-              <CodeMediaItem Key="@entry.Key"
+              <StopAssignedItem Key="@entry.Key"
+                  TitleColor="@titleColors[index]"
                   DirectoryItems="@entry.Value"
                   SelectedItemsChanged="OnSelectedItemsChanged"
                   WindingCodeId="@WindingCode.Id"/>
@@ -222,7 +225,7 @@
       NoHeader = true
     };
 
-    var dialog = await DialogService.ShowAsync<ImportMediaDialog>("Delete", parameters, options);
+    var dialog = await DialogService.ShowAsync<StopCloneDialog>("Delete", parameters, options);
     var result = await dialog.Result;
 
     if (result.Canceled) {

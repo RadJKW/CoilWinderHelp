@@ -11,7 +11,7 @@
   --max-docview-height: calc(100vh - var(--mud-appbar-height));
   margin-inline: auto;
   height: var(--max-docview-height);
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
   overflow: auto hidden;
 }
 

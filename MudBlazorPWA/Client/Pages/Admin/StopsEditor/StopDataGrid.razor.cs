@@ -3,12 +3,12 @@ using MudBlazor;
 using MudBlazorPWA.Shared.Models;
 using System.Text.Json;
 namespace MudBlazorPWA.Client.Pages.Admin.StopsEditor;
-public partial class AdminDataGrid : IDisposable {
+public partial class StopDataGrid : IDisposable {
 	[Parameter] [EditorRequired] public required List<WindingCode> WindingCodes { get; set; }
 
 	// create an event callback for the parent component to handle for when CodeType is changed
 
-	[Inject] private ILogger<AdminDataGrid> Logger { get; set; } = default!;
+	[Inject] private ILogger<StopDataGrid> Logger { get; set; } = default!;
 	[Inject] private ISnackbar Snackbar { get; set; } = default!;
 
 

@@ -43,6 +43,7 @@
   display: flex;
   flex-direction: column;
   padding-bottom: 56px;
+  background: var(--mud-palette-background-grey);
   width: 400px;
 }
 
@@ -50,7 +51,7 @@
   max-height: 100%;
   height: min-content;
   padding-bottom: 10px;
-  background: transparent;
+  background: var(--mud-palette-background);
 }
 
 .directory-treeview ::deep .mud-treeview-item-content {

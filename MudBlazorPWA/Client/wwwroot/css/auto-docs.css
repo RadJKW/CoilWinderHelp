@@ -1,74 +1,73 @@
-.auto-docs.container{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    height: calc(100vh - 60px);
-    margin-block: 12px 0;
-    overflow: hidden;
-    padding-inline: 0.4rem;
+.auto-docs.container {
+  --auto-docs-height: calc(100vh - var(--mud-appbar-height) - 1rem);
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  height: var(--auto-docs-height);
+  overflow: hidden;
+  padding-inline: 0.4rem;
 }
 
 .auto-docs.splitter {
-    height: 100%;
+  height: 100%;
 }
 
 .auto-docs.splitter .mud-splitter-content {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 .auto-docs button.splitter-size-toggle {
-    position: absolute;
-    z-index: 2;
-    left: 0.8rem;
-    top: 1rem;
-    height: auto;
-    color: #27272f;
-    background: rgb(56 56 67 / 26%);
+  position: absolute;
+  z-index: 2;
+  left: 0.8rem;
+  top: 1rem;
+  height: auto;
+  color: #27272f;
+  background: rgb(56 56 67 / 26%);
 }
 .pdf-grid {
-    display: grid;
-    grid-template-rows: 1fr;
-    flex: auto;
-    height: 100%;
-    width: auto;
-    padding: 0;
+  display: grid;
+  grid-template-rows: 1fr;
+  flex: auto;
+  height: 100%;
+  width: auto;
+  padding: 0;
 }
 
 .pdf-content {
-    display: flex;
-    justify-content: flex-start;
-    justify-items: center;
-    align-items: center;
-    flex: 1 1 auto;
-    height: 100%;
-    padding: 0;
-    background: rgba(177, 46, 30, 0.6);
+  display: flex;
+  justify-content: flex-start;
+  justify-items: center;
+  align-items: center;
+  flex: 1 1 auto;
+  height: 100%;
+  padding: 0;
+  background: rgba(177, 46, 30, 0.6);
 }
 .pdf-footer {
-    background: rgba(255, 196, 0, 0.1);
-    display: flex;
-    justify-content: space-evenly;
-    justify-items: center;
-    align-items: center;
-    padding: 4rem;
-    height: 100%;
+  background: rgba(255, 196, 0, 0.1);
+  display: flex;
+  justify-content: space-evenly;
+  justify-items: center;
+  align-items: center;
+  padding: 4rem;
+  height: 100%;
 }
 .video-grid {
-    display: flex;
-    flex-direction: column;
-
+  display: flex;
+  flex-direction: column;
 }
 .video-content {
-    background: transparent;
-    padding-inline: 0.2rem;
-    margin-block: 0 0.4rem;
+  background: transparent;
+  padding-inline: 0.2rem;
+  margin-block: 0 0.4rem;
 }
 .video-footer {
-    background: inherit;
-    padding-block: 0 1rem;
-    padding-inline: 1rem;
-    overflow: auto;
-    height: 100%;
-    margin-right: -6px;
+  background: inherit;
+  padding-block: 0 1rem;
+  padding-inline: 1rem;
+  overflow: auto;
+  height: 100%;
+  margin-right: -6px;
 }

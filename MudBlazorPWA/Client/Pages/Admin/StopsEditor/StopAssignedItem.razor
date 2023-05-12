@@ -10,19 +10,22 @@
   <MudListSubheaderExtended T="IDirectoryItem"
       Class="align-center border-b d-flex directory-item-header justify-center ma-0 mud-border-lines-default pa-0">
     <MudText Typo="Typo.button"
+        Color="TitleColor"
         Align="Align.Center">
       @Title
     </MudText>
   </MudListSubheaderExtended>
 
-  <div class="directory-item-content">
-
+  <div class="d-flex directory-item-content flex-column gap-0 justify-start">
     @if (DirectoryItems.Any()) {
+      if (DirectoryItems.Count == 1) {
+        <MudSpacer/>
+      }
       foreach (var item in DirectoryItems) {
         <MudListItemExtended T="IDirectoryItem"
             Class="directory-item"
             Dense="true"
-            Value="item">
+            Value="@item">
           <MudStack Row
               Justify="Justify.Center">
 
@@ -30,12 +33,10 @@
             <p class="@GetItemClass(item)">@item.Name</p>
           </MudStack>
         </MudListItemExtended>
+        if (DirectoryItems.Count <= 1 || item != DirectoryItems.Last()) {
+          <MudDivider Style="flex-grow: 0;"/>
+        }
       }
-    } else {
-      <MudPaper Style="background: transparent"
-          Height="auto">
-
-      </MudPaper>
     }
   </div>
 </MudListExtended>
@@ -56,6 +57,9 @@
   [Parameter]
   public EventCallback<bool> ItemChanged { get; set; }
 
+  [Parameter]
+  public Color TitleColor { get; set; } = Color.Default;
+
   private string Title { get; set; } = default!;
   private WindingCode? _originalWindingCode;
 
@@ -63,40 +67,39 @@
     Console.WriteLine($"Key: {Key}, OnParametersSetAsync");
     await base.OnParametersSetAsync();
     Title = Key.ToString();
+
+    if (_originalWindingCode != null && WindingCodeId != _originalWindingCode.Id) {
+      _originalWindingCode = await State.GetWindingCode(WindingCodeId);
+    }
   }
 
-  protected override async Task OnInitializedAsync() {
-
-    await base.OnInitializedAsync();
-  }
+  protected override async Task OnInitializedAsync() { await base.OnInitializedAsync(); }
 
   protected override async Task OnAfterRenderAsync(bool firstRender) {
     await base.OnAfterRenderAsync(firstRender);
     if (firstRender) {
       Console.WriteLine($"Key {Key}, First Render");
       _originalWindingCode = await State.GetWindingCode(WindingCodeId);
-      // if the key already exists in the dictionary, then do nothing
-      // if the key does not exist in the dictionary, then add it
-
+  // if the key already exists in the dictionary, then do nothing
+  // if the key does not exist in the dictionary, then add it
     }
   }
   private string GetItemClass(IDirectoryItem item) {
-
-    // switch statement based on Key
-    // determine which property to use to compare
-    // AssignedItem.Directory -> _originalWindingCode.FolderPath
-    // AssignedItem.Pdf -> _originalWindingCode.Media.Pdf
-    // AssignedItem.Video -> _originalWindingCode.Media.Video
-    // AssignedItem.RefMedia -> _originalWindingCode.Media.RefMedia (match the index of DirectoryItems to index of REfMedia)
-    // return string.empty if the item matches the original
-    // return "mud-alert-text-info" if the item does not match the original
+  // switch statement based on Key
+  // determine which property to use to compare
+  // AssignedItem.Directory -> _originalWindingCode.FolderPath
+  // AssignedItem.Pdf -> _originalWindingCode.Media.Pdf
+  // AssignedItem.Video -> _originalWindingCode.Media.Video
+  // AssignedItem.RefMedia -> _originalWindingCode.Media.RefMedia (match the index of DirectoryItems to index of REfMedia)
+  // return string.empty if the item matches the original
+  // return "mud-alert-text-info" if the item does not match the original
     Console.WriteLine("GetItemClass");
     if (_originalWindingCode == null) return string.Empty;
 
     string? originalItem = null;
     switch (Key) {
       case AssignedItem.Directory:
-      originalItem = _originalWindingCode.FolderPath;
+        originalItem = _originalWindingCode.FolderPath;
         break;
       case AssignedItem.Pdf:
         originalItem = _originalWindingCode.Media.Pdf;

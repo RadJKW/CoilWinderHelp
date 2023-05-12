@@ -57,6 +57,7 @@ public class AdminEditorState : IAsyncDisposable {
 		set => _directoryHub.WindingCodeType = value;
 	}
 	public bool HasWindingCodeChanges { get; set; }
+	public List<IDirectoryItem> AssignToDisabled { get; set; } = new();
 
 	public async Task BuildDirectoryTree() {
 		var rootDirectory = await _directoryHub.GetDirectorySnapshot();
@@ -65,7 +66,9 @@ public class AdminEditorState : IAsyncDisposable {
 		RootDirectoryItem = rootDirectoryItem;
 		SelectedItem = rootDirectoryItem;
 		await DirectoryExtensions.FetchTreeItems(rootDirectoryItem);
-		// TreeItems.Add(rootDirectoryItem);
+		// add the RootDirectoryItem and its children to the AssignToDisabled list
+		AssignToDisabled.Add(rootDirectoryItem);
+		AssignToDisabled.AddRange(rootDirectoryItem.TreeItems!.Where(x => x.ItemType == ItemType.Directory));
 		NotifyStateChanged();
 	}
 	public async Task<bool> ModifyWindingCode(WindingCode windingCode) {
@@ -105,4 +108,6 @@ public class AdminEditorState : IAsyncDisposable {
 	public async Task LoadWindingCodes() {
 		await _windingCodeManager.FetchWindingCodes();
 	}
+	public string GetHref(string directoryItemPath)
+		=> _navigation.BaseUri + "files/" + directoryItemPath;
 }

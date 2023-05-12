@@ -105,13 +105,32 @@ public static class DirectoryExtensions {
 	}
 
 	public static Task<AssignedItem>? GetAssignedType(this string name) {
-		AssignedItem result = default!;
-		if (name[^5..].Contains('.') is false) result = AssignedItem.Directory;
-		if (name.EndsWith(".pdf")) result = AssignedItem.Pdf;
-		if (name.EndsWith(".mp4")) result = AssignedItem.Video;
+		object? result = null;
+		if (name.Length <= 3) {
+			Console.WriteLine($"Name is too short: {name}, return");
+			result = AssignedItem.Directory;
+		}
+		else if (!name[^5..].Contains('.')) {
+			result = AssignedItem.Directory;
+		}
+		else if (name.EndsWith(".pdf")) {
+			result = AssignedItem.Pdf;
+		}
+		else if (name.EndsWith(".mp4")) {
+			result = AssignedItem.Video;
+		}
 
-		return result == default!
+		// if result is an assignedItem return it, else return null
+
+		Console.WriteLine(
+		result is null
+			? "AssignedType = null"
+			: $"AssignedType = {result}");
+
+
+		return result is null
 			? null
-			: Task.FromResult(result);
+			: Task.FromResult((AssignedItem)result);
 	}
+
 }

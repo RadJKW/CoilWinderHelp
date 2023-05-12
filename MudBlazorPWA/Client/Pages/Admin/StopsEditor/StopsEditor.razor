@@ -9,13 +9,13 @@
 </MudScrollbar>
 <div class="directory-tree-grid">
 
-    <AdminDirectoryTree class="bordered directory-tree dark-background overflow-hidden rounded-lg"/>
+    <DirectoryTree class="bordered directory-tree dark-background overflow-hidden rounded-lg"/>
 
   <div class="bordered dark-background winding-code-grid">
 
 
-    <AdminDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
-    <AdminCodeMediaCard WindingCode="@State.SelectedWindingCode"/>
+    <StopDataGrid WindingCodes="@State.WindingCodes.ToList()"/>
+    <StopMediaCard WindingCode="@State.SelectedWindingCode"/>
   </div>
 </div>
 
