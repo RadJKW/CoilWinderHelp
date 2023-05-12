@@ -1,0 +1,136 @@
+﻿@inject AdminEditorState State
+@if (DirectoryItem.CanExpand) {
+  <MudTreeViewItemToggleButton Loading="@DirectoryItem.Loading"
+      Expanded="DirectoryItem.Expanded"
+      ExpandedChanged="(expanded) => ExpandedChanged.InvokeAsync(expanded)"
+      Visible="DirectoryItem.CanExpand"
+      ExpandedIcon="@Icons.Material.Filled.ChevronRight"
+      LoadingIcon="@Icons.Material.Filled.Loop"
+      LoadingIconColor="Color.Info"/>
+} else if (DirectoryItem.ItemType == ItemType.Directory) {
+  <div style="padding-inline-end: 4px;"></div>
+}
+<MudMenu ActivationEvent="MouseEvent.RightClick"
+    Class="mb-0 mud-width-full pb-0"
+    Dense="true"
+    Size="Size.Small"
+    ListClass="d-flex flex-column align-center justify-center pb-0 mb-0"
+    PositionAtCursor="false"
+    AnchorOrigin="Origin.BottomRight"
+    TransformOrigin="Origin.TopRight">
+  <ActivatorContent>
+
+    <MudStack Row
+        Spacing="2"
+        Justify="Justify.SpaceEvenly"
+        Class="mud-width-full overflow-hidden"
+        AlignItems="AlignItems.Center">
+      <MudIconButton Icon="@DirectoryItem.Icon"
+          Class="cursor-help"
+          Href="@State.GetHref(DirectoryItem.Path)"
+          Target="blank"/>
+      <MudText>
+        @DirectoryItem.Name
+      </MudText>
+      <MudSpacer/>
+
+    </MudStack>
+  </ActivatorContent>
+  <ChildContent>
+    <MudStack Class="px-1 py-0"
+        Style="min-width: 10rem;"
+        Justify="Justify.Center"
+        AlignItems="AlignItems.Center">
+
+      <MudButton Color="Color.Info"
+          Href="@State.GetHref(DirectoryItem.Path)"
+          Target="blank"
+          Variant="Variant.Outlined"
+          DisableElevation="true">
+        <MudText Typo="Typo.body2"
+            Align="Align.Center">
+          @(DirectoryItem.ItemType is ItemType.Directory
+            ? "View Directory"
+            : "View Media")
+        </MudText>
+      </MudButton>
+
+      @if (!State.AssignToDisabled.Contains(DirectoryItem)){
+        List<AssignedItem> menuFilter = new();
+        var hasAssignedType = DirectoryItem.Name.GetAssignedType();
+        if (hasAssignedType != null) {
+          var assignedItemType = hasAssignedType.Result;
+
+          if (assignedItemType == AssignedItem.Directory) {
+            menuFilter.Add(assignedItemType);
+          } else {
+            menuFilter.Add(assignedItemType);
+            menuFilter.Add(AssignedItem.RefMedia);
+          }
+        }
+        if (menuFilter.Count > 0) {
+          <MudMenu StartIcon="@Icons.Material.Outlined.Add"
+              TransformOrigin="Origin.TopCenter"
+              ActivationEvent="MouseEvent.MouseOver"
+              Size="Size.Small"
+              Color="Color.Dark"
+              Variant="Variant.Filled"
+              AnchorOrigin="Origin.BottomCenter"
+              Label="Assign To.."
+              ListClass="pa-0 ma-1 mud-background-surface"
+              FullWidth="true"
+              Dense="true"
+              Disabled="@(State.SelectedWindingCode is null)">
+            <ChildContent>
+              <MudStack Justify="Justify.Center"
+                  Spacing="1"
+                  AlignItems="AlignItems.Stretch">
+
+                <div class="border-b d-flex justify-center mud-border-lines-default mud-width-full pa-0">
+                  <MudText Typo="Typo.button"
+                      Align="Align.Center">
+                    Code's
+                  </MudText>
+                </div>
+
+                @foreach (var itemType in menuFilter) {
+                  <MudMenuItem OnClick="() => AddWindingCodeItem(itemType, DirectoryItem)">
+                      @itemType
+                  </MudMenuItem>
+                }
+              </MudStack>
+            </ChildContent>
+          </MudMenu>
+        }
+      }
+
+      <div class="border-t mud-border-lines-default mud-width-full pa-0">
+        <MudMenuItem Class="pa-0">
+          <MudText Class="d-flex justify-center mud-width-full"
+              Typo="Typo.caption"
+              Align="Align.Center">
+            Close
+          </MudText>
+        </MudMenuItem>
+      </div>
+    </MudStack>
+  </ChildContent>
+</MudMenu>
+
+@code{
+  [Parameter, EditorRequired]
+  public required IDirectoryItem DirectoryItem { get; set; }
+
+  [Parameter]
+  public EventCallback<bool> ExpandedChanged { get; set; }
+
+
+  private void AddWindingCodeItem(AssignedItem key, IDirectoryItem value) {
+    Console.WriteLine("AddWindingCodeItem");
+  // cast key to AssignedItem to remove nullability
+    State.SelectedWindingCode?.EditAssignedItem(key, value.Path);
+    State.HasWindingCodeChanges = true;
+    State.NotifyStateChanged();
+  }
+
+}
