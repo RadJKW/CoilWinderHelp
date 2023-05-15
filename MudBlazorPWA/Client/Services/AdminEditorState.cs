@@ -5,7 +5,7 @@ using MudBlazorPWA.Shared.Extensions;
 using MudBlazorPWA.Shared.Interfaces;
 using MudBlazorPWA.Shared.Models;
 namespace MudBlazorPWA.Client.Services;
-public class AdminEditorState : IAsyncDisposable {
+public class AdminEditorState {
 	private readonly HubClientService _directoryHub;
 	// ReSharper disable once NotAccessedField.Local
 	private readonly ILogger<AdminEditorState> _logger;
@@ -26,10 +26,6 @@ public class AdminEditorState : IAsyncDisposable {
 	private void OnInitialized() {
 		_windingCodeManager.WindingCodesChanged += OnWindingCodesChanged;
 		WindingCodes = _windingCodeManager.WindingCodes;
-	}
-	ValueTask IAsyncDisposable.DisposeAsync() {
-		GC.SuppressFinalize(this);
-		return ValueTask.CompletedTask;
 	}
 	public event Action? StateChanged;
 

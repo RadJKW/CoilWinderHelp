@@ -10,7 +10,7 @@ public enum HubServers {
 	ChatHub
 }
 
-public class HubClientService {
+public class HubClientService : IAsyncDisposable {
 	public event Action<string[]>? ReceiveAllFolders;
 	public event Action<string, string[]?, string[]?>? ReceiveFolderContent;
 	public event Action? WindingCodesDbUpdated;
@@ -25,7 +25,6 @@ public class HubClientService {
 		InitializeChatHub();
 		FileServerUrl = _navigationManager
 			.ToAbsoluteUri("/files/");
-		GetServerDocsFolder();
 	}
 
 	// ReSharper disable once NotAccessedField.Local
@@ -43,7 +42,6 @@ public class HubClientService {
 			WindingCodeTypeChanged?.Invoke();
 		}
 	}
-	public string WindingDocsFolder { get; private set; } = string.Empty;
 // TODO: GetHubConnection is redundant, remove it
 	public HubConnection GetHubConnection(HubServers hubServer) {
 		return hubServer switch {
@@ -54,9 +52,6 @@ public class HubClientService {
 	}
 
 
-	private async void GetServerDocsFolder() {
-		WindingDocsFolder = await DirectoryHub.InvokeAsync<string>("GetServerWindingDocsFolder");
-	}
 	private async void InitializeDirectoryHub() {
 		var hubUrl = _navigationManager.ToAbsoluteUri("/directoryHub");
 		DirectoryHub = new HubConnectionBuilder()
@@ -162,4 +157,10 @@ public class HubClientService {
 		return await DirectoryHub.InvokeAsync<WindingCode>("DeleteWindingCode", code, WindingCodeType);
 	}
 	#endregion
+	async ValueTask IAsyncDisposable.DisposeAsync() {
+		await DirectoryHub.DisposeAsync();
+		await ChatHub.DisposeAsync();
+		GC.SuppressFinalize(this);
+
+	}
 }

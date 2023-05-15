@@ -2,8 +2,8 @@
 using Microsoft.JSInterop;
 using MudBlazorPWA.Shared.Models;
 using System.Text.Json;
-namespace MudBlazorPWA.Client.Pages.AutoDocs;
-public partial class AutoDocs {
+namespace MudBlazorPWA.Client.Pages.Employee.AutoDocs;
+public partial class AutoDocs : IDisposable {
 	[Parameter]
 	public int? WindingCodeId { get; set; }
 	private WindingCode? _currentWindingStop;
@@ -20,22 +20,24 @@ public partial class AutoDocs {
 
 
 	protected override async Task OnInitializedAsync() {
+		await base.OnInitializedAsync();
 		_currentWindingStop = await DirectoryHubClient.GetCurrentCoilWinderStop();
 		DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
-		await base.OnInitializedAsync();
+
+
 	}
 	protected override async Task OnParametersSetAsync() {
+		await base.OnParametersSetAsync();
 		if (WindingCodeId.HasValue) {
 			DirectoryHubClient.SetCurrentCoilWinderStop(WindingCodeId.Value);
 		}
-		await base.OnParametersSetAsync();
 	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
-		if (firstRender) {
-			// _moduleJS = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/AutoDocs/AutoDocs.razor.js");
-			_moduleJS = null;
-		}
 		await base.OnAfterRenderAsync(firstRender);
+		if (firstRender) {
+			_moduleJS = null;
+			if (OperatorState.CurrentEmployee is null) NavigationManager.NavigateTo("/login");
+		}
 	}
 	private void OnCurrentWindingStopUpdated(WindingCode windingCode) {
 		Console.WriteLine("OnCurrentWindingStopUpdated: " + windingCode.Code);
@@ -82,5 +84,9 @@ public partial class AutoDocs {
 	public void SecondaryContentUpdated() {
 		// dispose and reload SecondaryContent
 		ReloadSecondaryContent?.Invoke();
+	}
+	void IDisposable.Dispose() {
+		DirectoryHubClient.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
+		GC.SuppressFinalize(this);
 	}
 }

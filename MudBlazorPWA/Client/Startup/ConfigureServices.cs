@@ -15,5 +15,8 @@ public static class ConfigureServices {
 		services.AddScoped<IDirectoryNavigator, DirectoryNavigator>();
 		services.AddScoped<WindingCodeManager>();
 		services.AddScoped<AdminEditorState>();
+
+		services.AddScoped<EmployeeService>();
+		services.AddScoped<OperatorState>();
 	}
 }

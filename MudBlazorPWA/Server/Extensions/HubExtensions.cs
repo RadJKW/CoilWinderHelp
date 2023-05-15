@@ -1,5 +1,4 @@
-﻿using System.Net;
-using Microsoft.AspNetCore.Http.Features;
+﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MudBlazorPWA.Server.Extensions;
@@ -11,7 +10,7 @@ public static class HubExtensions
 	public static string? GetConnectionIp(HubCallerContext context)
 	{
 		var connection = context.Features.Get<IHttpConnectionFeature>();
-		IPAddress? remoteIpAddress = connection?.RemoteIpAddress;
+		var remoteIpAddress = connection?.RemoteIpAddress;
 
 		// Check if the address is IPv6
 		if (remoteIpAddress is not { IsIPv4MappedToIPv6: true })

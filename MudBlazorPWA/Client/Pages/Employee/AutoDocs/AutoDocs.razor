@@ -1,0 +1,54 @@
+@page "/{WindingCodeId:int?}"
+@layout DocViewLayout
+@inject HubClientService DirectoryHubClient
+@inject OperatorState OperatorState
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<CascadingValue Value="this"
+    IsFixed="true">
+
+  @switch (_currentWindingStop is not null) {
+    case true: {
+      <div class="auto-docs container mud-background-gray mud-elevation-4">
+        <MudSplitter Class="auto-docs splitter"
+            @bind-Dimension="@_startWidth"
+            StyleBar="width: 2px !important;"
+            OnDoubleClicked="HandleDoubleClicked"
+            EnableSlide="true"
+            EnableMargin="false"
+            Sensitivity="0.1d">
+          <StartContent>
+            <div class="d-flex justify-center relative">
+              <MudIconButton Size="Size.Medium"
+                  Variant="Variant.Text"
+                  Class="align-center justify-center splitter-size-toggle"
+                  Icon="@(_startWidth >= 50 ? Icons.Material.Outlined.ArrowCircleLeft : Icons.Material.Outlined.ArrowCircleRight)"
+                  OnClick="ToggleContentSize">
+              </MudIconButton>
+            </div>
+            <PrimaryContent/>
+          </StartContent>
+          <EndContent>
+            <SecondaryContent @ref="@_secondaryContent"/>
+          </EndContent>
+        </MudSplitter>
+      </div>
+      break;
+    }
+    case false: {
+      <div class="align-center d-flex justify-center mud-width-full"
+          style="height: 50%">
+        <div class="align-center d-flex flex-column justify-center">
+          <MudProgressCircular Color="Color.Tertiary"
+              StrokeWidth="5"
+              Size="Size.Large"
+              Indeterminate="true"/>
+          <MudText Typo="Typo.h3">Loading...</MudText>
+        </div>
+
+      </div>
+      break;
+    }
+  }
+</CascadingValue>

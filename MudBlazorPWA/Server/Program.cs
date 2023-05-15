@@ -50,6 +50,7 @@ app.MapRazorPages();
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 app.MapHub<DirectoryHub>("/directoryHub");
+app.MapHub<EmployeeHub>("/employeeHub");
 app.MapFallbackToFile("index.html");
 
 app.Run();

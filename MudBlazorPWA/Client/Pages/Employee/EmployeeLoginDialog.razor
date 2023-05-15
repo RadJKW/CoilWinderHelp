@@ -1,0 +1,99 @@
+﻿@page "/Login"
+@inject OperatorState OperatorState
+@layout DocViewLayout
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<MudGrid Class="d-flex justify-center mud-width-full py-4">
+  <MudItem xs="12">
+    <MudPaper Class="pa-4 mx-auto mud-background-gray" Width="300px">
+        <MudForm ReadOnly="false">
+          <MudTextField T="string"
+              @ref="@_employeeNumberInput"
+              Label="Badge Number"
+              @bind-Value="@_employeeNumber"
+              OnKeyUp="HandleKeyUp"
+              Immediate="false"
+              KeyUpPreventDefault="true"
+              Variant="Variant.Outlined"
+              Validation="@(new Func<string, bool>(x => x.Length >=4 && _validEmployee is not null))"/>
+  @if (_validEmployee is not null) {
+            <MudTextField T="string"
+              Label="Name"
+              Variant="Variant.Outlined"
+              @bind-Value="_validEmployee.EmployeeInfo.EmployeeName"
+              ReadOnly="true"/>
+          <MudTextField T="string"
+              Variant="Variant.Outlined"
+              @bind-Value="_validEmployee.EmployeeInfo.SupervisorNumber"
+              Label="Supervisor"/>
+          <MudTextField T="string"
+              Label="Status"
+              Variant="Variant.Outlined"
+              @bind-Value="_validEmployee.EmployeeInfo.EmployeeStatus"/>
+          <MudTextField T="string"
+              Variant="Variant.Outlined"
+              Label="Department"
+              @bind-Value="_validEmployee.EmployeeInfo.EmployeeDepartment"/>
+          }
+        </MudForm>
+      </MudPaper>
+  </MudItem>
+</MudGrid>
+
+@code {
+
+  private MudTextField<string> _employeeNumberInput = default!;
+  private string _employeeNumber = string.Empty;
+  private Employee? _validEmployee;
+  private CancellationTokenSource? _cancellationTokenSource;
+
+  protected override async Task OnParametersSetAsync() { await base.OnParametersSetAsync(); }
+  protected override async Task OnInitializedAsync() {
+    await base.OnInitializedAsync();
+    OperatorState.OperatorLoggedIn += OnOperatorLoggedIn;
+  }
+
+  private void OnOperatorLoggedIn() {
+    Console.WriteLine($"Operator {OperatorState.CurrentEmployee?.EmployeeInfo.EmployeeNumber} logged in");
+    NavigationManager.NavigateTo("/");
+  }
+
+  private async Task ValidateEmployee() {
+   if (_employeeNumber.Length == 4)
+     _employeeNumber = "0" + _employeeNumber;
+
+    var employee = await OperatorState.ValidateEmployee(_employeeNumber);
+    _validEmployee = employee ?? null;
+    if (_validEmployee is not null) StateHasChanged();
+  }
+
+  private async Task HandleKeyUp(KeyboardEventArgs arg) {
+    if (_employeeNumber != _validEmployee?.EmployeeInfo.EmployeeNumber) {
+      _validEmployee = null;
+      StateHasChanged();
+    }
+    if (_employeeNumber.Length < 4) return;
+    _cancellationTokenSource?.Cancel();
+    _cancellationTokenSource = new();
+    Console.WriteLine($"Key Up: {arg.Key}; {_employeeNumber}");
+    switch (_employeeNumber.Length) {
+      case 4:
+        await Task.Delay(1000, _cancellationTokenSource.Token).ContinueWith(async t => {
+
+          if (!t.IsCanceled) {
+            await ValidateEmployee();
+          }
+          Console.WriteLine($"Task Delay: {t.Status}");
+        });
+        break;
+      case 5: await ValidateEmployee();
+        break;
+    }
+  }
+
+  public void Dispose() {
+    _cancellationTokenSource?.Cancel();
+    OperatorState.OperatorLoggedIn -= OnOperatorLoggedIn;
+  }
+}

@@ -32,7 +32,12 @@
 
     <ItemGroup>
       <Folder Include="Persistence\Migrations" />
-      <Folder Include="Util\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="WebSrvcCall">
+        <HintPath>..\..\libs\WebSrvcCall.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

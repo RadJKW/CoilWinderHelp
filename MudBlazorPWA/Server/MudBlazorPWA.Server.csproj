@@ -13,6 +13,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.5" />
+        <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,6 +23,12 @@
 
     <ItemGroup>
       <Folder Include="Services\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="WebSrvcCall">
+        <HintPath>..\..\libs\WebSrvcCall.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 

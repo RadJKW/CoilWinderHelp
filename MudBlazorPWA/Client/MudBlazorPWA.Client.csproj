@@ -28,8 +28,13 @@
         <PublishedContent>wwwroot\service-worker.published.js</PublishedContent>
       </ServiceWorker>
     </ItemGroup>
-    
-    
+
+    <ItemGroup>
+      <Reference Include="WebSrvcCall">
+        <HintPath>..\..\libs\WebSrvcCall.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
     <Target Name="CollectMudBlazorStaticAssets" DependsOnTargets="ResolveStaticWebAssetsInputs" AfterTargets="Build" Condition=" '$(Configuration)' == 'Debug' ">
         <Copy SourceFiles="%(StaticWebAsset.Identity)" DestinationFolder="wwwroot/temp" Condition="$([System.String]::Copy(%(StaticWebAsset.Identity)).Contains('mudblazor'))" />
     </Target>

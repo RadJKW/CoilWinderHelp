@@ -43,7 +43,7 @@
     if (firstRender) {
       _videoJs = await JsRuntime
         .InvokeAsync<IJSObjectReference>(
-          "import", "./Pages/AutoDocs/VideoPlayer.razor.js");
+          "import", "./Pages/Employee/AutoDocs/VideoPlayer.razor.js");
     }
     await base.OnAfterRenderAsync(firstRender);
   }
