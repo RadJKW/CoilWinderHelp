@@ -4,6 +4,7 @@ public class OperatorState {
 
 	private readonly EmployeeService _employeeService;
 	private readonly ILogger<OperatorState> _logger;
+	private Employee? _currentEmployee;
 
 	public OperatorState(ILogger<OperatorState> logger, EmployeeService employeeService) {
 		_logger = logger;
@@ -12,14 +13,14 @@ public class OperatorState {
 
 	public event Action? StateChanged;
 	public event Action? OperatorLoggedIn;
-	public Employee? CurrentEmployee { get; set; }
-
-	public async Task<Employee> ValidateEmployee(Employee employee) {
-		var employeeId = employee.EmployeeInfo.EmployeeNumber;
-		var employeeInfo = await _employeeService.ValidateEmployee(employeeId);
-		_logger.LogInformation("Validating employee {EmployeeId}", employeeId);
-		return employeeInfo;
+	public Employee? CurrentEmployee {
+		get => _currentEmployee;
+		set {
+			_currentEmployee = value;
+			NotifyOperatorLoggedIn();
+		}
 	}
+
 
 	public async Task<Employee?> ValidateEmployee(string employeeId) {
 		var employeeInfo = await _employeeService.ValidateEmployee(employeeId);

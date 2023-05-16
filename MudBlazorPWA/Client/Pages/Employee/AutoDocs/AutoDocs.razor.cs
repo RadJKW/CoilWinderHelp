@@ -1,11 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using MudBlazor;
 using MudBlazorPWA.Shared.Models;
-using System.Text.Json;
 namespace MudBlazorPWA.Client.Pages.Employee.AutoDocs;
 public partial class AutoDocs : IDisposable {
-	[Parameter]
-	public int? WindingCodeId { get; set; }
+	[Parameter] public int? WindingCodeId { get; set; }
 	private WindingCode? _currentWindingStop;
 
 	public string? PdfUrl { get; private set; }
@@ -18,26 +17,54 @@ public partial class AutoDocs : IDisposable {
 
 	private IJSObjectReference? _moduleJS;
 
+	private readonly DialogOptions _dialogOptions = new() {
+		NoHeader = true,
+		MaxWidth = MaxWidth.ExtraSmall,
+		FullWidth = true,
+		Position = DialogPosition.Center,
+		CloseOnEscapeKey = false,
+		DisableBackdropClick = true
+	};
+
 
 	protected override async Task OnInitializedAsync() {
 		await base.OnInitializedAsync();
 		_currentWindingStop = await DirectoryHubClient.GetCurrentCoilWinderStop();
-		DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
-
-
+			DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
+			if (OperatorState.CurrentEmployee is null)
+				await AuthenticateUser();
+	}
+	private async Task AuthenticateUser() {
+		var dialog = await DialogService.ShowAsync<EmployeeLoginDialog>(title: string.Empty, options: _dialogOptions);
+		var result = await dialog.Result;
+		if (!result.Canceled) {
+			if ((bool)result.Data && _currentWindingStop is not null) {
+				// get a clone of the _currentWindingStop if not null
+				// set the _currentWindingStop to null
+				// Call OnCurrentWindingStopUpdated with the clone
+				var windingStop = _currentWindingStop.Clone();
+				Console.WriteLine($"OnParametersSetAsync: {windingStop.Code} | Result: {(bool)result.Data}");
+				_currentWindingStop = null;
+				OnCurrentWindingStopUpdated(windingStop);
+			}
+		}
 	}
 	protected override async Task OnParametersSetAsync() {
 		await base.OnParametersSetAsync();
 		if (WindingCodeId.HasValue) {
 			DirectoryHubClient.SetCurrentCoilWinderStop(WindingCodeId.Value);
 		}
+
 	}
 	protected override async Task OnAfterRenderAsync(bool firstRender) {
 		await base.OnAfterRenderAsync(firstRender);
 		if (firstRender) {
 			_moduleJS = null;
-			if (OperatorState.CurrentEmployee is null) NavigationManager.NavigateTo("/login");
 		}
+	}
+	protected override bool ShouldRender() {
+		// only render this component if the current employee is not null
+		return OperatorState.CurrentEmployee is not null;
 	}
 	private void OnCurrentWindingStopUpdated(WindingCode windingCode) {
 		Console.WriteLine("OnCurrentWindingStopUpdated: " + windingCode.Code);
@@ -47,8 +74,8 @@ public partial class AutoDocs : IDisposable {
 		}
 
 		if (string.IsNullOrEmpty(windingCode.Media.Pdf)
-			&& string.IsNullOrEmpty(windingCode.Media.Video)
-			&& windingCode.Media.RefMedia == null) {
+		    && string.IsNullOrEmpty(windingCode.Media.Video)
+		    && windingCode.Media.RefMedia == null) {
 			Console.WriteLine("OnCurrentWindingStopUpdated: all urls are null");
 			return;
 		}
@@ -65,7 +92,7 @@ public partial class AutoDocs : IDisposable {
 		StateHasChanged();
 		if (_moduleJS != null)
 			InvokeAsync(async () => { await _moduleJS.InvokeVoidAsync("init"); });
-		Console.WriteLine(JsonSerializer.Serialize(_currentWindingStop, new JsonSerializerOptions { WriteIndented = true }));
+	  //Console.WriteLine(JsonSerializer.Serialize(_currentWindingStop, new JsonSerializerOptions { WriteIndented = true }));
 	}
 	private void HandleDoubleClicked() {
 		_startWidth = _startWidth <= 50
@@ -85,6 +112,8 @@ public partial class AutoDocs : IDisposable {
 		// dispose and reload SecondaryContent
 		ReloadSecondaryContent?.Invoke();
 	}
+
+
 	void IDisposable.Dispose() {
 		DirectoryHubClient.CurrentWindingStopUpdated -= OnCurrentWindingStopUpdated;
 		GC.SuppressFinalize(this);
