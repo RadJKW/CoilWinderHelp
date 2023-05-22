@@ -11,7 +11,7 @@ public class OperatorState {
 		_employeeService = employeeService;
 	}
 
-	public event Action? StateChanged;
+
 	public event Action? OperatorLoggedIn;
 	public Employee? CurrentEmployee {
 		get => _currentEmployee;
@@ -38,5 +38,7 @@ public class OperatorState {
 	}
 
 	private void NotifyOperatorLoggedIn() => OperatorLoggedIn?.Invoke();
-	private void NotifyStateHasChanged() => StateChanged?.Invoke();
+
+	// public event Action? StateChanged;
+	// private void NotifyStateHasChanged() => StateChanged?.Invoke();
 }
