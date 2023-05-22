@@ -17,6 +17,6 @@ public static class ConfigureServices {
 		services.AddScoped<AdminEditorState>();
 
 		services.AddScoped<EmployeeService>();
-		services.AddScoped<OperatorState>();
+		services.AddScoped<EmployeeState>();
 	}
 }

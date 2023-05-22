@@ -1,0 +1,83 @@
+﻿@inject EmployeeState EmployeeState
+
+<MudIconButton Icon="@Icons.Material.Filled.Menu"
+    Color="Color.Inherit"
+    Edge="Edge.Start"
+    OnClick="@(ToggleDrawer)"/>
+
+<MudDivider Vertical="true" DividerType="DividerType.FullWidth" Class="mr-4"/>
+
+<MudMenu Dense="true"
+    AnchorOrigin="Origin.BottomCenter"
+    TransformOrigin="Origin.TopCenter"
+    PopoverClass="mt-n1"
+    ListClass="pa-1"
+    ActivationEvent="MouseEvent.LeftClick"
+    Size="Size.Medium">
+  <ActivatorContent>
+    @if (_user is not null) {
+      <MudChip Variant="Variant.Outlined"
+          Icon="@Icons.Material.Filled.Person"
+          IconColor="Color.Info">
+        @_user.EmployeeName
+      </MudChip>
+    }
+  </ActivatorContent>
+  <ChildContent>
+    <MudCard Outlined="true"
+        Square="true">
+    <MudCardHeader Class="border-b mud-border-lines-default py-1"> Options </MudCardHeader>
+    <MudCardContent>
+      <MudStack Justify="Justify.FlexStart"
+          AlignItems="AlignItems.Center">
+        <MudMenuItem> Option 1 </MudMenuItem>
+        <MudMenuItem> Option 2 </MudMenuItem>
+        <MudMenuItem> Option 3 </MudMenuItem>
+      </MudStack>
+      <MudCardActions>
+        <MudButton> Save </MudButton>
+        <MudButton OnClick="@(EmployeeState.Logout)"> Logout </MudButton>
+      </MudCardActions>
+    </MudCardContent>
+  </MudCard>
+  </ChildContent>
+
+</MudMenu>
+<MudSpacer/>
+<AppbarButtons/>
+
+@code {
+  [Parameter]
+  public EventCallback<MouseEventArgs> DrawerToggleCallback { get; set; }
+
+  private EmployeeInfo? _user = null;
+
+  protected override async Task OnInitializedAsync() {
+    EmployeeState.MajorUpdate += OnMajorUpdate;
+    await EmployeeState.LoadEmployeeState();
+     if (EmployeeState.CurrentEmployee is not null)
+        OnMajorUpdate();
+    await base.OnInitializedAsync();
+  }
+  private void OnMajorUpdate() { _user = EmployeeState.CurrentEmployee?.EmployeeInfo; }
+
+  private void ToggleDrawer(MouseEventArgs obj) { DrawerToggleCallback.InvokeAsync(obj); }
+
+  private string GetEmployeeInitials(string name) {
+    // Employee name is formatted as "Last First Middle_Initial"
+    // I want the returned initials to be of the format "FL" ignoring the middle initial
+
+    var nameParts
+      = name.Split(' ');
+
+    if (nameParts.Length < 2)
+      return "";
+
+    var initials
+      = $"{nameParts[1][0]}{nameParts[0][0]}";
+
+    return initials;
+
+
+  }
+}

@@ -53,22 +53,22 @@ public class DocViewService
 		OnMajorUpdateOccured();
 	}
 
-	private ILocalStorageService LocalStorageService { get; }
+	private readonly ILocalStorageService _localStorage;
 
-	public DocViewService(ILocalStorageService localStorageService) {
-		LocalStorageService = localStorageService;
+	public DocViewService(ILocalStorageService localStorage) {
+		_localStorage = localStorage;
 	}
 
 	public async Task LoadSettingsAsync() {
 		foreach (PropertyInfo property in Settings.GetType().GetProperties()) {
-			if ( await LocalStorageService.ContainKeyAsync(property.Name) == false) {
+			if ( await _localStorage.ContainKeyAsync(property.Name) == false) {
 				// set the property to its default value
 				property.SetValue(Settings, property.GetValue(Settings));
 				// save the property to local storage
-				await LocalStorageService.SetItemAsync(property.Name, property.GetValue(Settings));
+				await _localStorage.SetItemAsync(property.Name, property.GetValue(Settings));
 				continue;
 			}
-			var value = await LocalStorageService.GetItemAsync<bool>(property.Name);
+			var value = await _localStorage.GetItemAsync<bool>(property.Name);
 			property.SetValue(Settings, value);
 		}
 	}
@@ -76,7 +76,7 @@ public class DocViewService
 		foreach (PropertyInfo property in Settings.GetType().GetProperties()) {
 			object? value = property.GetValue(Settings);
 			if (value is not null) {
-				await LocalStorageService.SetItemAsync(property.Name, value);
+				await _localStorage.SetItemAsync(property.Name, value);
 			}
 		}
 	}

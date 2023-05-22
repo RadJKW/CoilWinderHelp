@@ -31,8 +31,15 @@ public partial class AutoDocs : IDisposable {
 		await base.OnInitializedAsync();
 		_currentWindingStop = await DirectoryHubClient.GetCurrentCoilWinderStop();
 			DirectoryHubClient.CurrentWindingStopUpdated += OnCurrentWindingStopUpdated;
-			if (OperatorState.CurrentEmployee is null)
+			EmployeeState.MajorUpdate += async () => await OnEmployeeStateChanged();
+			await EmployeeState.LoadEmployeeState();
+			if (EmployeeState.CurrentEmployee is null)
 				await AuthenticateUser();
+
+	}
+	private async Task OnEmployeeStateChanged() {
+		if (EmployeeState.CurrentEmployee is null)
+			await AuthenticateUser();
 	}
 	private async Task AuthenticateUser() {
 		var dialog = await DialogService.ShowAsync<EmployeeLoginDialog>(title: string.Empty, options: _dialogOptions);
@@ -64,7 +71,7 @@ public partial class AutoDocs : IDisposable {
 	}
 	protected override bool ShouldRender() {
 		// only render this component if the current employee is not null
-		return OperatorState.CurrentEmployee is not null;
+		return EmployeeState.CurrentEmployee is not null;
 	}
 	private void OnCurrentWindingStopUpdated(WindingCode windingCode) {
 		Console.WriteLine("OnCurrentWindingStopUpdated: " + windingCode.Code);

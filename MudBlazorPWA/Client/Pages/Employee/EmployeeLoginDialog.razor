@@ -1,4 +1,4 @@
-﻿@inject OperatorState OperatorState
+﻿@inject EmployeeState EmployeeState
 @layout DocViewLayout
 @inject NavigationManager NavigationManager
 @using System.Diagnostics.CodeAnalysis
@@ -128,13 +128,15 @@
     <MudStack Row
         Class="mud-width-full mx-1 mt-1"
         Justify="Justify.SpaceBetween">
-      <MudButton Variant="Variant.Filled"
+      <MudButton @ref="_loginButton"
+          Variant="Variant.Outlined"
           Color="Color.Success"
           Disabled="@(_validEmployee is null)"
+          ButtonType="ButtonType.Submit"
           OnClick="Submit">
         Login
       </MudButton>
-      <MudButton Variant="Variant.Filled"
+      <MudButton Variant="Variant.Outlined"
           Color="Color.Warning"
           Disabled="@string.IsNullOrEmpty(_employeeNumber)"
           OnClick="ResetForm">
@@ -155,17 +157,18 @@
   private CancellationTokenSource? _cancellationTokenSource;
   private bool _isOpen = true;
   private bool _enableOnScreenKeyboard = true;
+  private MudButton _loginButton = default!;
 
 
   protected override async Task OnParametersSetAsync() { await base.OnParametersSetAsync(); }
   protected override async Task OnInitializedAsync() {
     await base.OnInitializedAsync();
-    OperatorState.OperatorLoggedIn += OnOperatorLoggedIn;
+    EmployeeState.MajorUpdate += OnMajorUpdate;
   }
 
-  private void OnOperatorLoggedIn() {
-    Console.WriteLine($"Operator {OperatorState.CurrentEmployee?.EmployeeInfo.EmployeeNumber} logged in");
-    if (OperatorState.CurrentEmployee is not null)
+  private void OnMajorUpdate() {
+    Console.WriteLine($"Operator {EmployeeState.CurrentEmployee?.EmployeeInfo.EmployeeNumber} logged in");
+    if (EmployeeState.CurrentEmployee is not null)
       NavigationManager.NavigateTo("/");
   }
 
@@ -174,13 +177,14 @@
       ? "0" + _employeeNumber
       : _employeeNumber;
 
-    var employee = await OperatorState.ValidateEmployee(employeeId);
+    var employee = await EmployeeState.ValidateEmployee(employeeId);
     _validEmployee = employee ?? null;
     if (_validEmployee is not null) {
       _isOpen = false;
       StateHasChanged();
     }
     await _employeeNumberInput.Validate();
+    await _loginButton.FocusAsync();
   }
 
   private async Task HandleKeyDown(KeyboardEventArgs arg) {
@@ -234,7 +238,7 @@
 
   public void Dispose() {
     _cancellationTokenSource?.Cancel();
-    OperatorState.OperatorLoggedIn -= OnOperatorLoggedIn;
+    EmployeeState.MajorUpdate -= OnMajorUpdate;
     Cancel();
   }
   private void DeleteLastNumber() {
@@ -263,8 +267,8 @@
     _validEmployee = null;
     _employeeNumberInput.ResetValidation();
   }
-  private void Submit() {
-    OperatorState.CurrentEmployee = _validEmployee;
+  private async Task Submit() {
+    await EmployeeState.Login(_validEmployee!);
     MudDialog.Close(DialogResult.Ok(true));
     NavigationManager.NavigateTo("/");
   }
@@ -273,7 +277,7 @@
   private async void ClearInput() {
     _isOpen = false;
     _validEmployee = null;
-    OperatorState.CurrentEmployee = null;
+    EmployeeState.CurrentEmployee = null;
     _employeeNumberInput.ResetValidation();
     await _employeeNumberInput.ResetAsync();
     _employeeNumber = string.Empty;
