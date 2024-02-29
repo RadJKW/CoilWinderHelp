@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MudBlazorPWA.Shared.Models;
@@ -8,6 +9,7 @@ public class Z80WindingCode : WindingCode {
 public class PcWindingCode : WindingCode {
 }
 
+[SuppressMessage("ReSharper", "EntityFramework.ModelValidation.UnlimitedStringLength")]
 public class WindingCode : IWindingCode {
 	public int Id { get; set; }
 	public required string Code { get; set; }

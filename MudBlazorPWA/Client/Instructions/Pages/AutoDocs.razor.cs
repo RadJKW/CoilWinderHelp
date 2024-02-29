@@ -15,6 +15,7 @@ public partial class AutoDocs {
 	private double _startWidth = 65;
 	public event Action? ReloadSecondaryContent;
 
+	// ReSharper disable once NotAccessedField.Local
 	private SecondaryContent _secondaryContent = default!;
 
 	private IJSObjectReference? _moduleJS;

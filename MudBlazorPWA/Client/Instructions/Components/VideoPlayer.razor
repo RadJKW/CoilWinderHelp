@@ -7,7 +7,7 @@
 
 @if (AutoDocs.VideoUrl != null) {
   <video id="@Id"
-      onloadedmetadata="@JsSetVideoPlayer"
+      @onloadedmetadata="@JsSetVideoPlayer"
       src="@AutoDocs.VideoUrl"
       autoplay
       preload

@@ -14,6 +14,7 @@ public partial class AdminDashboard : IDisposable {
 
 
 	//TODO: use a Dictionary to Track/Revert changes
+	// ReSharper disable once NotAccessedField.Local
 	private MudDropContainer<DropItem> _dropContainer = default!;
 	private readonly List<DropItem> _dropItems = new();
 	private readonly List<WindingCode> _windingCodesList = new();

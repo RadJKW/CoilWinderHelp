@@ -1,223 +1,225 @@
 ﻿@inject AdminEditorState State
 <MudDataGrid T="WindingCode"
-    Class="admin-data-grid"
-    Items="@WindingCodes"
-    RowStyleFunc="@RowStyleFunc"
-    QuickFilter="DataGridQuickFilter"
-    @bind-SelectedItem="@State.SelectedWindingCode"
-    EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true})"
-    Virtualize="true"
-    Striped="true"
-    OverscanCount="2"
-    ShowMenuIcon="true"
-    Hover="true"
-    ReadOnly="@(_enableEdit == false)"
-    EditMode="DataGridEditMode.Form"
-    EditTrigger="DataGridEditTrigger.OnRowClick"
-    CommittedItemChanges="@CommitItemChanges"
-    Outlined="true"
-    HorizontalScrollbar="false"
-    FixedHeader="true"
-    FilterMode="DataGridFilterMode.Simple"
-    FilterDefinitions="@_dataGridFilter"
-    Dense="true">
-  <ToolBarContent>
-    <MudStack Row
-        AlignItems="AlignItems.Center"
-        Justify="Justify.FlexStart"
-        Style="height: 100%; width: 100%;">
-      <MudTooltip @ref="_menuTooltip"
-          UserAttributes="@(new() {{ "duration", 2000 }})"
-          Placement="Placement.Top"
-          @bind-IsVisible="@MenuTooltipVisible"
-          Text="Table Settings">
-        <MudMenu Class="mud-background-gray overflow-x-hidden"
-            FullWidth="true"
-            AnchorOrigin="Origin.BottomLeft"
-            TransformOrigin="Origin.TopLeft"
-            Dense="true"
-            PopoverClass="py-1 px-2 border border-radius-4"
-            Size="Size.Small">
-          <ActivatorContent>
-            <MudButton StartIcon="@Icons.Material.Outlined.ExpandCircleDown"
-                Variant="Variant.Filled"
-                Style="flex: none">
-              <MudText Color="Color.Secondary"
-                  Inline="true"
-                  Style="text-overflow: ellipsis;">
-                @($"{State.SelectedWindingCodeType.ToString().ToUpper()} - Stops Table")
-              </MudText>
-            </MudButton>
-          </ActivatorContent>
-          <ChildContent>
-            <MudText Typo="Typo.button"
-                Align="Align.Center">
-              Machines
-            </MudText>
-            <MudDivider Class="mb-1"
-                DividerType="DividerType.FullWidth"
-                FlexItem="true"/>
-            <MudPaper Class="mb-2 mud-background-gray"
-                Elevation="4">
-              @foreach (var type in Enum.GetValues(typeof(WindingCodeType))
-                .Cast<WindingCodeType>()
-                .Where(t => t != State.SelectedWindingCodeType)) {
-                <MudButton StartIcon="@Icons.Material.Outlined.SwapVert"
-                    Size="Size.Small"
-                    FullWidth="true"
-                    OnClick="@(() => State.SelectedWindingCodeType = type)"
+        Class="admin-data-grid"
+        Items="@WindingCodes"
+        RowStyleFunc="@RowStyleFunc"
+        QuickFilter="DataGridQuickFilter"
+        @bind-SelectedItem="@State.SelectedWindingCode"
+        EditDialogOptions="@(new DialogOptions { MaxWidth = MaxWidth.False, FullWidth = true, CloseOnEscapeKey = true })"
+        Virtualize="true"
+        Striped="true"
+        OverscanCount="2"
+        ShowMenuIcon="true"
+        Hover="true"
+        ReadOnly="@(_enableEdit == false)"
+        EditMode="DataGridEditMode.Form"
+        EditTrigger="DataGridEditTrigger.OnRowClick"
+        CommittedItemChanges="@CommitItemChanges"
+        Outlined="true"
+        HorizontalScrollbar="false"
+        FixedHeader="true"
+        FilterMode="DataGridFilterMode.Simple"
+        FilterDefinitions="@_dataGridFilter"
+        Dense="true">
+    <ToolBarContent>
+        <MudStack Row
+                AlignItems="AlignItems.Center"
+                Justify="Justify.FlexStart"
+                Style="height: 100%; width: 100%;">
+            <MudTooltip @ref="_menuTooltip"
+                    UserAttributes="@(new() { { "duration", 2000 } })"
+                    Placement="Placement.Top"
+                    @bind-IsVisible="@MenuTooltipVisible"
+                    Text="Table Settings">
+                <MudMenu Class="mud-background-gray overflow-x-hidden"
+                        FullWidth="true"
+                        AnchorOrigin="Origin.BottomLeft"
+                        TransformOrigin="Origin.TopLeft"
+                        Dense="true"
+                        PopoverClass="py-1 px-2 border border-radius-4"
+                        Size="Size.Small">
+                    <ActivatorContent>
+                        <MudButton StartIcon="@Icons.Material.Outlined.ExpandCircleDown"
+                                Variant="Variant.Filled"
+                                Style="flex: none">
+                            <MudText Color="Color.Secondary"
+                                    Inline="true"
+                                    Style="text-overflow: ellipsis;">
+                                @($"{State.SelectedWindingCodeType.ToString().ToUpper()} - Stops Table")
+                            </MudText>
+                        </MudButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudText Typo="Typo.button"
+                                Align="Align.Center">
+                            Machines
+                        </MudText>
+                        <MudDivider Class="mb-1"
+                                DividerType="DividerType.FullWidth"
+                                FlexItem="true"/>
+                        <MudPaper Class="mb-2 mud-background-gray"
+                                Elevation="4">
+                            @foreach (var type in Enum.GetValues(typeof(WindingCodeType))
+                                                      .Cast<WindingCodeType>()
+                                                      .Where(t => t != State.SelectedWindingCodeType)) {
+                                <MudButton StartIcon="@Icons.Material.Outlined.SwapVert"
+                                        Size="Size.Small"
+                                        FullWidth="true"
+                                        OnClick="@(() => State.SelectedWindingCodeType = type)"
+                                        Variant="Variant.Outlined"
+                                        Color="Color.Secondary"
+                                        IconSize="Size.Small">
+                                    <MudText Typo="Typo.button">@type.ToString()</MudText>
+                                </MudButton>
+                            }
+                        </MudPaper>
+                        <MudText Typo="Typo.button"
+                                Align="Align.Center">
+                            Settings
+                        </MudText>
+                        <MudDivider Class="mb-1"
+                                DividerType="DividerType.FullWidth"
+                                FlexItem="true"/>
+                        <MudCheckBox Label="Enable Edit"
+                                @bind-Checked="_enableEdit"
+                                Color="Color.Info"
+                                Dense="true"
+                                Size="Size.Small"/>
+                    </ChildContent>
+                </MudMenu>
+            </MudTooltip>
+            <MudRadioGroup @bind-SelectedOption="@SelectedDivision"
+                    Class="division-radio-group">
+                <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                        Variant="Variant.Outlined"
+                        Disabled="@(SelectedDivision is Division.All)"
+                        Color="Color.Tertiary"
+                        OnClick="@(() => SelectedDivision = Division.All)"
+                        Size="Size.Small"/>
+                @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>().Where(div => div != Division.All)) {
+                    <MudRadio Option="@divEnum"
+                            Color="Color.Secondary"
+                            UnCheckedColor="Color.Info"
+                            Size="Size.Small">
+                        @if (SelectedDivision == divEnum) {
+                            <p class="mud-alert-text-secondary">@divEnum.ToString()</p>
+                        } else {
+                            @divEnum.ToString()
+                        }
+                    </MudRadio>
+                }
+            </MudRadioGroup>
+            <MudButton Size="Size.Medium"
+                    Color="Color.Warning"
                     Variant="Variant.Outlined"
-                    Color="Color.Secondary"
-                    IconSize="Size.Small">
-                  <MudText Typo="Typo.button">@type.ToString()</MudText>
-                </MudButton>
-              }
-            </MudPaper>
-            <MudText Typo="Typo.button"
-                Align="Align.Center">
-              Settings
-            </MudText>
-            <MudDivider Class="mb-1"
-                DividerType="DividerType.FullWidth"
-                FlexItem="true"/>
-            <MudCheckBox Label="Enable Edit"
-                @bind-Checked="_enableEdit"
-                Color="Color.Info"
-                Dense="true"
-                Size="Size.Small"/>
-          </ChildContent>
-        </MudMenu>
-      </MudTooltip>
-      <MudRadioGroup @bind-SelectedOption="@SelectedDivision"
-          Class="division-radio-group">
-        <MudIconButton Icon="@Icons.Material.Outlined.Close"
-            Variant="Variant.Outlined"
-            Disabled="@(SelectedDivision is Division.All)"
-            Color="Color.Tertiary"
-            OnClick="() => SelectedDivision = Division.All"
-            Size="Size.Small"/>
-        @foreach (var divEnum in Enum.GetValues(typeof(Division)).Cast<Division>().Where(div => div != Division.All)) {
-          <MudRadio Option="@divEnum"
-              Color="Color.Secondary"
-              UnCheckedColor="Color.Info"
-              Size="Size.Small">
-            @if (SelectedDivision == divEnum) {
-              <p class="mud-alert-text-secondary">@divEnum.ToString()</p>
-            } else {
-              @divEnum.ToString()
-            }
-          </MudRadio>
-        }
-      </MudRadioGroup>
-      <MudButton Size="Size.Medium"
-          Color="Color.Warning"
-          Variant="Variant.Outlined"
-          Disabled="@(State.SelectedWindingCode is null)"
-          OnClick="@(() => State.SelectedWindingCode = null)">
-        <MudText Inline="true"
-            Align="Align.Center">
-          Clear Selection
-        </MudText>
-      </MudButton>
-      <MudSpacer/>
-      <MudTextField @bind-Value="_searchString"
-          Variant="Variant.Text"
-          Placeholder="Search"
-          HelperTextOnFocus="true"
-          HelperText="Search Templates: {column}:{value} or {value},{value} or {value}"
-          Clearable="true"
-          OnClearButtonClick="() => _searchString = string.Empty"
-          Adornment="Adornment.Start"
-          Immediate="true"
-          AdornmentIcon="@Icons.Material.Filled.Search"
-          IconSize="Size.Medium"
-          Margin="Margin.None"
-          Class="winding-codes-search">
-      </MudTextField>
-    </MudStack>
-  </ToolBarContent>
-  <Columns>
-    <PropertyColumn Property="x => x.Id"
-        T="WindingCode"
-        TProperty="int"
-        IsEditable="false"
-        Hideable="true">
-      <EditTemplate/>
-    </PropertyColumn>
-    <PropertyColumn Property="x => x.Division.ToString()"
-        T="WindingCode"
-        TProperty="string"
-        Title="Dept"
-        IsEditable="false"
-        Hideable="true">
-      <EditTemplate/>
-    </PropertyColumn>
-    <PropertyColumn Property="x => x.Code"
-        TProperty="string"
-        T="WindingCode"
-        IsEditable="false">
-      <EditTemplate/>
-    </PropertyColumn>
-    <PropertyColumn Property="x => x.Name"
-        T="WindingCode"
-        TProperty="string"
-        IsEditable>
-    </PropertyColumn>
-    <PropertyColumn Property="x => x.CodeTypeId.ToString()"
-        T="WindingCode"
-        TProperty="string"
-        HideSmall="true"
-        Title="CodeType"
-        Hideable="true">
-      <EditTemplate>
-        <MudSelectExtended T="CodeTypeId"
-            Class="mt-4"
-            RelativeWidth="true"
-            ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
-            @bind-Value="@context.Item.CodeTypeId"
-            Margin="Margin.Dense"
-            Dense="true"
-            Variant="Variant.Outlined"
-            Label="CodeType">
-        </MudSelectExtended>
-      </EditTemplate>
-    </PropertyColumn>
-    <PropertyColumn Property="x => x.FolderPath"
-        T="WindingCode"
-        TProperty="string"
-        Hidden="true">
-      <EditTemplate>
-        <MudSelectExtended T="string"
-            Context="selectContext"
-            @bind-Value="@context.Item.FolderPath"
-            Margin="Margin.Dense"
-            Variant="Variant.Filled"
-            Clearable="true"
-            CloseIcon="true"
-            OnClearButtonClick="@(() => context.Item.FolderPath = null)"
-            Color="Color.Dark"
-            Label="Assigned Folder"
-            Placeholder="Select a folder"
-            PopoverClass="folder-select-popover"
-            ForceShrink="true"
-            SearchBox="true"
-            SearchBoxPlaceholder="@($"\"{context.Item.Name}\"")"
-            SearchBoxAutoFocus="true"
-            LockScroll="true"
-            DisablePopoverPadding="true">
-          <ItemTemplate>
-            <MudText Typo="Typo.button"> @selectContext.Value</MudText>
-          </ItemTemplate>
-        </MudSelectExtended>
-      </EditTemplate>
-    </PropertyColumn>
-    <PropertyColumn Property="x => x.Media.Pdf"
-        T="WindingCode"
-        TProperty="string"
-        IsEditable="false"
-        Hidden="true">
-      <EditTemplate/>
-    </PropertyColumn>
+                    Disabled="@(State.SelectedWindingCode is null)"
+                    OnClick="@(() => State.SelectedWindingCode = null)">
+                <MudText Inline="true"
+                        Align="Align.Center">
+                    Clear Selection
+                </MudText>
+            </MudButton>
+            <MudSpacer/>
+            <MudTextField T="string"
+                    @bind-Value="@_searchString"
+                    Variant="Variant.Text"
+                    Placeholder="Search"
+                    HelperTextOnFocus="true"
+                    HelperText="Search Templates: {column}:{value} or {value},{value} or {value}"
+                    Clearable="true"
+                    OnClearButtonClick="() => _searchString = string.Empty"
+                    Adornment="Adornment.Start"
+                    Immediate="true"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    IconSize="Size.Medium"
+                    Margin="Margin.None"
+                    Class="winding-codes-search">
+            </MudTextField>
 
-  </Columns>
+        </MudStack>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Id"
+                T="WindingCode"
+                TProperty="int"
+                IsEditable="false"
+                Hideable="true">
+            <EditTemplate/>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Division.ToString()"
+                T="WindingCode"
+                TProperty="string"
+                Title="Dept"
+                IsEditable="false"
+                Hideable="true">
+            <EditTemplate/>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Code"
+                TProperty="string"
+                T="WindingCode"
+                IsEditable="false">
+            <EditTemplate/>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Name"
+                T="WindingCode"
+                TProperty="string"
+                IsEditable>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.CodeTypeId.ToString()"
+                T="WindingCode"
+                TProperty="string"
+                HideSmall="true"
+                Title="CodeType"
+                Hideable="true">
+            <EditTemplate>
+                <MudSelectExtended T="CodeTypeId"
+                        Class="mt-4"
+                        RelativeWidth="true"
+                        ItemCollection="@(Enum.GetValues<CodeTypeId>().ToList())"
+                        @bind-Value="@context.Item.CodeTypeId"
+                        Margin="Margin.Dense"
+                        Dense="true"
+                        Variant="Variant.Outlined"
+                        Label="CodeType">
+                </MudSelectExtended>
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.FolderPath!"
+                T="WindingCode"
+                TProperty="string"
+                Hidden="true">
+            <EditTemplate>
+                <MudSelectExtended T="string"
+                        Context="selectContext"
+                        @bind-Value="@context.Item.FolderPath"
+                        Margin="Margin.Dense"
+                        Variant="Variant.Filled"
+                        Clearable="true"
+                        CloseIcon="true"
+                        OnClearButtonClick="@(() => context.Item.FolderPath = null)"
+                        Color="Color.Dark"
+                        Label="Assigned Folder"
+                        Placeholder="Select a folder"
+                        PopoverClass="folder-select-popover"
+                        ForceShrink="true"
+                        SearchBox="true"
+                        SearchBoxPlaceholder="@($"\"{context.Item.Name}\"")"
+                        SearchBoxAutoFocus="true"
+                        LockScroll="true"
+                        DisablePopoverPadding="true">
+                    <ItemTemplate>
+                        <MudText Typo="Typo.button"> @selectContext.Value</MudText>
+                    </ItemTemplate>
+                </MudSelectExtended>
+            </EditTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Media.Pdf!"
+                T="WindingCode"
+                TProperty="string"
+                IsEditable="false"
+                Hidden="true">
+            <EditTemplate/>
+        </PropertyColumn>
+
+    </Columns>
 </MudDataGrid>

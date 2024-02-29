@@ -1,4 +1,7 @@
-﻿namespace MudBlazorPWA.Shared.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace MudBlazorPWA.Shared.Models;
+[SuppressMessage("ReSharper", "EntityFramework.ModelValidation.UnlimitedStringLength")]
 public class Media
 {
 	public string? Video { get; set; }
